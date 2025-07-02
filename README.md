@@ -6,6 +6,7 @@ This project collects event feedback using a simple REST API and a React front-e
 
 - **Survey Form** – questions are defined in `questions.json` and submissions are stored in `responses.json`.
 - **Admin Login** – environment variables `ADMIN_USERNAME` and `ADMIN_PASSWORD` control access.
+- **Add Questions** – authenticated admins can append new single-choice questions with `PUT /api/questions`.
 - **Results View** – logged-in admins can see all responses.
 - **Survey Management** – admins can create new surveys via the API backed by MongoDB.
 
