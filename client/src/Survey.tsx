@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 interface Question {
   id: string;
   text: string;
+  options: string[];
 }
 
 const Survey: React.FC = () => {
@@ -39,11 +40,19 @@ const Survey: React.FC = () => {
       {questions.map((q) => (
         <div key={q.id}>
           <label className="block mb-1 font-semibold">{q.text}</label>
-          <input
-            className="w-full p-2 border rounded"
-            onChange={(e) => handleChange(q.id, e.target.value)}
-            required
-          />
+          {q.options.map((opt) => (
+            <label key={opt} className="block">
+              <input
+                type="radio"
+                name={q.id}
+                className="mr-2"
+                value={opt}
+                onChange={() => handleChange(q.id, opt)}
+                required
+              />
+              {opt}
+            </label>
+          ))}
         </div>
       ))}
       <button className="px-4 py-2 bg-blue-500 text-white rounded" type="submit">

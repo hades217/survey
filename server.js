@@ -55,6 +55,22 @@ app.get('/api/questions', (req, res) => {
   res.json(questions);
 });
 
+app.put('/api/questions', (req, res) => {
+  if (!req.session.admin) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  const { text, options } = req.body;
+  if (typeof text !== 'string' || !Array.isArray(options) || !options.every((o) => typeof o === 'string')) {
+    return res.status(400).json({ error: 'invalid data' });
+  }
+  const questions = readJson(QUESTIONS_FILE);
+  const id = 'q' + (questions.length + 1);
+  const newQuestion = { id, text, options };
+  questions.push(newQuestion);
+  writeJson(QUESTIONS_FILE, questions);
+  res.json(newQuestion);
+});
+
 app.post('/api/response', (req, res) => {
   const responses = readJson(RESPONSES_FILE);
   responses.push({
