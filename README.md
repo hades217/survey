@@ -10,6 +10,7 @@ This project collects event feedback using a simple REST API and a React front-e
 - **Add Questions** – authenticated admins can append new single-choice questions with `PUT /api/questions`.
 - **Results View** – logged-in admins can see all responses.
 - **Survey Management** – admins can create new surveys via the API backed by MongoDB.
+- **View Statistics** – `GET /api/admin/surveys/:id/statistics` returns option counts for each question.
 
 ## Backend Structure
 

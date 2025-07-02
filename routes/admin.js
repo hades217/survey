@@ -40,6 +40,35 @@ router.get('/responses', async (req, res) => {
   res.json([...fileResponses, ...dbResponses]);
 });
 
+// Get statistics for a specific survey
+router.get('/surveys/:surveyId/statistics', async (req, res) => {
+  if (!req.session.admin) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  const { surveyId } = req.params;
+  const survey = await Survey.findById(surveyId).lean();
+  if (!survey) {
+    return res.status(404).json({ error: 'not found' });
+  }
+
+  const responses = await Response.find({ surveyId }).lean();
+  const stats = survey.questions.map((q) => {
+    const counts = {};
+    q.options.forEach((opt) => {
+      counts[opt] = 0;
+    });
+    responses.forEach((r) => {
+      const ans = r.answers?.[q._id] || r.answers?.[String(q._id)] || r.answers?.[q.text];
+      if (ans && counts.hasOwnProperty(ans)) {
+        counts[ans] += 1;
+      }
+    });
+    return { question: q.text, options: counts };
+  });
+
+  res.json(stats);
+});
+
 router.get('/logout', (req, res) => {
   req.session.destroy(() => {
     res.json({ success: true });
