@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const questionsRouter = require('./routes/questions');
 const responsesRouter = require('./routes/responses');
 const adminRouter = require('./routes/admin');
+const surveysRouter = require('./routes/surveys');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -25,6 +26,7 @@ app.use(
 
 app.use('/api', questionsRouter);
 app.use('/api', responsesRouter);
+app.use('/api', surveysRouter);
 app.use('/api/admin', adminRouter);
 
 const CLIENT_BUILD_PATH = path.join(__dirname, 'client', 'dist');
