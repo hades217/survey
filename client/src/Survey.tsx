@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 interface Question {
   id: string;
@@ -12,9 +13,7 @@ const Survey: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    fetch('/api/questions')
-      .then((res) => res.json())
-      .then(setQuestions);
+    axios.get<Question[]>('/api/questions').then((res) => setQuestions(res.data));
   }, []);
 
   const handleChange = (id: string, value: string) => {
@@ -23,11 +22,7 @@ const Survey: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch('/api/response', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
-    });
+    await axios.post('/api/response', formData);
     setSubmitted(true);
   };
 
