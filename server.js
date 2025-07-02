@@ -19,7 +19,7 @@ app.use(session({
   saveUninitialized: false
 }));
 
-app.use(express.static('public'));
+const CLIENT_BUILD_PATH = path.join(__dirname, 'client', 'dist');
 
 function readJson(filePath) {
   try {
@@ -70,6 +70,12 @@ app.get('/api/admin/logout', (req, res) => {
   req.session.destroy(() => {
     res.json({ success: true });
   });
+});
+
+app.use(express.static(CLIENT_BUILD_PATH));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(CLIENT_BUILD_PATH, 'index.html'));
 });
 
 app.listen(PORT, () => {
