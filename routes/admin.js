@@ -19,12 +19,46 @@ router.post('/login', (req, res) => {
   }
 });
 
+// Create a new survey
 router.post('/surveys', async (req, res) => {
   if (!req.session.admin) {
     return res.status(401).json({ error: 'unauthorized' });
   }
   try {
     const survey = await Survey.create(req.body);
+    res.json(survey);
+  } catch (err) {
+    res.status(400).json({ error: 'invalid data' });
+  }
+});
+
+// List all surveys
+router.get('/surveys', async (req, res) => {
+  if (!req.session.admin) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  const surveys = await Survey.find().lean();
+  res.json(surveys);
+});
+
+// Add a question to an existing survey
+router.put('/surveys/:id/questions', async (req, res) => {
+  if (!req.session.admin) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  const { id } = req.params;
+  const { text, options } = req.body;
+  if (typeof text !== 'string' || !Array.isArray(options) || !options.every(o => typeof o === 'string')) {
+    return res.status(400).json({ error: 'invalid data' });
+  }
+
+  try {
+    const survey = await Survey.findById(id);
+    if (!survey) {
+      return res.status(404).json({ error: 'not found' });
+    }
+    survey.questions.push({ text, options });
+    await survey.save();
     res.json(survey);
   } catch (err) {
     res.status(400).json({ error: 'invalid data' });
