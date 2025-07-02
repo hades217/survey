@@ -1,28 +1,27 @@
 # Survey Web App
 
-This is a simple Flask-based web application for collecting event feedback via a survey form. Participants submit their answers after an event, and an administrator can log in to view all collected responses.
+A simple Node.js and React-based application for collecting event feedback. Tailwind CSS is used for styling. Questions are configurable via `questions.json`. Admins can log in to view all submissions.
 
 ## Features
 
-- **Survey Form**: Accessible at `/survey` (or `/`). Stores answers in a local SQLite database.
-- **Admin Login**: Admin can log in at `/admin/login` to view results at `/admin`.
-- **Results Table**: Admin page lists all responses and timestamps.
+- **Survey Form**: Participants answer questions defined in `questions.json`.
+- **Admin Login**: Admin credentials set via environment variables `ADMIN_USERNAME` and `ADMIN_PASSWORD`.
+- **Results View**: After logging in, admins can see all responses in a table.
 
 ## Requirements
 
-- Python 3.8+
-- Dependencies listed in `requirements.txt`
+- Node.js 14+
 
 ## Setup
 
 1. Install dependencies:
    ```bash
-   pip install -r requirements.txt
+   npm install express express-session
    ```
-2. Run the application:
+2. Start the server:
    ```bash
-   python app.py
+   node server.js
    ```
-3. Open your browser at `http://localhost:5000` to access the survey.
+3. Open `http://localhost:5000` in your browser for the survey form. Visit `http://localhost:5000/admin.html` for the admin page.
 
-The admin credentials are defined in `app.py` as `ADMIN_USERNAME` and `ADMIN_PASSWORD`. Change these defaults before deploying.
+The default admin username and password are both `admin`/`password`. Change them before deploying.
