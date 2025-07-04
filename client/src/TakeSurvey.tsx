@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import type { SurveyResponse } from '../../shared/surveyResponse';
 
 interface Survey {
   _id: string;
@@ -8,7 +9,7 @@ interface Survey {
   questions: { _id: string; text: string; options: string[] }[];
 }
 
-interface FormData {
+interface FormState {
   name: string;
   email: string;
   answers: Record<string, string>;
@@ -18,7 +19,7 @@ const TakeSurvey: React.FC = () => {
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [selectedId, setSelectedId] = useState('');
   const [survey, setSurvey] = useState<Survey | null>(null);
-  const [form, setForm] = useState<FormData>({ name: '', email: '', answers: {} });
+  const [form, setForm] = useState<FormState>({ name: '', email: '', answers: {} });
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
@@ -42,11 +43,13 @@ const TakeSurvey: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!survey) return;
-    await axios.post(`/api/surveys/${survey._id}/responses`, {
+    const payload: SurveyResponse = {
       name: form.name,
       email: form.email,
-      answers: form.answers,
-    });
+      surveyId: survey._id,
+      answers: survey.questions.map((q) => form.answers[q._id]),
+    };
+    await axios.post(`/api/surveys/${survey._id}/responses`, payload);
     setSubmitted(true);
   };
 

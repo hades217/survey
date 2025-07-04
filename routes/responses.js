@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const { readJson, writeJson } = require('../utils/file');
 const Response = require('../models/Response');
+const { surveyResponseSchema } = require('../shared/surveyResponse');
 
 const router = express.Router();
 const RESPONSES_FILE = path.join(__dirname, '..', 'responses.json');
@@ -18,12 +19,9 @@ router.post('/response', (req, res) => {
 
 router.post('/surveys/:surveyId/responses', async (req, res) => {
   const { surveyId } = req.params;
-  const { name, email, answers } = req.body;
-  if (!name || !email || !answers) {
-    return res.status(400).json({ error: 'invalid data' });
-  }
   try {
-    const response = await Response.create({ name, email, surveyId, answers });
+    const data = surveyResponseSchema.parse({ ...req.body, surveyId });
+    const response = await Response.create(data);
     res.json(response);
   } catch (err) {
     res.status(400).json({ error: 'invalid data' });
