@@ -31,7 +31,7 @@ const Admin: React.FC = () => {
 	const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
 	const [showCreateModal, setShowCreateModal] = useState(false);
 	const [newSurvey, setNewSurvey] = useState({ title: '', description: '' });
-	const [questionForms, setQuestionForms] = useState<Record<string, { text: string; options: string }>>({});
+	const [questionForms, setQuestionForms] = useState<Record<string, { text: string; options: string[] }>>({});
 	const [stats, setStats] = useState<Record<string, StatsItem[]>>({});
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
@@ -122,19 +122,49 @@ const Admin: React.FC = () => {
 	};
 
 	const handleQuestionChange = (id: string, field: string, value: string) => {
+		if (field === 'text') {
+			setQuestionForms({
+				...questionForms,
+				[id]: { ...(questionForms[id] || { text: '', options: [] }), [field]: value },
+			});
+		}
+	};
+
+	const handleOptionChange = (surveyId: string, optionIndex: number, value: string) => {
+		const currentForm = questionForms[surveyId] || { text: '', options: [] };
+		const newOptions = [...currentForm.options];
+		newOptions[optionIndex] = value;
 		setQuestionForms({
 			...questionForms,
-			[id]: { ...(questionForms[id] || { text: '', options: '' }), [field]: value },
+			[surveyId]: { ...currentForm, options: newOptions },
+		});
+	};
+
+	const addOption = (surveyId: string) => {
+		const currentForm = questionForms[surveyId] || { text: '', options: [] };
+		setQuestionForms({
+			...questionForms,
+			[surveyId]: { ...currentForm, options: [...currentForm.options, ''] },
+		});
+	};
+
+	const removeOption = (surveyId: string, optionIndex: number) => {
+		const currentForm = questionForms[surveyId] || { text: '', options: [] };
+		const newOptions = currentForm.options.filter((_: string, index: number) => index !== optionIndex);
+		setQuestionForms({
+			...questionForms,
+			[surveyId]: { ...currentForm, options: newOptions },
 		});
 	};
 
 	const addQuestion = async (surveyId: string) => {
 		const q = questionForms[surveyId];
-		if (!q || !q.text || !q.options) return;
-		const options = q.options.split(',').map((o) => o.trim()).filter(Boolean);
+		if (!q || !q.text || !q.options.length) return;
+		const options = q.options.filter((option: string) => option.trim() !== '');
+		if (options.length === 0) return;
 		await axios.put(`/api/admin/surveys/${surveyId}/questions`, { text: q.text, options });
 		loadSurveys();
-		setQuestionForms({ ...questionForms, [surveyId]: { text: '', options: '' } });
+		setQuestionForms({ ...questionForms, [surveyId]: { text: '', options: [] } });
 	};
 
 	const loadStats = async (surveyId: string) => {
@@ -231,6 +261,8 @@ const Admin: React.FC = () => {
 	const renderSurveyDetail = () => {
 		if (!selectedSurvey) return null;
 		const s = selectedSurvey;
+		const currentForm = questionForms[s._id] || { text: '', options: [] };
+		
 		return (
 			<div className="card">
 				<div className="flex justify-between items-start mb-4">
@@ -281,11 +313,62 @@ const Admin: React.FC = () => {
 				</div>
 				<div className="border-t border-gray-200 pt-4">
 					<h4 className="font-semibold text-gray-800 mb-3">Add Question</h4>
-					<div className="grid md:grid-cols-2 gap-3 mb-3">
-						<input className="input-field" placeholder="Question text" value={questionForms[s._id]?.text || ''} onChange={(e) => handleQuestionChange(s._id, 'text', e.target.value)} />
-						<input className="input-field" placeholder="Options (comma separated)" value={questionForms[s._id]?.options || ''} onChange={(e) => handleQuestionChange(s._id, 'options', e.target.value)} />
+					<div className="space-y-4">
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-2">Question Text</label>
+							<input 
+								className="input-field w-full" 
+								placeholder="Enter question text" 
+								value={currentForm.text} 
+								onChange={(e) => handleQuestionChange(s._id, 'text', e.target.value)} 
+							/>
+						</div>
+						<div>
+							<div className="flex items-center justify-between mb-2">
+								<label className="block text-sm font-medium text-gray-700">Options</label>
+								<button 
+									className="btn-secondary text-sm"
+									onClick={() => addOption(s._id)}
+									type="button"
+								>
+									+ Add Option
+								</button>
+							</div>
+							{currentForm.options.length > 0 ? (
+								<div className="space-y-2">
+									{currentForm.options.map((option, index) => (
+										<div key={index} className="flex items-center gap-2">
+											<input
+												className="input-field flex-1"
+												placeholder={`Option ${index + 1}`}
+												value={option}
+												onChange={(e) => handleOptionChange(s._id, index, e.target.value)}
+											/>
+											<button
+												className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+												onClick={() => removeOption(s._id, index)}
+												type="button"
+											>
+												Remove
+											</button>
+										</div>
+									))}
+								</div>
+							) : (
+								<div className="text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center">
+									No options added yet. Click "Add Option" to start.
+								</div>
+							)}
+						</div>
+						<button 
+							className="btn-primary text-sm" 
+							onClick={() => addQuestion(s._id)} 
+							type="button"
+							disabled={!currentForm.text || currentForm.options.filter(opt => opt.trim()).length === 0}
+						>
+							Add Question
+						</button>
 					</div>
-					<button className="btn-primary text-sm" onClick={() => addQuestion(s._id)} type="button">Add Question</button>
 				</div>
 				<div className="border-t border-gray-200 pt-4">
 					<div className="flex justify-between items-center mb-3">
