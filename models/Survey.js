@@ -9,10 +9,19 @@ const surveySchema = new mongoose.Schema({
 		required: true,
 		index: true
 	},
+	type: {
+		type: String,
+		enum: ['survey', 'assessment'],
+		default: 'survey'
+	},
 	questions: [
 		{
 			text: String,
-			options: [String]
+			options: [String],
+			correctAnswer: {
+				type: Number,
+				default: null // Only used for assessment type, stores the index of correct option
+			}
 		}
 	],
 	status: {

@@ -71,16 +71,27 @@ router.put('/surveys/:id/questions', asyncHandler(async (req, res) => {
 		return res.status(401).json({ error: 'unauthorized' });
 	}
 	const { id } = req.params;
-	const { text, options } = req.body;
+	const { text, options, correctAnswer } = req.body;
 	if (typeof text !== 'string' || !Array.isArray(options) || !options.every(o => typeof o === 'string')) {
 		return res.status(400).json({ error: 'invalid data' });
+	}
+
+	// Validate correctAnswer if provided
+	if (correctAnswer !== undefined && (typeof correctAnswer !== 'number' || correctAnswer < 0 || correctAnswer >= options.length)) {
+		return res.status(400).json({ error: 'invalid correctAnswer' });
 	}
 
 	const survey = await Survey.findById(id);
 	if (!survey) {
 		throw new AppError('Survey not found', 404);
 	}
-	survey.questions.push({ text, options });
+	
+	const question = { text, options };
+	if (correctAnswer !== undefined) {
+		question.correctAnswer = correctAnswer;
+	}
+	
+	survey.questions.push(question);
 	await survey.save();
 	res.json(survey);
 }));
