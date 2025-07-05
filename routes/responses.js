@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const { readJson, writeJson } = require('../utils/file');
 const { submitSurveyResponse } = require('../controllers/surveyController');
+const asyncHandler = require('../middlewares/asyncHandler');
 
 const router = express.Router();
 const RESPONSES_FILE = path.join(__dirname, '..', 'responses.json');
@@ -16,6 +17,6 @@ router.post('/response', (req, res) => {
   res.json({ success: true });
 });
 
-router.post('/surveys/:surveyId/responses', submitSurveyResponse);
+router.post('/surveys/:surveyId/responses', asyncHandler(submitSurveyResponse));
 
 module.exports = router;

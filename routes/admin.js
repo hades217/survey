@@ -3,6 +3,8 @@ const path = require('path');
 const { readJson } = require('../utils/file');
 const Survey = require('../models/Survey');
 const Response = require('../models/Response');
+const asyncHandler = require('../middlewares/asyncHandler');
+const AppError = require('../utils/AppError');
 
 const router = express.Router();
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
@@ -20,29 +22,25 @@ router.post('/login', (req, res) => {
 });
 
 // Create a new survey
-router.post('/surveys', async (req, res) => {
+router.post('/surveys', asyncHandler(async (req, res) => {
   if (!req.session.admin) {
     return res.status(401).json({ error: 'unauthorized' });
   }
-  try {
-    const survey = await Survey.create(req.body);
-    res.json(survey);
-  } catch (err) {
-    res.status(400).json({ error: 'invalid data' });
-  }
-});
+  const survey = await Survey.create(req.body);
+  res.json(survey);
+}));
 
 // List all surveys
-router.get('/surveys', async (req, res) => {
+router.get('/surveys', asyncHandler(async (req, res) => {
   if (!req.session.admin) {
     return res.status(401).json({ error: 'unauthorized' });
   }
   const surveys = await Survey.find().lean();
   res.json(surveys);
-});
+}));
 
 // Add a question to an existing survey
-router.put('/surveys/:id/questions', async (req, res) => {
+router.put('/surveys/:id/questions', asyncHandler(async (req, res) => {
   if (!req.session.admin) {
     return res.status(401).json({ error: 'unauthorized' });
   }
@@ -52,37 +50,33 @@ router.put('/surveys/:id/questions', async (req, res) => {
     return res.status(400).json({ error: 'invalid data' });
   }
 
-  try {
-    const survey = await Survey.findById(id);
-    if (!survey) {
-      return res.status(404).json({ error: 'not found' });
-    }
-    survey.questions.push({ text, options });
-    await survey.save();
-    res.json(survey);
-  } catch (err) {
-    res.status(400).json({ error: 'invalid data' });
+  const survey = await Survey.findById(id);
+  if (!survey) {
+    throw new AppError('Survey not found', 404);
   }
-});
+  survey.questions.push({ text, options });
+  await survey.save();
+  res.json(survey);
+}));
 
-router.get('/responses', async (req, res) => {
+router.get('/responses', asyncHandler(async (req, res) => {
   if (!req.session.admin) {
     return res.status(401).json({ error: 'unauthorized' });
   }
   const fileResponses = readJson(RESPONSES_FILE);
   const dbResponses = await Response.find().lean();
   res.json([...fileResponses, ...dbResponses]);
-});
+}));
 
 // Get statistics for a specific survey
-router.get('/surveys/:surveyId/statistics', async (req, res) => {
+router.get('/surveys/:surveyId/statistics', asyncHandler(async (req, res) => {
   if (!req.session.admin) {
     return res.status(401).json({ error: 'unauthorized' });
   }
   const { surveyId } = req.params;
   const survey = await Survey.findById(surveyId).lean();
   if (!survey) {
-    return res.status(404).json({ error: 'not found' });
+    throw new AppError('Survey not found', 404);
   }
 
   const responses = await Response.find({ surveyId }).lean();
@@ -101,7 +95,7 @@ router.get('/surveys/:surveyId/statistics', async (req, res) => {
   });
 
   res.json(stats);
-});
+}));
 
 router.get('/logout', (req, res) => {
   req.session.destroy(() => {
