@@ -8,13 +8,13 @@ const router = express.Router();
 const RESPONSES_FILE = path.join(__dirname, '..', 'responses.json');
 
 router.post('/response', (req, res) => {
-  const responses = readJson(RESPONSES_FILE);
-  responses.push({
-    ...req.body,
-    timestamp: new Date().toISOString()
-  });
-  writeJson(RESPONSES_FILE, responses);
-  res.json({ success: true });
+	const responses = readJson(RESPONSES_FILE);
+	responses.push({
+		...req.body,
+		timestamp: new Date().toISOString()
+	});
+	writeJson(RESPONSES_FILE, responses);
+	res.json({ success: true });
 });
 
 router.post('/surveys/:surveyId/responses', asyncHandler(submitSurveyResponse));

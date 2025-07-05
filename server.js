@@ -10,19 +10,26 @@ const surveysRouter = require('./routes/surveys');
 const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5050;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/survey';
 
-mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+	.then(() => {
+		console.log('✓ Connected to MongoDB');
+	})
+	.catch(err => {
+		console.error('✗ MongoDB connection failed:', err.message);
+		process.exit(1);
+	});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
-  session({
-    secret: 'change-me',
-    resave: false,
-    saveUninitialized: false,
-  })
+	session({
+		secret: 'change-me',
+		resave: false,
+		saveUninitialized: false,
+	})
 );
 
 app.use('/api', questionsRouter);
@@ -34,9 +41,9 @@ app.use(errorHandler);
 const CLIENT_BUILD_PATH = path.join(__dirname, 'client', 'dist');
 app.use(express.static(CLIENT_BUILD_PATH));
 app.get('*', (req, res) => {
-  res.sendFile(path.join(CLIENT_BUILD_PATH, 'index.html'));
+	res.sendFile(path.join(CLIENT_BUILD_PATH, 'index.html'));
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+	console.log(`Server running on http://localhost:${PORT}`);
 });

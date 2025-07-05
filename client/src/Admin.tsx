@@ -1,190 +1,350 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import QRCodeComponent from './components/QRCode';
+import Modal from './components/Modal';
 
 interface Survey {
-  _id: string;
-  title: string;
-  description: string;
-  questions: { text: string; options: string[] }[];
+	_id: string;
+	title: string;
+	description: string;
+	slug: string;
+	questions: { text: string; options: string[] }[];
+	createdAt: string;
+	isActive: boolean;
 }
 
 interface StatsItem {
-  question: string;
-  options: Record<string, number>;
+	question: string;
+	options: Record<string, number>;
 }
 
+type TabType = 'list' | 'detail' | 'create';
+
 const Admin: React.FC = () => {
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
-  const [surveys, setSurveys] = useState<Survey[]>([]);
-  const [newSurvey, setNewSurvey] = useState({ title: '', description: '' });
-  const [questionForms, setQuestionForms] = useState<Record<string, { text: string; options: string }>>({});
-  const [stats, setStats] = useState<Record<string, StatsItem[]>>({});
+	const [loggedIn, setLoggedIn] = useState(false);
+	const [loginForm, setLoginForm] = useState({ username: '', password: '' });
+	const [surveys, setSurveys] = useState<Survey[]>([]);
+	const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
+	const [showCreateModal, setShowCreateModal] = useState(false);
+	const [newSurvey, setNewSurvey] = useState({ title: '', description: '' });
+	const [questionForms, setQuestionForms] = useState<Record<string, { text: string; options: string }>>({});
+	const [stats, setStats] = useState<Record<string, StatsItem[]>>({});
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState('');
+	const [showQR, setShowQR] = useState<Record<string, boolean>>({});
+	const [tab, setTab] = useState<TabType>('list');
 
-  const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
-  };
+	// 登录状态持久化
+	useEffect(() => {
+		const isLogged = localStorage.getItem('admin_logged_in');
+		if (isLogged === 'true') {
+			setLoggedIn(true);
+			loadSurveys();
+		}
+	}, []);
 
-  const login = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await axios.post('/api/admin/login', loginForm);
-      setLoggedIn(true);
-      loadSurveys();
-    } catch {
-      alert('Login failed');
-    }
-  };
+	useEffect(() => {
+		if (loggedIn) {
+			localStorage.setItem('admin_logged_in', 'true');
+		} else {
+			localStorage.removeItem('admin_logged_in');
+		}
+	}, [loggedIn]);
 
-  const loadSurveys = async () => {
-    const res = await axios.get<Survey[]>('/api/admin/surveys');
-    setSurveys(res.data);
-  };
+	const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
+	};
 
-  const logout = async () => {
-    await axios.get('/api/admin/logout');
-    setLoggedIn(false);
-    setSurveys([]);
-  };
+	const login = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setLoading(true);
+		setError('');
+		try {
+			await axios.post('/api/admin/login', loginForm);
+			setLoggedIn(true);
+			loadSurveys();
+		} catch {
+			setError('Login failed. Please check your credentials.');
+		} finally {
+			setLoading(false);
+		}
+	};
 
-  const createSurvey = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const res = await axios.post<Survey>('/api/admin/surveys', newSurvey);
-    setSurveys([...surveys, res.data]);
-    setNewSurvey({ title: '', description: '' });
-  };
+	const loadSurveys = async () => {
+		try {
+			const res = await axios.get<Survey[]>('/api/admin/surveys');
+			setSurveys(res.data);
+		} catch (err) {
+			console.error('Error loading surveys:', err);
+		}
+	};
 
-  const handleQuestionChange = (id: string, field: string, value: string) => {
-    setQuestionForms({
-      ...questionForms,
-      [id]: { ...(questionForms[id] || { text: '', options: '' }), [field]: value },
-    });
-  };
+	const logout = async () => {
+		await axios.get('/api/admin/logout');
+		setLoggedIn(false);
+		setSurveys([]);
+		setTab('list');
+		setSelectedSurvey(null);
+	};
 
-  const addQuestion = async (surveyId: string) => {
-    const q = questionForms[surveyId];
-    if (!q || !q.text || !q.options) return;
-    const options = q.options.split(',').map((o) => o.trim()).filter(Boolean);
-    await axios.put(`/api/admin/surveys/${surveyId}/questions`, { text: q.text, options });
-    loadSurveys();
-    setQuestionForms({ ...questionForms, [surveyId]: { text: '', options: '' } });
-  };
+	const createSurvey = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setLoading(true);
+		try {
+			const res = await axios.post<Survey>('/api/admin/surveys', newSurvey);
+			setSurveys([...surveys, res.data]);
+			setNewSurvey({ title: '', description: '' });
+			setShowCreateModal(false);
+		} catch (err) {
+			setError('Failed to create survey. Please try again.');
+		} finally {
+			setLoading(false);
+		}
+	};
 
-  const loadStats = async (surveyId: string) => {
-    const res = await axios.get<StatsItem[]>(`/api/admin/surveys/${surveyId}/statistics`);
-    setStats({ ...stats, [surveyId]: res.data });
-  };
+	const handleQuestionChange = (id: string, field: string, value: string) => {
+		setQuestionForms({
+			...questionForms,
+			[id]: { ...(questionForms[id] || { text: '', options: '' }), [field]: value },
+		});
+	};
 
-  if (!loggedIn) {
-    return (
-      <form onSubmit={login} className="space-y-4 max-w-sm mx-auto">
-        <div>
-          <label className="block mb-1 font-semibold">Username</label>
-          <input
-            name="username"
-            className="w-full p-2 border rounded"
-            onChange={handleLoginChange}
-            required
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-semibold">Password</label>
-          <input
-            type="password"
-            name="password"
-            className="w-full p-2 border rounded"
-            onChange={handleLoginChange}
-            required
-          />
-        </div>
-        <button className="px-4 py-2 bg-blue-500 text-white rounded" type="submit">Login</button>
-      </form>
-    );
-  }
+	const addQuestion = async (surveyId: string) => {
+		const q = questionForms[surveyId];
+		if (!q || !q.text || !q.options) return;
+		const options = q.options.split(',').map((o) => o.trim()).filter(Boolean);
+		await axios.put(`/api/admin/surveys/${surveyId}/questions`, { text: q.text, options });
+		loadSurveys();
+		setQuestionForms({ ...questionForms, [surveyId]: { text: '', options: '' } });
+	};
 
-  return (
-    <div className="space-y-8 p-4">
-      <button className="px-4 py-2 bg-gray-300 rounded" onClick={logout}>Logout</button>
+	const loadStats = async (surveyId: string) => {
+		const res = await axios.get<StatsItem[]>(`/api/admin/surveys/${surveyId}/statistics`);
+		setStats({ ...stats, [surveyId]: res.data });
+	};
 
-      <form onSubmit={createSurvey} className="space-y-2 max-w-md">
-        <h2 className="text-lg font-bold">Create Survey</h2>
-        <input
-          className="w-full p-2 border rounded"
-          placeholder="Title"
-          value={newSurvey.title}
-          onChange={(e) => setNewSurvey({ ...newSurvey, title: e.target.value })}
-          required
-        />
-        <input
-          className="w-full p-2 border rounded"
-          placeholder="Description"
-          value={newSurvey.description}
-          onChange={(e) => setNewSurvey({ ...newSurvey, description: e.target.value })}
-          required
-        />
-        <button className="px-4 py-2 bg-blue-500 text-white rounded" type="submit">Create</button>
-      </form>
+	const toggleSurveyStatus = async (surveyId: string, isActive: boolean) => {
+		try {
+			await axios.put(`/api/admin/surveys/${surveyId}`, { isActive: !isActive });
+			loadSurveys();
+		} catch (err) {
+			console.error('Error toggling survey status:', err);
+		}
+	};
 
-      <div className="space-y-6">
-        {surveys.map((s) => (
-          <div key={s._id} className="border p-4 rounded space-y-2">
-            <div className="font-bold text-lg">{s.title}</div>
-            <div className="text-gray-600">{s.description}</div>
-            <ul className="list-disc pl-5">
-              {s.questions.map((q, idx) => (
-                <li key={idx}>{q.text}</li>
-              ))}
-            </ul>
+	const deleteSurvey = async (surveyId: string) => {
+		if (!confirm('Are you sure you want to delete this survey?')) return;
+		try {
+			await axios.delete(`/api/admin/surveys/${surveyId}`);
+			loadSurveys();
+			setSelectedSurvey(null);
+			setTab('list');
+		} catch (err) {
+			console.error('Error deleting survey:', err);
+		}
+	};
 
-            <div className="flex space-x-2">
-              <input
-                className="flex-1 p-2 border rounded"
-                placeholder="Question text"
-                value={questionForms[s._id]?.text || ''}
-                onChange={(e) => handleQuestionChange(s._id, 'text', e.target.value)}
-              />
-              <input
-                className="flex-1 p-2 border rounded"
-                placeholder="Options (comma separated)"
-                value={questionForms[s._id]?.options || ''}
-                onChange={(e) => handleQuestionChange(s._id, 'options', e.target.value)}
-              />
-              <button
-                className="px-2 py-1 bg-green-500 text-white rounded"
-                onClick={() => addQuestion(s._id)}
-                type="button"
-              >
-                Add
-              </button>
-            </div>
+	const copyToClipboard = (text: string) => {
+		navigator.clipboard.writeText(text);
+	};
 
-            <button
-              className="mt-2 px-4 py-1 bg-purple-500 text-white rounded"
-              onClick={() => loadStats(s._id)}
-              type="button"
-            >
-              View Statistics
-            </button>
+	const toggleQR = (surveyId: string) => {
+		setShowQR({ ...showQR, [surveyId]: !showQR[surveyId] });
+	};
 
-            {stats[s._id] && (
-              <div className="mt-2">
-                {stats[s._id].map((st, idx) => (
-                  <div key={idx} className="mb-2">
-                    <div className="font-semibold">{st.question}</div>
-                    <ul className="list-disc pl-5">
-                      {Object.entries(st.options).map(([opt, count]) => (
-                        <li key={opt}>{opt}: {count}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+	// Tab内容
+	const renderTabs = () => (
+		<div className="flex space-x-4 mb-6 border-b border-gray-200">
+			<button
+				className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tab === 'list' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
+				onClick={() => { setTab('list'); setSelectedSurvey(null); }}
+			>
+				Survey 列表
+			</button>
+			<button
+				className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tab === 'create' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
+				onClick={() => setShowCreateModal(true)}
+			>
+				创建 Survey
+			</button>
+			{selectedSurvey && (
+				<button
+					className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tab === 'detail' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
+					onClick={() => setTab('detail')}
+				>
+					详情
+				</button>
+			)}
+		</div>
+	);
+
+	// Survey 列表
+	const renderSurveyList = () => (
+		<div className="space-y-4">
+			{surveys.map((s) => (
+				<div
+					key={s._id}
+					className="card cursor-pointer hover:shadow-xl transition-shadow"
+					onClick={() => { setSelectedSurvey(s); setTab('detail'); }}
+				>
+					<div className="flex justify-between items-center">
+						<div>
+							<h3 className="text-lg font-bold text-gray-800">{s.title}</h3>
+							<div className="text-sm text-gray-500">{s.description}</div>
+						</div>
+						<span className={`px-2 py-1 text-xs font-medium rounded-full ${s.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{s.isActive ? 'Active' : 'Inactive'}</span>
+					</div>
+				</div>
+			))}
+		</div>
+	);
+
+	// Survey 详情
+	const renderSurveyDetail = () => {
+		if (!selectedSurvey) return null;
+		const s = selectedSurvey;
+		return (
+			<div className="card">
+				<div className="flex justify-between items-start mb-4">
+					<div className="flex-1">
+						<div className="flex items-center gap-3 mb-2">
+							<h3 className="text-xl font-bold text-gray-800">{s.title}</h3>
+							<span className={`px-2 py-1 text-xs font-medium rounded-full ${s.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{s.isActive ? 'Active' : 'Inactive'}</span>
+						</div>
+						{s.description && <p className="text-gray-600 mb-3">{s.description}</p>}
+						<div className="text-sm text-gray-500">Created: {new Date(s.createdAt).toLocaleDateString()}</div>
+					</div>
+					<div className="flex gap-2">
+						<button className="btn-secondary text-sm" onClick={() => toggleSurveyStatus(s._id, s.isActive)}>{s.isActive ? 'Deactivate' : 'Activate'}</button>
+						<button className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors" onClick={() => deleteSurvey(s._id)}>Delete</button>
+					</div>
+				</div>
+				<div className="bg-gray-50 rounded-lg p-4 mb-4">
+					<div className="flex items-center justify-between mb-3">
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-1">Survey URL</label>
+							<div className="text-sm text-gray-600 font-mono">{window.location.origin}/survey/{s.slug}</div>
+						</div>
+						<div className="flex gap-2">
+							<button className="btn-secondary text-sm" onClick={() => copyToClipboard(`${window.location.origin}/survey/${s.slug}`)}>Copy URL</button>
+							<button className="btn-primary text-sm" onClick={() => toggleQR(s._id)}>{showQR[s._id] ? 'Hide QR' : 'Show QR'}</button>
+						</div>
+					</div>
+					{showQR[s._id] && (
+						<div className="border-t border-gray-200 pt-4">
+							<QRCodeComponent url={`${window.location.origin}/survey/${s.slug}`} />
+						</div>
+					)}
+				</div>
+				<div className="mb-4">
+					<h4 className="font-semibold text-gray-800 mb-3">Questions ({s.questions.length})</h4>
+					{s.questions.length > 0 ? (
+						<div className="space-y-2">
+							{s.questions.map((q, idx) => (
+								<div key={idx} className="bg-gray-50 rounded-lg p-3">
+									<div className="font-medium text-gray-800 mb-1">{idx + 1}. {q.text}</div>
+									<div className="text-sm text-gray-600">Options: {q.options.join(', ')}</div>
+								</div>
+							))}
+						</div>
+					) : (
+						<p className="text-gray-500 text-sm">No questions added yet.</p>
+					)}
+				</div>
+				<div className="border-t border-gray-200 pt-4">
+					<h4 className="font-semibold text-gray-800 mb-3">Add Question</h4>
+					<div className="grid md:grid-cols-2 gap-3 mb-3">
+						<input className="input-field" placeholder="Question text" value={questionForms[s._id]?.text || ''} onChange={(e) => handleQuestionChange(s._id, 'text', e.target.value)} />
+						<input className="input-field" placeholder="Options (comma separated)" value={questionForms[s._id]?.options || ''} onChange={(e) => handleQuestionChange(s._id, 'options', e.target.value)} />
+					</div>
+					<button className="btn-primary text-sm" onClick={() => addQuestion(s._id)} type="button">Add Question</button>
+				</div>
+				<div className="border-t border-gray-200 pt-4">
+					<div className="flex justify-between items-center mb-3">
+						<h4 className="font-semibold text-gray-800">Statistics</h4>
+						<button className="btn-secondary text-sm" onClick={() => loadStats(s._id)} type="button">View Statistics</button>
+					</div>
+					{stats[s._id] && (
+						<div className="space-y-4">
+							{stats[s._id].map((st, idx) => (
+								<div key={idx} className="bg-gray-50 rounded-lg p-4">
+									<div className="font-semibold text-gray-800 mb-2">{st.question}</div>
+									<div className="space-y-2">
+										{Object.entries(st.options).map(([opt, count]) => (
+											<div key={opt} className="flex justify-between items-center">
+												<span className="text-gray-700">{opt}</span>
+																											<span className="font-medium text-blue-600">{count}</span>
+											</div>
+										))}
+									</div>
+								</div>
+							))}
+						</div>
+					)}
+				</div>
+			</div>
+		);
+	};
+
+	// 创建 Survey 弹窗
+	const renderCreateModal = () => (
+		<Modal show={showCreateModal} title="创建 Survey" onClose={() => setShowCreateModal(false)}>
+			<form onSubmit={createSurvey} className="space-y-4">
+				<div>
+					<label className="block text-sm font-medium text-gray-700 mb-2">Survey Title *</label>
+					<input className="input-field" placeholder="Enter survey title" value={newSurvey.title} onChange={(e) => setNewSurvey({ ...newSurvey, title: e.target.value })} required />
+				</div>
+				<div>
+					<label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+					<input className="input-field" placeholder="Enter survey description" value={newSurvey.description} onChange={(e) => setNewSurvey({ ...newSurvey, description: e.target.value })} />
+				</div>
+				<button className="btn-primary w-full" type="submit" disabled={loading}>{loading ? 'Creating...' : 'Create Survey'}</button>
+			</form>
+		</Modal>
+	);
+
+	if (!loggedIn) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+				<div className="card max-w-md w-full">
+					<div className="text-center mb-8">
+						<h2 className="text-3xl font-bold text-gray-900">Admin Login</h2>
+						<p className="mt-2 text-sm text-gray-600">Sign in to manage your surveys</p>
+					</div>
+					{error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">{error}</div>}
+					<form onSubmit={login} className="space-y-6">
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+							<input name="username" className="input-field" onChange={handleLoginChange} required placeholder="Enter username" />
+						</div>
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+							<input type="password" name="password" className="input-field" onChange={handleLoginChange} required placeholder="Enter password" />
+						</div>
+						<button className="btn-primary w-full" type="submit" disabled={loading}>{loading ? 'Signing in...' : 'Sign In'}</button>
+					</form>
+				</div>
+			</div>
+		);
+	}
+
+	return (
+		<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+			<div className="w-full max-w-3xl mx-auto">
+				<div className="flex justify-between items-center mb-8">
+					<div>
+						<h1 className="text-3xl font-bold text-gray-900">Survey Admin Dashboard</h1>
+						<p className="text-gray-600 mt-1">Manage your surveys and view responses</p>
+					</div>
+					<button className="btn-secondary" onClick={logout}>Logout</button>
+				</div>
+				{renderTabs()}
+				{tab === 'list' && renderSurveyList()}
+				{tab === 'detail' && renderSurveyDetail()}
+				{renderCreateModal()}
+			</div>
+		</div>
+	);
 };
 
 export default Admin;
