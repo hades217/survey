@@ -2,13 +2,9 @@ const { surveyResponseSchema } = require('../schemas/surveySchemas');
 const { saveSurveyResponse } = require('../services/surveyService');
 
 async function submitSurveyResponse(req, res) {
-  try {
-    const data = surveyResponseSchema.parse({ ...req.body, surveyId: req.params.surveyId });
-    const saved = await saveSurveyResponse(data);
-    res.json({ success: true, data: saved });
-  } catch (err) {
-    res.status(400).json({ success: false, error: 'invalid data' });
-  }
+  const data = surveyResponseSchema.parse({ ...req.body, surveyId: req.params.surveyId });
+  const saved = await saveSurveyResponse(data);
+  res.json({ success: true, data: saved });
 }
 
 module.exports = { submitSurveyResponse };

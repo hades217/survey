@@ -7,6 +7,7 @@ const questionsRouter = require('./routes/questions');
 const responsesRouter = require('./routes/responses');
 const adminRouter = require('./routes/admin');
 const surveysRouter = require('./routes/surveys');
+const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -28,6 +29,7 @@ app.use('/api', questionsRouter);
 app.use('/api', responsesRouter);
 app.use('/api', surveysRouter);
 app.use('/api/admin', adminRouter);
+app.use(errorHandler);
 
 const CLIENT_BUILD_PATH = path.join(__dirname, 'client', 'dist');
 app.use(express.static(CLIENT_BUILD_PATH));
