@@ -10,7 +10,8 @@ interface Survey {
 	title: string;
 	description: string;
 	slug: string;
-	questions: { text: string; options: string[] }[];
+	type: 'survey' | 'assessment';
+	questions: { text: string; options: string[]; correctAnswer?: number }[];
 	createdAt: string;
 	isActive: boolean;
 }
@@ -30,8 +31,8 @@ const Admin: React.FC = () => {
 	const [surveys, setSurveys] = useState<Survey[]>([]);
 	const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
 	const [showCreateModal, setShowCreateModal] = useState(false);
-	const [newSurvey, setNewSurvey] = useState({ title: '', description: '' });
-	const [questionForms, setQuestionForms] = useState<Record<string, { text: string; options: string[] }>>({});
+	const [newSurvey, setNewSurvey] = useState({ title: '', description: '', type: 'survey' as 'survey' | 'assessment' });
+	const [questionForms, setQuestionForms] = useState<Record<string, { text: string; options: string[]; correctAnswer?: number }>>({});
 	const [stats, setStats] = useState<Record<string, StatsItem[]>>({});
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
@@ -112,7 +113,7 @@ const Admin: React.FC = () => {
 		try {
 			const res = await axios.post<Survey>('/api/admin/surveys', newSurvey);
 			setSurveys([...surveys, res.data]);
-			setNewSurvey({ title: '', description: '' });
+			setNewSurvey({ title: '', description: '', type: 'survey' });
 			setShowCreateModal(false);
 		} catch (err) {
 			setError('Failed to create survey. Please try again.');
@@ -121,11 +122,16 @@ const Admin: React.FC = () => {
 		}
 	};
 
-	const handleQuestionChange = (id: string, field: string, value: string) => {
+	const handleQuestionChange = (id: string, field: string, value: string | number) => {
 		if (field === 'text') {
 			setQuestionForms({
 				...questionForms,
 				[id]: { ...(questionForms[id] || { text: '', options: [] }), [field]: value },
+			});
+		} else if (field === 'correctAnswer') {
+			setQuestionForms({
+				...questionForms,
+				[id]: { ...(questionForms[id] || { text: '', options: [] }), [field]: value as number },
 			});
 		}
 	};
@@ -151,9 +157,13 @@ const Admin: React.FC = () => {
 	const removeOption = (surveyId: string, optionIndex: number) => {
 		const currentForm = questionForms[surveyId] || { text: '', options: [] };
 		const newOptions = currentForm.options.filter((_: string, index: number) => index !== optionIndex);
+		// Reset correctAnswer if it was pointing to a removed option
+		const correctAnswer = currentForm.correctAnswer !== undefined && currentForm.correctAnswer >= optionIndex ? 
+			(currentForm.correctAnswer === optionIndex ? undefined : currentForm.correctAnswer - 1) : 
+			currentForm.correctAnswer;
 		setQuestionForms({
 			...questionForms,
-			[surveyId]: { ...currentForm, options: newOptions },
+			[surveyId]: { ...currentForm, options: newOptions, correctAnswer },
 		});
 	};
 
@@ -162,7 +172,18 @@ const Admin: React.FC = () => {
 		if (!q || !q.text || !q.options.length) return;
 		const options = q.options.filter((option: string) => option.trim() !== '');
 		if (options.length === 0) return;
-		await axios.put(`/api/admin/surveys/${surveyId}/questions`, { text: q.text, options });
+		
+		const payload: { text: string; options: string[]; correctAnswer?: number } = { 
+			text: q.text, 
+			options 
+		};
+		
+		// Include correctAnswer if it's set
+		if (q.correctAnswer !== undefined) {
+			payload.correctAnswer = q.correctAnswer;
+		}
+		
+		await axios.put(`/api/admin/surveys/${surveyId}/questions`, payload);
 		loadSurveys();
 		setQuestionForms({ ...questionForms, [surveyId]: { text: '', options: [] } });
 	};
@@ -247,7 +268,12 @@ const Admin: React.FC = () => {
 				>
 					<div className="flex justify-between items-center">
 						<div>
-							<h3 className="text-lg font-bold text-gray-800">{s.title}</h3>
+							<div className="flex items-center gap-2 mb-1">
+								<h3 className="text-lg font-bold text-gray-800">{s.title}</h3>
+								<span className={`px-2 py-1 text-xs font-medium rounded-full ${s.type === 'assessment' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+									{s.type === 'assessment' ? '评测' : '调研'}
+								</span>
+							</div>
 							<div className="text-sm text-gray-500">{s.description}</div>
 						</div>
 						<span className={`px-2 py-1 text-xs font-medium rounded-full ${s.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{s.isActive ? 'Active' : 'Inactive'}</span>
@@ -267,10 +293,13 @@ const Admin: React.FC = () => {
 			<div className="card">
 				<div className="flex justify-between items-start mb-4">
 					<div className="flex-1">
-						<div className="flex items-center gap-3 mb-2">
-							<h3 className="text-xl font-bold text-gray-800">{s.title}</h3>
-							<span className={`px-2 py-1 text-xs font-medium rounded-full ${s.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{s.isActive ? 'Active' : 'Inactive'}</span>
-						</div>
+											<div className="flex items-center gap-3 mb-2">
+						<h3 className="text-xl font-bold text-gray-800">{s.title}</h3>
+						<span className={`px-2 py-1 text-xs font-medium rounded-full ${s.type === 'assessment' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+							{s.type === 'assessment' ? '评测' : '调研'}
+						</span>
+						<span className={`px-2 py-1 text-xs font-medium rounded-full ${s.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{s.isActive ? 'Active' : 'Inactive'}</span>
+					</div>
 						{s.description && <p className="text-gray-600 mb-3">{s.description}</p>}
 						<div className="text-sm text-gray-500">Created: {new Date(s.createdAt).toLocaleDateString()}</div>
 					</div>
@@ -303,7 +332,18 @@ const Admin: React.FC = () => {
 							{s.questions.map((q, idx) => (
 								<div key={idx} className="bg-gray-50 rounded-lg p-3">
 									<div className="font-medium text-gray-800 mb-1">{idx + 1}. {q.text}</div>
-									<div className="text-sm text-gray-600">Options: {q.options.join(', ')}</div>
+									<div className="text-sm text-gray-600 mb-1">
+										Options: {q.options.map((opt, optIdx) => (
+											<span key={optIdx} className={`${s.type === 'assessment' && q.correctAnswer === optIdx ? 'font-semibold text-green-600' : ''}`}>
+												{opt}{optIdx < q.options.length - 1 ? ', ' : ''}
+											</span>
+										))}
+									</div>
+									{s.type === 'assessment' && q.correctAnswer !== undefined && (
+										<div className="text-xs text-green-600 font-medium">
+											✓ 正确答案: {q.options[q.correctAnswer]}
+										</div>
+									)}
 								</div>
 							))}
 						</div>
@@ -360,11 +400,26 @@ const Admin: React.FC = () => {
 								</div>
 							)}
 						</div>
+						{s.type === 'assessment' && currentForm.options.length > 0 && (
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">选择正确答案</label>
+								<select 
+									className="input-field w-full"
+									value={currentForm.correctAnswer ?? ''}
+									onChange={(e) => handleQuestionChange(s._id, 'correctAnswer', e.target.value ? parseInt(e.target.value) : undefined)}
+								>
+									<option value="">请选择正确答案</option>
+									{currentForm.options.map((opt, idx) => (
+										<option key={idx} value={idx}>{opt || `选项 ${idx + 1}`}</option>
+									))}
+								</select>
+							</div>
+						)}
 						<button 
 							className="btn-primary text-sm" 
 							onClick={() => addQuestion(s._id)} 
 							type="button"
-							disabled={!currentForm.text || currentForm.options.filter(opt => opt.trim()).length === 0}
+							disabled={!currentForm.text || currentForm.options.filter(opt => opt.trim()).length === 0 || (s.type === 'assessment' && currentForm.correctAnswer === undefined)}
 						>
 							Add Question
 						</button>
@@ -408,6 +463,16 @@ const Admin: React.FC = () => {
 				<div>
 					<label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
 					<input className="input-field" placeholder="Enter survey description" value={newSurvey.description} onChange={(e) => setNewSurvey({ ...newSurvey, description: e.target.value })} />
+				</div>
+				<div>
+					<label className="block text-sm font-medium text-gray-700 mb-2">Type *</label>
+					<select className="input-field" value={newSurvey.type} onChange={(e) => setNewSurvey({ ...newSurvey, type: e.target.value as 'survey' | 'assessment' })} required>
+						<option value="survey">调研 (Survey)</option>
+						<option value="assessment">评测 (Assessment)</option>
+					</select>
+					<div className="text-xs text-gray-500 mt-1">
+						{newSurvey.type === 'assessment' ? '评测模式可以设置正确答案，适用于测验和考试' : '调研模式用于收集反馈和意见'}
+					</div>
 				</div>
 				<button className="btn-primary w-full" type="submit" disabled={loading}>{loading ? 'Creating...' : 'Create Survey'}</button>
 			</form>

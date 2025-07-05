@@ -8,7 +8,8 @@ interface Survey {
   title: string;
   description: string;
   slug: string;
-  questions: { _id: string; text: string; options: string[] }[];
+  type: 'survey' | 'assessment';
+  questions: { _id: string; text: string; options: string[]; correctAnswer?: number }[];
   status?: 'draft' | 'active' | 'closed';
 }
 
@@ -16,6 +17,14 @@ interface FormState {
   name: string;
   email: string;
   answers: Record<string, string>;
+}
+
+interface AssessmentResult {
+  questionId: string;
+  questionText: string;
+  userAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
 }
 
 const TakeSurvey: React.FC = () => {
@@ -27,6 +36,7 @@ const TakeSurvey: React.FC = () => {
 	const [submitted, setSubmitted] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
+	const [assessmentResults, setAssessmentResults] = useState<AssessmentResult[]>([]);
 
 	useEffect(() => {
 		// If slug is provided, fetch that specific survey
@@ -67,6 +77,23 @@ const TakeSurvey: React.FC = () => {
 				answers: survey.questions.map((q) => form.answers[q._id]),
 			};
 			await axios.post(`/api/surveys/${survey._id}/responses`, payload);
+			
+			// Calculate assessment results if this is an assessment
+			if (survey.type === 'assessment') {
+				const results: AssessmentResult[] = survey.questions.map((q: { _id: string; text: string; options: string[]; correctAnswer?: number }) => {
+					const userAnswer = form.answers[q._id];
+					const correctAnswer = q.correctAnswer !== undefined ? q.options[q.correctAnswer] : '';
+					return {
+						questionId: q._id,
+						questionText: q.text,
+						userAnswer: userAnswer || '',
+						correctAnswer: correctAnswer,
+						isCorrect: userAnswer === correctAnswer
+					};
+				});
+				setAssessmentResults(results);
+			}
+			
 			setSubmitted(true);
 		} catch (err) {
 			setError('Failed to submit survey. Please try again.');
@@ -181,13 +208,20 @@ const TakeSurvey: React.FC = () => {
 										onClick={() => navigate(`/survey/${s.slug || s._id}`)}
 									>
 										<div className="mb-4">
-											<h3 className="text-xl font-bold text-gray-800 mb-2">{s.title}</h3>
+											<div className="flex items-center gap-2 mb-2">
+												<h3 className="text-xl font-bold text-gray-800">{s.title}</h3>
+												<span className={`px-2 py-1 text-xs font-medium rounded-full ${s.type === 'assessment' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+													{s.type === 'assessment' ? '评测' : '调研'}
+												</span>
+											</div>
 											{s.description && (
 												<p className="text-gray-600 text-sm line-clamp-3">{s.description}</p>
 											)}
 										</div>
 										<div className="flex items-center justify-between">
-											<span className="text-blue-600 font-medium text-sm">Start Survey →</span>
+											<span className="text-blue-600 font-medium text-sm">
+												{s.type === 'assessment' ? 'Start Assessment →' : 'Start Survey →'}
+											</span>
 											<div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
 												<span className="text-blue-600 text-sm">▶</span>
 											</div>
@@ -275,27 +309,85 @@ const TakeSurvey: React.FC = () => {
 				)}
 
 				{submitted && (
-					<div className="card text-center">
-						<div className="text-green-500 text-6xl mb-4">✅</div>
-						<h2 className="text-3xl font-bold text-gray-800 mb-4">Thank You!</h2>
-						<p className="text-gray-600 text-lg mb-6">
-							Your survey response has been submitted successfully.
-						</p>
-						<button 
-							onClick={() => {
-								if (slug) {
-									// If we're on a specific survey page, reset the form
-									setSubmitted(false);
-									setForm({ name: '', email: '', answers: {} });
-								} else {
-									// If we're on the home page, go back to survey list
-									navigate('/');
-								}
-							}}
-							className="btn-secondary"
-						>
-							{slug ? 'Take This Survey Again' : 'Choose Another Survey'}
-						</button>
+					<div className="card">
+						{survey?.type === 'assessment' && assessmentResults.length > 0 ? (
+							<div>
+								<div className="text-center mb-6">
+									<div className="text-blue-500 text-6xl mb-4">📊</div>
+									<h2 className="text-3xl font-bold text-gray-800 mb-2">Assessment Results</h2>
+									<div className="text-lg text-gray-600 mb-4">
+										Your score: {assessmentResults.filter(r => r.isCorrect).length} / {assessmentResults.length}
+									</div>
+								</div>
+								
+								<div className="space-y-4 mb-6">
+									{assessmentResults.map((result, index) => (
+										<div key={result.questionId} className={`p-4 rounded-lg border-2 ${result.isCorrect ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'}`}>
+											<div className="flex items-center gap-2 mb-2">
+												<span className={`text-2xl ${result.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+													{result.isCorrect ? '✅' : '❌'}
+												</span>
+												<div className="font-semibold text-gray-800">
+													{index + 1}. {result.questionText}
+												</div>
+											</div>
+											<div className="space-y-1 text-sm">
+												<div className="text-gray-700">
+													<span className="font-medium">Your answer:</span> {result.userAnswer}
+												</div>
+												{!result.isCorrect && (
+													<div className="text-green-700">
+														<span className="font-medium">Correct answer:</span> {result.correctAnswer}
+													</div>
+												)}
+											</div>
+										</div>
+									))}
+								</div>
+								
+								<div className="text-center">
+									<button 
+										onClick={() => {
+											if (slug) {
+												// If we're on a specific survey page, reset the form
+												setSubmitted(false);
+												setForm({ name: '', email: '', answers: {} });
+												setAssessmentResults([]);
+											} else {
+												// If we're on the home page, go back to survey list
+												navigate('/');
+											}
+										}}
+										className="btn-secondary"
+									>
+										{slug ? 'Take This Assessment Again' : 'Choose Another Survey'}
+									</button>
+								</div>
+							</div>
+						) : (
+							<div className="text-center">
+								<div className="text-green-500 text-6xl mb-4">✅</div>
+								<h2 className="text-3xl font-bold text-gray-800 mb-4">Thank You!</h2>
+								<p className="text-gray-600 text-lg mb-6">
+									Your survey response has been submitted successfully.
+								</p>
+								<button 
+									onClick={() => {
+										if (slug) {
+											// If we're on a specific survey page, reset the form
+											setSubmitted(false);
+											setForm({ name: '', email: '', answers: {} });
+										} else {
+											// If we're on the home page, go back to survey list
+											navigate('/');
+										}
+									}}
+									className="btn-secondary"
+								>
+									{slug ? 'Take This Survey Again' : 'Choose Another Survey'}
+								</button>
+							</div>
+						)}
 					</div>
 				)}
 			</div>
