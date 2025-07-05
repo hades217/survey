@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import QRCodeComponent from './components/QRCode';
 import Modal from './components/Modal';
+import { getSurveyUrl } from './utils/config';
 
 interface Survey {
 	_id: string;
@@ -18,9 +20,11 @@ interface StatsItem {
 	options: Record<string, number>;
 }
 
-type TabType = 'list' | 'detail' | 'create';
+type TabType = 'list' | 'detail';
 
 const Admin: React.FC = () => {
+	const { id: surveyIdFromUrl } = useParams<{ id: string }>();
+	const navigate = useNavigate();
 	const [loggedIn, setLoggedIn] = useState(false);
 	const [loginForm, setLoginForm] = useState({ username: '', password: '' });
 	const [surveys, setSurveys] = useState<Survey[]>([]);
@@ -50,6 +54,20 @@ const Admin: React.FC = () => {
 			localStorage.removeItem('admin_logged_in');
 		}
 	}, [loggedIn]);
+
+	// 根据 URL 参数加载 survey
+	useEffect(() => {
+		if (surveyIdFromUrl && surveys.length > 0) {
+			const survey = surveys.find(s => s._id === surveyIdFromUrl);
+			if (survey) {
+				setSelectedSurvey(survey);
+				setTab('detail');
+			} else {
+				// 如果找不到 survey，重定向到列表页
+				navigate('/admin');
+			}
+		}
+	}, [surveyIdFromUrl, surveys, navigate]);
 
 	const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
@@ -85,6 +103,7 @@ const Admin: React.FC = () => {
 		setSurveys([]);
 		setTab('list');
 		setSelectedSurvey(null);
+		navigate('/admin');
 	};
 
 	const createSurvey = async (e: React.FormEvent) => {
@@ -139,6 +158,7 @@ const Admin: React.FC = () => {
 			loadSurveys();
 			setSelectedSurvey(null);
 			setTab('list');
+			navigate('/admin');
 		} catch (err) {
 			console.error('Error deleting survey:', err);
 		}
@@ -152,20 +172,28 @@ const Admin: React.FC = () => {
 		setShowQR({ ...showQR, [surveyId]: !showQR[surveyId] });
 	};
 
+	// 点击 survey 时的处理函数
+	const handleSurveyClick = (survey: Survey) => {
+		setSelectedSurvey(survey);
+		setTab('detail');
+		navigate(`/admin/survey/${survey._id}`);
+	};
+
+	// 返回列表页
+	const handleBackToList = () => {
+		setSelectedSurvey(null);
+		setTab('list');
+		navigate('/admin');
+	};
+
 	// Tab内容
 	const renderTabs = () => (
 		<div className="flex space-x-4 mb-6 border-b border-gray-200">
 			<button
 				className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tab === 'list' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
-				onClick={() => { setTab('list'); setSelectedSurvey(null); }}
+				onClick={handleBackToList}
 			>
 				Survey 列表
-			</button>
-			<button
-				className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tab === 'create' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
-				onClick={() => setShowCreateModal(true)}
-			>
-				创建 Survey
 			</button>
 			{selectedSurvey && (
 				<button
@@ -185,7 +213,7 @@ const Admin: React.FC = () => {
 				<div
 					key={s._id}
 					className="card cursor-pointer hover:shadow-xl transition-shadow"
-					onClick={() => { setSelectedSurvey(s); setTab('detail'); }}
+					onClick={() => handleSurveyClick(s)}
 				>
 					<div className="flex justify-between items-center">
 						<div>
@@ -223,16 +251,16 @@ const Admin: React.FC = () => {
 					<div className="flex items-center justify-between mb-3">
 						<div>
 							<label className="block text-sm font-medium text-gray-700 mb-1">Survey URL</label>
-							<div className="text-sm text-gray-600 font-mono">{window.location.origin}/survey/{s.slug}</div>
+							<div className="text-sm text-gray-600 font-mono">{getSurveyUrl(s.slug)}</div>
 						</div>
 						<div className="flex gap-2">
-							<button className="btn-secondary text-sm" onClick={() => copyToClipboard(`${window.location.origin}/survey/${s.slug}`)}>Copy URL</button>
+							<button className="btn-secondary text-sm" onClick={() => copyToClipboard(getSurveyUrl(s.slug))}>Copy URL</button>
 							<button className="btn-primary text-sm" onClick={() => toggleQR(s._id)}>{showQR[s._id] ? 'Hide QR' : 'Show QR'}</button>
 						</div>
 					</div>
 					{showQR[s._id] && (
 						<div className="border-t border-gray-200 pt-4">
-							<QRCodeComponent url={`${window.location.origin}/survey/${s.slug}`} />
+							<QRCodeComponent url={getSurveyUrl(s.slug)} />
 						</div>
 					)}
 				</div>
@@ -273,7 +301,7 @@ const Admin: React.FC = () => {
 										{Object.entries(st.options).map(([opt, count]) => (
 											<div key={opt} className="flex justify-between items-center">
 												<span className="text-gray-700">{opt}</span>
-																											<span className="font-medium text-blue-600">{count}</span>
+												<span className="font-medium text-blue-600">{count}</span>
 											</div>
 										))}
 									</div>
@@ -336,7 +364,15 @@ const Admin: React.FC = () => {
 						<h1 className="text-3xl font-bold text-gray-900">Survey Admin Dashboard</h1>
 						<p className="text-gray-600 mt-1">Manage your surveys and view responses</p>
 					</div>
-					<button className="btn-secondary" onClick={logout}>Logout</button>
+					<div className="flex gap-3">
+						<button 
+							className="btn-primary"
+							onClick={() => setShowCreateModal(true)}
+						>
+							+ 创建 Survey
+						</button>
+						<button className="btn-secondary" onClick={logout}>Logout</button>
+					</div>
 				</div>
 				{renderTabs()}
 				{tab === 'list' && renderSurveyList()}

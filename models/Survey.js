@@ -15,6 +15,11 @@ const surveySchema = new mongoose.Schema({
 			options: [String]
 		}
 	],
+	status: {
+		type: String,
+		enum: ['draft', 'active', 'closed'],
+		default: 'draft'
+	},
 	createdAt: {
 		type: Date,
 		default: Date.now

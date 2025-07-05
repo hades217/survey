@@ -9,6 +9,7 @@ interface Survey {
   description: string;
   slug: string;
   questions: { _id: string; text: string; options: string[] }[];
+  status?: 'draft' | 'active' | 'closed';
 }
 
 interface FormState {
@@ -21,7 +22,6 @@ const TakeSurvey: React.FC = () => {
 	const { slug } = useParams<{ slug: string }>();
 	const navigate = useNavigate();
 	const [surveys, setSurveys] = useState<Survey[]>([]);
-	const [selectedId, setSelectedId] = useState('');
 	const [survey, setSurvey] = useState<Survey | null>(null);
 	const [form, setForm] = useState<FormState>({ name: '', email: '', answers: {} });
 	const [submitted, setSubmitted] = useState(false);
@@ -34,8 +34,9 @@ const TakeSurvey: React.FC = () => {
 			setLoading(true);
 			axios.get<Survey>(`/api/survey/${slug}`)
 				.then(res => {
+					console.log('Survey data received:', res.data);
+					console.log('Questions length:', res.data.questions?.length);
 					setSurvey(res.data);
-					setSelectedId(res.data._id);
 				})
 				.catch(err => {
 					setError('Survey not found');
@@ -48,15 +49,6 @@ const TakeSurvey: React.FC = () => {
 		}
 	}, [slug]);
 
-	useEffect(() => {
-		if (selectedId && !slug) {
-			axios.get<Survey>(`/api/surveys/${selectedId}`).then(res => {
-				setSurvey(res.data);
-				setForm({ name: '', email: '', answers: {} });
-				setSubmitted(false);
-			});
-		}
-	}, [selectedId, slug]);
 
 	const handleAnswerChange = (qid: string, value: string) => {
 		setForm({ ...form, answers: { ...form.answers, [qid]: value } });
@@ -113,29 +105,97 @@ const TakeSurvey: React.FC = () => {
 		);
 	}
 
+	// Check if survey is not active
+	if (survey && survey.status && survey.status !== 'active') {
+		return (
+			<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+				<div className="card max-w-md mx-auto text-center">
+					<div className="text-yellow-500 text-6xl mb-4">🚫</div>
+					<h2 className="text-2xl font-bold text-gray-800 mb-2">Survey Unavailable</h2>
+					<p className="text-gray-600 mb-6">
+						{survey.status === 'draft' 
+							? '此问卷尚未开放。' 
+							: '此问卷已关闭。'
+						}
+					</p>
+					<button 
+						onClick={() => navigate('/')}
+						className="btn-primary"
+					>
+						Go to Home
+					</button>
+				</div>
+			</div>
+		);
+	}
+
+	// Check if survey has no questions
+	if (survey && (!survey.questions || survey.questions.length === 0)) {
+		return (
+			<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+				<div className="card max-w-md mx-auto text-center">
+					<div className="text-orange-500 text-6xl mb-4">📝</div>
+					<h2 className="text-2xl font-bold text-gray-800 mb-2">Survey In Progress</h2>
+					<p className="text-gray-600 mb-6">
+						This survey is still being prepared. Please check back later.
+					</p>
+					<div className="mb-4 p-3 bg-gray-100 rounded text-left text-xs">
+						<strong>Debug Info:</strong><br/>
+						Survey: {survey ? 'loaded' : 'null'}<br/>
+						Questions: {survey?.questions ? `array(${survey.questions.length})` : 'undefined'}<br/>
+						Status: {survey?.status || 'undefined'}
+					</div>
+					<button 
+						onClick={() => navigate('/')}
+						className="btn-primary"
+					>
+						Go to Home
+					</button>
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
-			<div className="max-w-2xl mx-auto px-4">
+			<div className={`mx-auto px-4 ${slug ? 'max-w-2xl' : 'max-w-6xl'}`}>
 				{!slug && (
-					<div className="card mb-8">
-						<h1 className="text-3xl font-bold text-gray-800 mb-2">Take a Survey</h1>
-						<p className="text-gray-600 mb-6">Choose a survey to get started</p>
-						
-						<div>
-							<label className="block mb-2 font-semibold text-gray-700">Select Survey</label>
-							<select
-								className="input-field"
-								value={selectedId}
-								onChange={e => setSelectedId(e.target.value)}
-							>
-								<option value="">Choose a survey...</option>
-								{surveys.map(s => (
-									<option key={s._id} value={s._id}>
-										{s.title}
-									</option>
-								))}
-							</select>
+					<div className="mb-8">
+						<div className="text-center mb-8">
+							<h1 className="text-4xl font-bold text-gray-800 mb-4">Available Surveys</h1>
+							<p className="text-gray-600 text-lg">Choose a survey to participate in</p>
 						</div>
+						
+						{surveys.length === 0 ? (
+							<div className="card text-center">
+								<div className="text-gray-400 text-6xl mb-4">📝</div>
+								<h3 className="text-xl font-semibold text-gray-700 mb-2">No Surveys Available</h3>
+								<p className="text-gray-500">There are currently no active surveys to participate in.</p>
+							</div>
+						) : (
+							<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+								{surveys.map(s => (
+									<div
+										key={s._id}
+										className="card cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-200 border-2 border-transparent hover:border-blue-200"
+										onClick={() => navigate(`/survey/${s.slug || s._id}`)}
+									>
+										<div className="mb-4">
+											<h3 className="text-xl font-bold text-gray-800 mb-2">{s.title}</h3>
+											{s.description && (
+												<p className="text-gray-600 text-sm line-clamp-3">{s.description}</p>
+											)}
+										</div>
+										<div className="flex items-center justify-between">
+											<span className="text-blue-600 font-medium text-sm">Start Survey →</span>
+											<div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+												<span className="text-blue-600 text-sm">▶</span>
+											</div>
+										</div>
+									</div>
+								))}
+							</div>
+						)}
 					</div>
 				)}
 
@@ -223,16 +283,18 @@ const TakeSurvey: React.FC = () => {
 						</p>
 						<button 
 							onClick={() => {
-								setSubmitted(false);
-								setForm({ name: '', email: '', answers: {} });
-								if (!slug) {
-									setSelectedId('');
-									setSurvey(null);
+								if (slug) {
+									// If we're on a specific survey page, reset the form
+									setSubmitted(false);
+									setForm({ name: '', email: '', answers: {} });
+								} else {
+									// If we're on the home page, go back to survey list
+									navigate('/');
 								}
 							}}
 							className="btn-secondary"
 						>
-							Take Another Survey
+							{slug ? 'Take This Survey Again' : 'Choose Another Survey'}
 						</button>
 					</div>
 				)}
