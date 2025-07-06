@@ -12,6 +12,28 @@ const responseSchema = new mongoose.Schema({
 		of: mongoose.Schema.Types.Mixed, // Can be Number or [Number]
 		required: true
 	},
+	// For question bank submissions: store the selected question IDs
+	selectedQuestions: [{
+		originalQuestionId: {
+			type: mongoose.Schema.Types.ObjectId,
+			required: false
+		},
+		questionIndex: {
+			type: Number,
+			required: false
+		},
+		// Store the actual question data to ensure consistency
+		questionData: {
+			text: String,
+			type: String,
+			options: [String],
+			correctAnswer: mongoose.Schema.Types.Mixed,
+			explanation: String,
+			points: Number,
+			tags: [String],
+			difficulty: String
+		}
+	}],
 	// Scoring information (for quiz/assessment/iq)
 	score: {
 		totalPoints: { type: Number, default: 0 },
@@ -62,12 +84,17 @@ responseSchema.methods.calculateScore = function(survey) {
 	let wrongAnswers = 0;
 	const questionScores = [];
 	
+	// Determine the source of questions
+	const isQuestionBank = survey.sourceType === 'question_bank';
+	const questions = isQuestionBank ? 
+		this.selectedQuestions.map(sq => sq.questionData) : 
+		survey.questions;
+	
 	// Calculate total possible points
-	const maxPossiblePoints = survey.scoringSettings.totalPoints || 
-							  survey.questions.reduce((sum, q) => sum + (q.points || 1), 0);
+	const maxPossiblePoints = questions.reduce((sum, q) => sum + (q.points || 1), 0);
 	
 	// Calculate score for each question
-	survey.questions.forEach((question, index) => {
+	questions.forEach((question, index) => {
 		const userAnswer = this.answers.get(index.toString());
 		const correctAnswer = question.correctAnswer;
 		const questionPoints = question.points || 1;
