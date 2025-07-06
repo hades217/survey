@@ -25,6 +25,11 @@ const responseSchema = new mongoose.Schema({
 		type: Number, // in seconds
 		default: 0
 	},
+	// Whether the response was auto-submitted due to time limit
+	isAutoSubmit: {
+		type: Boolean,
+		default: false
+	},
 	// Device/browser information
 	metadata: {
 		userAgent: String,

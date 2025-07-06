@@ -15,6 +15,27 @@ const surveySchema = new mongoose.Schema({
 		enum: [SURVEY_TYPE.SURVEY, SURVEY_TYPE.ASSESSMENT, SURVEY_TYPE.QUIZ, SURVEY_TYPE.IQ],
 		default: SURVEY_TYPE.SURVEY
 	},
+	// Time limit in minutes
+	timeLimit: {
+		type: Number,
+		default: null
+	},
+	// Maximum attempts allowed per user
+	maxAttempts: {
+		type: Number,
+		default: 1
+	},
+	// Instructions for students
+	instructions: {
+		type: String,
+		default: null
+	},
+	// Navigation mode for questions
+	navigationMode: {
+		type: String,
+		enum: ['step-by-step', 'paginated', 'all-in-one'],
+		default: 'step-by-step'
+	},
 	questions: [
 		{
 			text: {

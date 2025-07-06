@@ -10,10 +10,14 @@ interface Survey {
 	title: string;
 	description: string;
 	slug: string;
-	type: 'survey' | 'assessment';
+	type: 'survey' | 'assessment' | 'quiz' | 'iq';
 	questions: { text: string; options: string[]; correctAnswer?: number }[];
 	createdAt: string;
 	isActive: boolean;
+	timeLimit?: number;
+	maxAttempts?: number;
+	instructions?: string;
+	navigationMode?: 'step-by-step' | 'paginated' | 'all-in-one';
 }
 
 interface StatsItem {
@@ -52,7 +56,15 @@ const Admin: React.FC = () => {
 	const [surveys, setSurveys] = useState<Survey[]>([]);
 	const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
 	const [showCreateModal, setShowCreateModal] = useState(false);
-	const [newSurvey, setNewSurvey] = useState({ title: '', description: '', type: 'survey' as 'survey' | 'assessment' });
+	const [newSurvey, setNewSurvey] = useState({ 
+		title: '', 
+		description: '', 
+		type: 'survey' as 'survey' | 'assessment' | 'quiz' | 'iq',
+		timeLimit: undefined as number | undefined,
+		maxAttempts: 1,
+		instructions: '',
+		navigationMode: 'step-by-step' as 'step-by-step' | 'paginated' | 'all-in-one'
+	});
 	const [questionForms, setQuestionForms] = useState<Record<string, { text: string; options: string[]; correctAnswer?: number }>>({});
 	const [stats, setStats] = useState<Record<string, EnhancedStats>>({});
 	const [loading, setLoading] = useState(false);
@@ -133,10 +145,18 @@ const Admin: React.FC = () => {
 		e.preventDefault();
 		setLoading(true);
 		try {
-			const res = await axios.post<Survey>('/api/admin/surveys', newSurvey);
-			setSurveys([...surveys, res.data]);
-			setNewSurvey({ title: '', description: '', type: 'survey' });
-			setShowCreateModal(false);
+					const res = await axios.post<Survey>('/api/admin/surveys', newSurvey);
+		setSurveys([...surveys, res.data]);
+		setNewSurvey({ 
+			title: '', 
+			description: '', 
+			type: 'survey',
+			timeLimit: undefined,
+			maxAttempts: 1,
+			instructions: '',
+			navigationMode: 'step-by-step'
+		});
+		setShowCreateModal(false);
 		} catch (err) {
 			setError('Failed to create survey. Please try again.');
 		} finally {
@@ -290,12 +310,24 @@ const Admin: React.FC = () => {
 				>
 					<div className="flex justify-between items-center">
 						<div>
-							<div className="flex items-center gap-2 mb-1">
-								<h3 className="text-lg font-bold text-gray-800">{s.title}</h3>
-								<span className={`px-2 py-1 text-xs font-medium rounded-full ${s.type === 'assessment' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
-									{s.type === 'assessment' ? '评测' : '调研'}
-								</span>
-							</div>
+										<div className="flex items-center gap-2 mb-1">
+				<h3 className="text-lg font-bold text-gray-800">{s.title}</h3>
+				<span className={`px-2 py-1 text-xs font-medium rounded-full ${
+					s.type === 'assessment' ? 'bg-blue-100 text-blue-800' : 
+					s.type === 'quiz' ? 'bg-green-100 text-green-800' :
+					s.type === 'iq' ? 'bg-purple-100 text-purple-800' :
+					'bg-gray-100 text-gray-800'
+				}`}>
+					{s.type === 'assessment' ? '测评' : 
+					 s.type === 'quiz' ? '测验' :
+					 s.type === 'iq' ? 'IQ测试' : '调研'}
+				</span>
+				{s.timeLimit && (
+					<span className="px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-800">
+						⏱️ {s.timeLimit}分钟
+					</span>
+				)}
+			</div>
 							<div className="text-sm text-gray-500">{s.description}</div>
 						</div>
 						<span className={`px-2 py-1 text-xs font-medium rounded-full ${s.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{s.isActive ? 'Active' : 'Inactive'}</span>
@@ -315,15 +347,59 @@ const Admin: React.FC = () => {
 			<div className="card">
 				<div className="flex justify-between items-start mb-4">
 					<div className="flex-1">
-											<div className="flex items-center gap-3 mb-2">
-						<h3 className="text-xl font-bold text-gray-800">{s.title}</h3>
-						<span className={`px-2 py-1 text-xs font-medium rounded-full ${s.type === 'assessment' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
-							{s.type === 'assessment' ? '评测' : '调研'}
-						</span>
-						<span className={`px-2 py-1 text-xs font-medium rounded-full ${s.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{s.isActive ? 'Active' : 'Inactive'}</span>
-					</div>
-						{s.description && <p className="text-gray-600 mb-3">{s.description}</p>}
-						<div className="text-sm text-gray-500">Created: {new Date(s.createdAt).toLocaleDateString()}</div>
+																<div className="flex items-center gap-3 mb-2">
+					<h3 className="text-xl font-bold text-gray-800">{s.title}</h3>
+					<span className={`px-2 py-1 text-xs font-medium rounded-full ${
+						s.type === 'assessment' ? 'bg-blue-100 text-blue-800' : 
+						s.type === 'quiz' ? 'bg-green-100 text-green-800' :
+						s.type === 'iq' ? 'bg-purple-100 text-purple-800' :
+						'bg-gray-100 text-gray-800'
+					}`}>
+						{s.type === 'assessment' ? '测评' : 
+						 s.type === 'quiz' ? '测验' :
+						 s.type === 'iq' ? 'IQ测试' : '调研'}
+					</span>
+					<span className={`px-2 py-1 text-xs font-medium rounded-full ${s.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{s.isActive ? 'Active' : 'Inactive'}</span>
+				</div>
+											{s.description && <p className="text-gray-600 mb-3">{s.description}</p>}
+					
+					{/* New Fields Display */}
+					{(s.timeLimit || s.maxAttempts !== 1 || s.instructions || s.navigationMode !== 'step-by-step') && (
+						<div className="bg-blue-50 rounded-lg p-3 mb-3">
+							<h5 className="font-medium text-gray-800 mb-2">测评配置</h5>
+							<div className="grid grid-cols-2 gap-2 text-sm">
+								{s.timeLimit && (
+									<div className="flex justify-between">
+										<span className="text-gray-600">时间限制:</span>
+										<span className="font-medium text-blue-600">{s.timeLimit} 分钟</span>
+									</div>
+								)}
+								{s.maxAttempts !== 1 && (
+									<div className="flex justify-between">
+										<span className="text-gray-600">最大尝试次数:</span>
+										<span className="font-medium text-blue-600">{s.maxAttempts} 次</span>
+									</div>
+								)}
+								{s.navigationMode !== 'step-by-step' && (
+									<div className="flex justify-between">
+										<span className="text-gray-600">导航模式:</span>
+										<span className="font-medium text-blue-600">
+											{s.navigationMode === 'paginated' ? '分页模式' : 
+											 s.navigationMode === 'all-in-one' ? '全页模式' : '逐题模式'}
+										</span>
+									</div>
+								)}
+							</div>
+							{s.instructions && (
+								<div className="mt-2 pt-2 border-t border-blue-200">
+									<div className="text-xs text-gray-600 mb-1">特殊说明:</div>
+									<div className="text-sm text-gray-700">{s.instructions}</div>
+								</div>
+							)}
+						</div>
+					)}
+					
+					<div className="text-sm text-gray-500">Created: {new Date(s.createdAt).toLocaleDateString()}</div>
 					</div>
 					<div className="flex gap-2">
 						<button className="btn-secondary text-sm" onClick={() => toggleSurveyStatus(s._id, s.isActive)}>{s.isActive ? 'Deactivate' : 'Activate'}</button>
@@ -331,15 +407,29 @@ const Admin: React.FC = () => {
 					</div>
 				</div>
 				<div className="bg-gray-50 rounded-lg p-4 mb-4">
-					<div className="flex items-center justify-between mb-3">
-						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-1">Survey URL</label>
-							<div className="text-sm text-gray-600 font-mono">{getSurveyUrl(s.slug)}</div>
+					<div className="space-y-3">
+						<div className="flex items-center justify-between">
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-1">经典版 Survey URL</label>
+								<div className="text-sm text-gray-600 font-mono">{getSurveyUrl(s.slug)}</div>
+							</div>
+							<div className="flex gap-2">
+								<button className="btn-secondary text-sm" onClick={() => copyToClipboard(getSurveyUrl(s.slug))}>Copy URL</button>
+								<button className="btn-primary text-sm" onClick={() => toggleQR(s._id)}>{showQR[s._id] ? 'Hide QR' : 'Show QR'}</button>
+							</div>
 						</div>
-						<div className="flex gap-2">
-							<button className="btn-secondary text-sm" onClick={() => copyToClipboard(getSurveyUrl(s.slug))}>Copy URL</button>
-							<button className="btn-primary text-sm" onClick={() => toggleQR(s._id)}>{showQR[s._id] ? 'Hide QR' : 'Show QR'}</button>
-						</div>
+						
+						{['quiz', 'assessment', 'iq'].includes(s.type) && (
+							<div className="flex items-center justify-between pt-3 border-t border-gray-200">
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-1">增强版测评 URL</label>
+									<div className="text-sm text-gray-600 font-mono">{getSurveyUrl(s.slug).replace('/survey/', '/assessment/')}</div>
+								</div>
+								<div className="flex gap-2">
+									<button className="btn-secondary text-sm" onClick={() => copyToClipboard(getSurveyUrl(s.slug).replace('/survey/', '/assessment/'))}>Copy Enhanced URL</button>
+								</div>
+							</div>
+						)}
 					</div>
 					{showQR[s._id] && (
 						<div className="border-t border-gray-200 pt-4">
@@ -354,14 +444,14 @@ const Admin: React.FC = () => {
 							{s.questions.map((q, idx) => (
 								<div key={idx} className="bg-gray-50 rounded-lg p-3">
 									<div className="font-medium text-gray-800 mb-1">{idx + 1}. {q.text}</div>
-									<div className="text-sm text-gray-600 mb-1">
-										Options: {q.options.map((opt, optIdx) => (
-											<span key={optIdx} className={`${s.type === 'assessment' && q.correctAnswer === optIdx ? 'font-semibold text-green-600' : ''}`}>
-												{opt}{optIdx < q.options.length - 1 ? ', ' : ''}
-											</span>
-										))}
-									</div>
-									{s.type === 'assessment' && q.correctAnswer !== undefined && (
+																	<div className="text-sm text-gray-600 mb-1">
+									Options: {q.options.map((opt, optIdx) => (
+										<span key={optIdx} className={`${['assessment', 'quiz', 'iq'].includes(s.type) && q.correctAnswer === optIdx ? 'font-semibold text-green-600' : ''}`}>
+											{opt}{optIdx < q.options.length - 1 ? ', ' : ''}
+										</span>
+									))}
+								</div>
+								{['assessment', 'quiz', 'iq'].includes(s.type) && q.correctAnswer !== undefined && (
 										<div className="text-xs text-green-600 font-medium">
 											✓ 正确答案: {q.options[q.correctAnswer]}
 										</div>
@@ -422,7 +512,7 @@ const Admin: React.FC = () => {
 								</div>
 							)}
 						</div>
-						{s.type === 'assessment' && currentForm.options.length > 0 && (
+						{['assessment', 'quiz', 'iq'].includes(s.type) && currentForm.options.length > 0 && (
 							<div>
 								<label className="block text-sm font-medium text-gray-700 mb-2">选择正确答案</label>
 								<select 
@@ -441,7 +531,7 @@ const Admin: React.FC = () => {
 							className="btn-primary text-sm" 
 							onClick={() => addQuestion(s._id)} 
 							type="button"
-							disabled={!currentForm.text || currentForm.options.filter(opt => opt.trim()).length === 0 || (s.type === 'assessment' && currentForm.correctAnswer === undefined)}
+							disabled={!currentForm.text || currentForm.options.filter(opt => opt.trim()).length === 0 || (['assessment', 'quiz', 'iq'].includes(s.type) && currentForm.correctAnswer === undefined)}
 						>
 							Add Question
 						</button>
@@ -574,26 +664,106 @@ const Admin: React.FC = () => {
 	// 创建 Survey 弹窗
 	const renderCreateModal = () => (
 		<Modal show={showCreateModal} title="创建 Survey" onClose={() => setShowCreateModal(false)}>
-			<form onSubmit={createSurvey} className="space-y-4">
+			<form onSubmit={createSurvey} className="space-y-4 max-h-96 overflow-y-auto">
 				<div>
 					<label className="block text-sm font-medium text-gray-700 mb-2">Survey Title *</label>
 					<input className="input-field" placeholder="Enter survey title" value={newSurvey.title} onChange={(e) => setNewSurvey({ ...newSurvey, title: e.target.value })} required />
 				</div>
 				<div>
 					<label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-					<input className="input-field" placeholder="Enter survey description" value={newSurvey.description} onChange={(e) => setNewSurvey({ ...newSurvey, description: e.target.value })} />
+					<textarea className="input-field" placeholder="Enter survey description" value={newSurvey.description} onChange={(e) => setNewSurvey({ ...newSurvey, description: e.target.value })} rows={2} />
 				</div>
 				<div>
 					<label className="block text-sm font-medium text-gray-700 mb-2">Type *</label>
-					<select className="input-field" value={newSurvey.type} onChange={(e) => setNewSurvey({ ...newSurvey, type: e.target.value as 'survey' | 'assessment' })} required>
+					<select className="input-field" value={newSurvey.type} onChange={(e) => setNewSurvey({ ...newSurvey, type: e.target.value as 'survey' | 'assessment' | 'quiz' | 'iq' })} required>
 						<option value="survey">调研 (Survey)</option>
-						<option value="assessment">评测 (Assessment)</option>
+						<option value="quiz">测验 (Quiz)</option>
+						<option value="assessment">测评 (Assessment)</option>
+						<option value="iq">IQ测试 (IQ Test)</option>
 					</select>
 					<div className="text-xs text-gray-500 mt-1">
-						{newSurvey.type === 'assessment' ? '评测模式可以设置正确答案，适用于测验和考试' : '调研模式用于收集反馈和意见'}
+						{newSurvey.type === 'survey' ? '调研模式用于收集反馈和意见，无需正确答案' :
+						 newSurvey.type === 'quiz' ? '测验模式用于简单测试，支持计分功能' :
+						 newSurvey.type === 'assessment' ? '测评模式用于正式评估，支持完整的测评功能' :
+						 'IQ测试模式用于智力测试，支持专业评分'}
 					</div>
 				</div>
-				<button className="btn-primary w-full" type="submit" disabled={loading}>{loading ? 'Creating...' : 'Create Survey'}</button>
+				
+				{/* Enhanced settings for quiz/assessment/iq */}
+				{['quiz', 'assessment', 'iq'].includes(newSurvey.type) && (
+					<div className="bg-blue-50 rounded-lg p-4 space-y-4">
+						<h4 className="font-medium text-gray-800">测评配置</h4>
+						
+						<div className="grid grid-cols-2 gap-4">
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">时间限制 (分钟)</label>
+								<input 
+									type="number" 
+									className="input-field" 
+									placeholder="无限制" 
+									value={newSurvey.timeLimit || ''} 
+									onChange={(e) => setNewSurvey({ 
+										...newSurvey, 
+										timeLimit: e.target.value ? parseInt(e.target.value) : undefined 
+									})} 
+									min="1"
+									max="300"
+								/>
+								<div className="text-xs text-gray-500 mt-1">留空表示无时间限制</div>
+							</div>
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">最大尝试次数</label>
+								<input 
+									type="number" 
+									className="input-field" 
+									value={newSurvey.maxAttempts} 
+									onChange={(e) => setNewSurvey({ 
+										...newSurvey, 
+										maxAttempts: parseInt(e.target.value) || 1 
+									})} 
+									min="1"
+									max="10"
+									required
+								/>
+							</div>
+						</div>
+						
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-2">导航模式</label>
+							<select 
+								className="input-field" 
+								value={newSurvey.navigationMode} 
+								onChange={(e) => setNewSurvey({ 
+									...newSurvey, 
+									navigationMode: e.target.value as 'step-by-step' | 'paginated' | 'all-in-one' 
+								})}
+							>
+								<option value="step-by-step">逐题模式 (推荐)</option>
+								<option value="paginated">分页模式</option>
+								<option value="all-in-one">全页模式</option>
+							</select>
+							<div className="text-xs text-gray-500 mt-1">
+								逐题模式：一次显示一道题目，提供最佳体验
+							</div>
+						</div>
+						
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-2">特殊说明</label>
+							<textarea 
+								className="input-field" 
+								placeholder="为学生提供的额外说明或注意事项" 
+								value={newSurvey.instructions} 
+								onChange={(e) => setNewSurvey({ ...newSurvey, instructions: e.target.value })} 
+								rows={3}
+							/>
+							<div className="text-xs text-gray-500 mt-1">这些说明会在测评开始前显示给学生</div>
+						</div>
+					</div>
+				)}
+				
+				<button className="btn-primary w-full" type="submit" disabled={loading}>
+					{loading ? 'Creating...' : 'Create Survey'}
+				</button>
 			</form>
 		</Modal>
 	);

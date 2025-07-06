@@ -8,9 +8,13 @@ interface Survey {
   title: string;
   description: string;
   slug: string;
-  type: 'survey' | 'assessment';
+  type: 'survey' | 'assessment' | 'quiz' | 'iq';
   questions: { _id: string; text: string; options: string[]; correctAnswer?: number }[];
   status?: 'draft' | 'active' | 'closed';
+  timeLimit?: number;
+  maxAttempts?: number;
+  instructions?: string;
+  navigationMode?: 'step-by-step' | 'paginated' | 'all-in-one';
 }
 
 interface FormState {
@@ -78,8 +82,8 @@ const TakeSurvey: React.FC = () => {
 			};
 			await axios.post(`/api/surveys/${survey._id}/responses`, payload);
 			
-			// Calculate assessment results if this is an assessment
-			if (survey.type === 'assessment') {
+			// Calculate assessment results if this is an assessment, quiz, or iq test
+			if (['assessment', 'quiz', 'iq'].includes(survey.type)) {
 				const results: AssessmentResult[] = survey.questions.map((q: { _id: string; text: string; options: string[]; correctAnswer?: number }) => {
 					const userAnswer = form.answers[q._id];
 					const correctAnswer = q.correctAnswer !== undefined ? q.options[q.correctAnswer] : '';
@@ -202,29 +206,44 @@ const TakeSurvey: React.FC = () => {
 						) : (
 							<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 								{surveys.map(s => (
-									<div
-										key={s._id}
-										className="card cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-200 border-2 border-transparent hover:border-blue-200"
-										onClick={() => navigate(`/survey/${s.slug || s._id}`)}
-									>
+									<div key={s._id} className="card border-2 border-transparent hover:border-blue-200 hover:shadow-xl transition-all duration-200">
 										<div className="mb-4">
 											<div className="flex items-center gap-2 mb-2">
 												<h3 className="text-xl font-bold text-gray-800">{s.title}</h3>
-												<span className={`px-2 py-1 text-xs font-medium rounded-full ${s.type === 'assessment' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
-													{s.type === 'assessment' ? '评测' : '调研'}
+												<span className={`px-2 py-1 text-xs font-medium rounded-full ${
+													s.type === 'assessment' ? 'bg-blue-100 text-blue-800' : 
+													s.type === 'quiz' ? 'bg-green-100 text-green-800' :
+													s.type === 'iq' ? 'bg-purple-100 text-purple-800' :
+													'bg-gray-100 text-gray-800'
+												}`}>
+													{s.type === 'assessment' ? '测评' : 
+													 s.type === 'quiz' ? '测验' :
+													 s.type === 'iq' ? 'IQ测试' : '调研'}
 												</span>
 											</div>
 											{s.description && (
 												<p className="text-gray-600 text-sm line-clamp-3">{s.description}</p>
 											)}
 										</div>
-										<div className="flex items-center justify-between">
-											<span className="text-blue-600 font-medium text-sm">
-												{s.type === 'assessment' ? 'Start Assessment →' : 'Start Survey →'}
-											</span>
-											<div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-												<span className="text-blue-600 text-sm">▶</span>
-											</div>
+										<div className="flex flex-col gap-2">
+											{/* Enhanced Assessment Interface for quiz/assessment/iq */}
+											{['quiz', 'assessment', 'iq'].includes(s.type) && (
+												<button 
+													onClick={() => navigate(`/assessment/${s.slug || s._id}`)}
+													className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+												>
+													开始增强版测评 →
+												</button>
+											)}
+											{/* Regular Interface */}
+											<button 
+												onClick={() => navigate(`/survey/${s.slug || s._id}`)}
+												className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+											>
+												{s.type === 'assessment' ? '经典版测评' : 
+												 s.type === 'quiz' ? '经典版测验' :
+												 s.type === 'iq' ? '经典版IQ测试' : '开始调研'} →
+											</button>
 										</div>
 									</div>
 								))}
@@ -310,7 +329,7 @@ const TakeSurvey: React.FC = () => {
 
 				{submitted && (
 					<div className="card">
-						{survey?.type === 'assessment' && assessmentResults.length > 0 ? (
+						{['assessment', 'quiz', 'iq'].includes(survey?.type || '') && assessmentResults.length > 0 ? (
 							<div>
 								<div className="text-center mb-6">
 									<div className="text-blue-500 text-6xl mb-4">📊</div>
