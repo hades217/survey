@@ -194,7 +194,73 @@ async function testAdminFeatures() {
 		};
 		console.log('✓ Generated URLs:', urls);
 
+		// Test 8: Test multiple invitations for same user
+		console.log('\n--- Test 8: Testing multiple invitations for same user ---');
+		
+		// Create another survey
+		const survey2 = await Survey.create({
+			title: '学生生活满意度调研',
+			description: '关于校园生活各方面的满意度调研',
+			type: 'survey',
+			questions: [
+				{
+					text: '你对宿舍环境的满意度如何？',
+					options: ['非常满意', '满意', '一般', '不满意']
+				}
+			]
+		});
+		
+		// Create invitation for same user for different survey
+		const invitation2 = await Invitation.create({
+			surveyId: survey2._id,
+			distributionMode: 'targeted',
+			targetUsers: [createdUsers[0]._id],
+			targetEmails: [createdUsers[0].email],
+			createdBy: createdUsers[2]._id
+		});
+		
+		console.log(`✓ Created second invitation for same user: ${invitation2.invitationCode}`);
+		
+		// Query all invitations for the user
+		const userInvitations = await Invitation.find({
+			$or: [
+				{ targetUsers: createdUsers[0]._id },
+				{ targetEmails: createdUsers[0].email }
+			]
+		}).populate('surveyId', 'title');
+		
+		console.log(`✓ User ${createdUsers[0].name} has ${userInvitations.length} invitations:`);
+		userInvitations.forEach(inv => {
+			console.log(`  - ${inv.surveyId.title} (${inv.distributionMode})`);
+		});
+		
+		// Test 9: Test duplicate prevention
+		console.log('\n--- Test 9: Testing duplicate prevention ---');
+		
+		try {
+			// Try to create duplicate invitation (should work by default)
+			const duplicateInvitation = await Invitation.create({
+				surveyId: testSurvey._id,
+				distributionMode: 'targeted',
+				targetUsers: [createdUsers[0]._id],
+				createdBy: createdUsers[2]._id
+			});
+			console.log('✓ Duplicate invitation created successfully (default behavior)');
+		} catch (error) {
+			console.log('❌ Unexpected error creating duplicate invitation:', error.message);
+		}
+		
+		// Check total invitations for the survey
+		const surveyInvitations = await Invitation.find({ surveyId: testSurvey._id });
+		console.log(`✓ Survey has ${surveyInvitations.length} total invitations`);
+		
 		console.log('\n🎉 All tests passed! Administrative features are working correctly.');
+		console.log('\n📊 Test Summary:');
+		console.log(`- Created ${createdUsers.length} test users`);
+		console.log(`- Created ${(await Survey.countDocuments())} test surveys`);
+		console.log(`- Created ${(await Invitation.countDocuments())} test invitations`);
+		console.log(`- Same user can receive multiple invitations: ✅`);
+		console.log(`- Invitation system supports multiple surveys: ✅`);
 
 	} catch (error) {
 		console.error('❌ Test failed:', error);

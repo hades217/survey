@@ -24,7 +24,8 @@ router.post('/', requireAdmin, asyncHandler(async (req, res) => {
 		targetUsers, 
 		targetEmails, 
 		maxResponses, 
-		expiresAt 
+		expiresAt,
+		preventDuplicates = false // 可选参数：是否防止重复邀请
 	} = req.body;
 	
 	// Validate required fields
@@ -54,6 +55,26 @@ router.post('/', requireAdmin, asyncHandler(async (req, res) => {
 		return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
 			error: 'Target users or emails are required for targeted distribution' 
 		});
+	}
+	
+	// Optional: Check for duplicate invitations if preventDuplicates is true
+	if (preventDuplicates && distributionMode === 'targeted') {
+		const existingInvitation = await Invitation.findOne({
+			surveyId,
+			distributionMode: 'targeted',
+			isActive: true,
+			$or: [
+				{ targetUsers: { $in: targetUsers || [] } },
+				{ targetEmails: { $in: targetEmails || [] } }
+			]
+		});
+		
+		if (existingInvitation) {
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({
+				error: 'Some users have already been invited to this survey',
+				existingInvitation: existingInvitation._id
+			});
+		}
 	}
 	
 	// Create invitation
@@ -271,6 +292,145 @@ router.get('/:id/urls', requireAdmin, asyncHandler(async (req, res) => {
 	};
 	
 	res.json(urls);
+}));
+
+// Get all invitations for a specific user (admin only)
+router.get('/user/:userId', requireAdmin, asyncHandler(async (req, res) => {
+	const { userId } = req.params;
+	const { includeCompleted = false } = req.query;
+	
+	// Check if user exists
+	const user = await User.findById(userId);
+	if (!user) {
+		return res.status(HTTP_STATUS.NOT_FOUND).json({ 
+			error: 'User not found' 
+		});
+	}
+	
+	// Find all invitations for this user
+	const query = {
+		$or: [
+			{ targetUsers: userId },
+			{ targetEmails: user.email }
+		]
+	};
+	
+	// Optionally filter out completed invitations
+	if (!includeCompleted) {
+		query.isActive = true;
+	}
+	
+	const invitations = await Invitation.find(query)
+		.populate('surveyId', 'title description type status')
+		.sort({ createdAt: -1 });
+	
+	// Add completion status for each invitation
+	const invitationsWithStatus = invitations.map(inv => {
+		const hasCompleted = inv.completedBy.some(
+			completed => completed.userId?.toString() === userId || completed.email === user.email
+		);
+		
+		return {
+			...inv.toObject(),
+			hasCompleted,
+			canAccess: inv.canAccess(userId, user.email),
+			isValid: inv.isValid()
+		};
+	});
+	
+	res.json({
+		user: {
+			id: user._id,
+			name: user.name,
+			email: user.email,
+			role: user.role
+		},
+		invitations: invitationsWithStatus,
+		summary: {
+			total: invitations.length,
+			completed: invitationsWithStatus.filter(inv => inv.hasCompleted).length,
+			pending: invitationsWithStatus.filter(inv => !inv.hasCompleted && inv.isValid).length,
+			expired: invitationsWithStatus.filter(inv => !inv.isValid).length
+		}
+	});
+}));
+
+// Get all invitations for a specific email (public - for external users)
+router.get('/email/:email', asyncHandler(async (req, res) => {
+	const { email } = req.params;
+	const { includeCompleted = false } = req.query;
+	
+	// Find all invitations for this email
+	const query = {
+		targetEmails: email
+	};
+	
+	// Optionally filter out completed invitations
+	if (!includeCompleted) {
+		query.isActive = true;
+	}
+	
+	const invitations = await Invitation.find(query)
+		.populate('surveyId', 'title description type status')
+		.sort({ createdAt: -1 });
+	
+	// Add completion status for each invitation
+	const invitationsWithStatus = invitations.map(inv => {
+		const hasCompleted = inv.completedBy.some(
+			completed => completed.email === email
+		);
+		
+		return {
+			...inv.toObject(),
+			hasCompleted,
+			canAccess: inv.canAccess(null, email),
+			isValid: inv.isValid()
+		};
+	});
+	
+	res.json({
+		email,
+		invitations: invitationsWithStatus,
+		summary: {
+			total: invitations.length,
+			completed: invitationsWithStatus.filter(inv => inv.hasCompleted).length,
+			pending: invitationsWithStatus.filter(inv => !inv.hasCompleted && inv.isValid).length,
+			expired: invitationsWithStatus.filter(inv => !inv.isValid).length
+		}
+	});
+}));
+
+// Check if user has already been invited to a survey
+router.get('/check-duplicate/:surveyId', requireAdmin, asyncHandler(async (req, res) => {
+	const { surveyId } = req.params;
+	const { userId, email } = req.query;
+	
+	if (!userId && !email) {
+		return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+			error: 'User ID or email is required' 
+		});
+	}
+	
+	// Check for existing invitations
+	const query = {
+		surveyId,
+		isActive: true,
+		$or: []
+	};
+	
+	if (userId) {
+		query.$or.push({ targetUsers: userId });
+	}
+	if (email) {
+		query.$or.push({ targetEmails: email });
+	}
+	
+	const existingInvitation = await Invitation.findOne(query);
+	
+	res.json({
+		hasExistingInvitation: !!existingInvitation,
+		existingInvitation: existingInvitation || null
+	});
 }));
 
 // Bulk create invitations (admin only)

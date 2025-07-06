@@ -14,6 +14,55 @@ The system now supports three assessment distribution modes:
 
 ## 功能特性 / Features
 
+### 🔄 邀请系统逻辑 / Invitation System Logic
+
+#### 📧 Email唯一性说明 / Email Uniqueness Explanation
+
+**重要：同一用户可以收到多个不同调查的邀请**
+
+- **User表中的email唯一性**：一个邮箱只能注册一个用户账户
+- **Invitation表中的邀请独立性**：每个邀请都是独立的，针对不同的survey
+- **多次邀请支持**：同一用户可以被邀请参与多个不同的调查
+
+```javascript
+// 示例：同一用户可以收到多个邀请
+const user = {
+  email: 'student@example.com' // 在User表中唯一
+};
+
+// 可以为不同的调查创建多个邀请
+const invitation1 = {
+  surveyId: 'course-feedback',
+  targetEmails: ['student@example.com']
+};
+
+const invitation2 = {
+  surveyId: 'dormitory-survey', 
+  targetEmails: ['student@example.com'] // 相同邮箱，不同调查
+};
+
+const invitation3 = {
+  surveyId: 'cafeteria-evaluation',
+  targetEmails: ['student@example.com'] // 相同邮箱，不同调查
+};
+```
+
+#### 🛡️ 防重复邀请机制 / Duplicate Prevention
+
+系统提供可选的防重复邀请功能：
+
+```javascript
+// 创建邀请时，可以设置preventDuplicates参数
+POST /api/invitations
+{
+  "surveyId": "survey_id",
+  "distributionMode": "targeted",
+  "targetUsers": ["user_id"],
+  "targetEmails": ["email@example.com"],
+  "preventDuplicates": true  // 防止重复邀请
+}
+```
+
 ### 🎯 分发模式 / Distribution Modes
 
 #### 1. 开放问卷 (Open Mode)
@@ -126,6 +175,15 @@ GET /api/invitations/:id/urls
 
 # 批量创建邀请
 POST /api/invitations/bulk
+
+# 查询用户的所有邀请
+GET /api/invitations/user/:userId
+
+# 查询邮箱的所有邀请
+GET /api/invitations/email/:email
+
+# 检查重复邀请
+GET /api/invitations/check-duplicate/:surveyId?userId=xxx&email=xxx
 ```
 
 ### 测评发布 / Survey Publishing
@@ -249,6 +307,75 @@ const invitation = await fetch('/api/invitations', {
 // 2. 获取分享链接
 const urls = await fetch(`/api/invitations/${invitation.id}/urls`);
 console.log(urls.invitationUrl); // 邀请链接
+```
+
+### 管理用户的多个邀请 / Managing Multiple User Invitations
+
+```javascript
+// 1. 查询用户的所有邀请
+const userInvitations = await fetch('/api/invitations/user/USER_ID');
+const data = await userInvitations.json();
+
+console.log('用户邀请摘要:', data.summary);
+// 输出: { total: 5, completed: 2, pending: 2, expired: 1 }
+
+// 2. 检查用户是否已被邀请参与特定调查
+const duplicateCheck = await fetch(
+  '/api/invitations/check-duplicate/SURVEY_ID?userId=USER_ID'
+);
+const checkResult = await duplicateCheck.json();
+
+if (checkResult.hasExistingInvitation) {
+  console.log('用户已被邀请参与此调查');
+} else {
+  // 3. 创建新邀请（支持防重复）
+  const newInvitation = await fetch('/api/invitations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      surveyId: 'SURVEY_ID',
+      distributionMode: 'targeted',
+      targetUsers: ['USER_ID'],
+      preventDuplicates: true // 防止重复邀请
+    })
+  });
+}
+
+// 4. 批量邀请用户参与多个调查
+const batchInvitations = await fetch('/api/invitations/bulk', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    surveyId: 'SURVEY_ID',
+    invitations: [
+      {
+        distributionMode: 'targeted',
+        targetUsers: ['USER_ID_1', 'USER_ID_2'],
+        targetEmails: ['external1@example.com', 'external2@example.com']
+      },
+      {
+        distributionMode: 'link',
+        maxResponses: 50,
+        expiresAt: '2024-12-31T23:59:59Z'
+      }
+    ]
+  })
+});
+```
+
+### 外部用户邀请查询 / External User Invitation Query
+
+```javascript
+// 外部用户通过邮箱查询自己的邀请
+const emailInvitations = await fetch('/api/invitations/email/user@example.com');
+const invitations = await emailInvitations.json();
+
+console.log(`${invitations.email} 的邀请列表:`);
+invitations.invitations.forEach(inv => {
+  console.log(`- ${inv.surveyId.title} (${inv.distributionMode})`);
+  console.log(`  状态: ${inv.hasCompleted ? '已完成' : '待完成'}`);
+  console.log(`  有效: ${inv.isValid ? '是' : '否'}`);
+});
 ```
 
 ## 数据模型 / Data Models
