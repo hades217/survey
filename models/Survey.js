@@ -30,6 +30,39 @@ const surveySchema = new mongoose.Schema({
 		enum: [SURVEY_STATUS.DRAFT, SURVEY_STATUS.ACTIVE, SURVEY_STATUS.CLOSED],
 		default: SURVEY_STATUS.DRAFT
 	},
+	// Distribution settings
+	distributionSettings: {
+		allowAnonymous: {
+			type: Boolean,
+			default: true
+		},
+		requireLogin: {
+			type: Boolean,
+			default: false
+		},
+		allowedRoles: [{
+			type: String,
+			enum: ['student', 'teacher', 'admin', 'user']
+		}],
+		maxResponsesPerUser: {
+			type: Number,
+			default: 1
+		}
+	},
+	// Publishing settings
+	publishingSettings: {
+		publishedAt: Date,
+		publishedBy: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User'
+		},
+		scheduledPublishAt: Date,
+		scheduledCloseAt: Date,
+		autoClose: {
+			type: Boolean,
+			default: false
+		}
+	},
 	createdAt: {
 		type: Date,
 		default: Date.now

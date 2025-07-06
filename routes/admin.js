@@ -3,6 +3,8 @@ const path = require('path');
 const { readJson } = require('../utils/file');
 const Survey = require('../models/Survey');
 const Response = require('../models/Response');
+const Invitation = require('../models/Invitation');
+const User = require('../models/User');
 const asyncHandler = require('../middlewares/asyncHandler');
 const AppError = require('../utils/AppError');
 const { ERROR_MESSAGES, DATA_TYPES, HTTP_STATUS } = require('../shared/constants');
@@ -163,6 +165,215 @@ router.get('/surveys/:surveyId/statistics', asyncHandler(async (req, res) => {
 			totalResponses,
 			completionRate: parseFloat(completionRate.toFixed(2)),
 			totalQuestions: survey.questions.length
+		}
+	});
+}));
+
+// Publish survey with distribution settings (admin only)
+router.post('/surveys/:id/publish', asyncHandler(async (req, res) => {
+	if (!req.session.admin) {
+		return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: ERROR_MESSAGES.UNAUTHORIZED });
+	}
+	
+	const { 
+		distributionMode, 
+		targetUsers, 
+		targetEmails, 
+		maxResponses, 
+		expiresAt,
+		distributionSettings 
+	} = req.body;
+	
+	const survey = await Survey.findById(req.params.id);
+	if (!survey) {
+		throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+	}
+	
+	// Update survey status to active
+	survey.status = 'active';
+	survey.publishingSettings = {
+		publishedAt: new Date(),
+		publishedBy: req.session.adminId || null
+	};
+	
+	// Update distribution settings if provided
+	if (distributionSettings) {
+		survey.distributionSettings = {
+			...survey.distributionSettings,
+			...distributionSettings
+		};
+	}
+	
+	await survey.save();
+	
+	// Create invitation if distribution mode is specified
+	if (distributionMode) {
+		const invitation = await Invitation.create({
+			surveyId: survey._id,
+			distributionMode,
+			targetUsers: targetUsers || [],
+			targetEmails: targetEmails || [],
+			maxResponses,
+			expiresAt: expiresAt ? new Date(expiresAt) : null,
+			createdBy: req.session.adminId || null
+		});
+		
+		await invitation.populate('surveyId', 'title description');
+		await invitation.populate('targetUsers', 'name email studentId');
+		
+		res.json({
+			survey,
+			invitation
+		});
+	} else {
+		res.json({ survey });
+	}
+}));
+
+// Get survey invitations (admin only)
+router.get('/surveys/:id/invitations', asyncHandler(async (req, res) => {
+	if (!req.session.admin) {
+		return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: ERROR_MESSAGES.UNAUTHORIZED });
+	}
+	
+	const invitations = await Invitation.find({ surveyId: req.params.id })
+		.populate('targetUsers', 'name email studentId')
+		.sort({ createdAt: -1 });
+	
+	res.json(invitations);
+}));
+
+// Create invitation for survey (admin only)
+router.post('/surveys/:id/invitations', asyncHandler(async (req, res) => {
+	if (!req.session.admin) {
+		return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: ERROR_MESSAGES.UNAUTHORIZED });
+	}
+	
+	const { 
+		distributionMode, 
+		targetUsers, 
+		targetEmails, 
+		maxResponses, 
+		expiresAt 
+	} = req.body;
+	
+	const survey = await Survey.findById(req.params.id);
+	if (!survey) {
+		throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+	}
+	
+	// Validate distribution mode
+	if (!['open', 'targeted', 'link'].includes(distributionMode)) {
+		return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+			error: 'Invalid distribution mode' 
+		});
+	}
+	
+	// For targeted mode, validate target users/emails
+	if (distributionMode === 'targeted' && !targetUsers && !targetEmails) {
+		return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+			error: 'Target users or emails are required for targeted distribution' 
+		});
+	}
+	
+	const invitation = await Invitation.create({
+		surveyId: req.params.id,
+		distributionMode,
+		targetUsers: targetUsers || [],
+		targetEmails: targetEmails || [],
+		maxResponses,
+		expiresAt: expiresAt ? new Date(expiresAt) : null,
+		createdBy: req.session.adminId || null
+	});
+	
+	await invitation.populate('surveyId', 'title description');
+	await invitation.populate('targetUsers', 'name email studentId');
+	
+	res.json(invitation);
+}));
+
+// Get dashboard statistics (admin only)
+router.get('/dashboard/statistics', asyncHandler(async (req, res) => {
+	if (!req.session.admin) {
+		return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: ERROR_MESSAGES.UNAUTHORIZED });
+	}
+	
+	const [
+		totalSurveys,
+		activeSurveys,
+		totalInvitations,
+		activeInvitations,
+		totalUsers,
+		totalResponses
+	] = await Promise.all([
+		Survey.countDocuments(),
+		Survey.countDocuments({ status: 'active' }),
+		Invitation.countDocuments(),
+		Invitation.countDocuments({ isActive: true }),
+		User.countDocuments({ isActive: true }),
+		Response.countDocuments()
+	]);
+	
+	// Get survey statistics by type
+	const surveysByType = await Survey.aggregate([
+		{
+			$group: {
+				_id: '$type',
+				count: { $sum: 1 }
+			}
+		}
+	]);
+	
+	// Get invitation statistics by distribution mode
+	const invitationsByMode = await Invitation.aggregate([
+		{
+			$group: {
+				_id: '$distributionMode',
+				count: { $sum: 1 }
+			}
+		}
+	]);
+	
+	// Get user statistics by role
+	const usersByRole = await User.aggregate([
+		{ $match: { isActive: true } },
+		{
+			$group: {
+				_id: '$role',
+				count: { $sum: 1 }
+			}
+		}
+	]);
+	
+	// Get recent activity
+	const recentSurveys = await Survey.find()
+		.sort({ createdAt: -1 })
+		.limit(5)
+		.select('title status createdAt');
+	
+	const recentInvitations = await Invitation.find()
+		.populate('surveyId', 'title')
+		.sort({ createdAt: -1 })
+		.limit(5)
+		.select('distributionMode currentResponses createdAt');
+	
+	res.json({
+		overview: {
+			totalSurveys,
+			activeSurveys,
+			totalInvitations,
+			activeInvitations,
+			totalUsers,
+			totalResponses
+		},
+		charts: {
+			surveysByType,
+			invitationsByMode,
+			usersByRole
+		},
+		recent: {
+			surveys: recentSurveys,
+			invitations: recentInvitations
 		}
 	});
 }));
