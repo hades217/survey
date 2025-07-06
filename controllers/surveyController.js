@@ -35,6 +35,12 @@ async function submitSurveyResponse(req, res) {
 async function createSurvey(req, res) {
 	try {
 		const data = surveyCreateSchema.parse(req.body);
+		
+		// Generate slug after schema validation
+		if (data.title && !data.slug) {
+			data.slug = await SurveyModel.generateSlug(data.title);
+		}
+		
 		const survey = new SurveyModel(data);
 		await survey.save();
 		

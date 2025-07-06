@@ -8,7 +8,10 @@
       "Bash(npm run dev:*)",
       "Bash(curl:*)",
       "Bash(pkill:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(kill:*)",
+      "Bash(npm run:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }

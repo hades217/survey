@@ -29,7 +29,15 @@ router.post('/surveys', asyncHandler(async (req, res) => {
 	if (!req.session.admin) {
 		return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: ERROR_MESSAGES.UNAUTHORIZED });
 	}
-	const survey = await Survey.create(req.body);
+	
+	// Generate slug after validating the request data
+	const surveyData = { ...req.body };
+	if (surveyData.title && !surveyData.slug) {
+		surveyData.slug = await Survey.generateSlug(surveyData.title);
+	}
+	
+	const survey = new Survey(surveyData);
+	await survey.save();
 	res.json(survey);
 }));
 

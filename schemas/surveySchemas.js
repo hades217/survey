@@ -24,6 +24,9 @@ const surveyCreateSchema = z.object({
 	maxAttempts: z.number().positive().default(1),
 	instructions: z.string().optional(),
 	navigationMode: z.enum(['step-by-step', 'paginated', 'all-in-one']).default('step-by-step'),
+	sourceType: z.enum(['manual', 'question_bank']).default('manual').optional(),
+	questionBankId: z.string().min(1).optional(),
+	questionCount: z.number().positive().optional(),
 	questions: z.array(questionSchema).min(1, 'At least one question is required'),
 	distributionSettings: z.object({
 		allowAnonymous: z.boolean().default(true),

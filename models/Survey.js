@@ -7,7 +7,7 @@ const surveySchema = new mongoose.Schema({
 	slug: {
 		type: String,
 		unique: true,
-		required: true,
+		required: false,
 		index: true
 	},
 	type: {
@@ -217,24 +217,31 @@ const surveySchema = new mongoose.Schema({
 	}
 });
 
-// Generate slug from title before saving
-surveySchema.pre('save', function(next) {
-	if (this.isModified('title') && !this.slug) {
-		this.slug = this.title
-			.toLowerCase()
-			.replace(/[^a-z0-9]+/g, '-')
-			.replace(/(^-|-$)/g, '');
+// Helper function to generate unique slug
+surveySchema.statics.generateSlug = async function(title, excludeId = null) {
+	let baseSlug = title
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/(^-|-$)/g, '');
+	
+	// Ensure slug is unique
+	let slug = baseSlug;
+	let counter = 1;
+	
+	// Check if slug already exists (excluding current document)
+	const query = { slug };
+	if (excludeId) {
+		query._id = { $ne: excludeId };
 	}
 	
-	// Calculate total points for scoring
-	if (this.questions && this.questions.length > 0) {
-		this.scoringSettings.totalPoints = this.questions.reduce((total, question) => {
-			return total + (question.points || this.scoringSettings.customScoringRules.defaultQuestionPoints || 1);
-		}, 0);
+	while (await this.findOne(query)) {
+		slug = `${baseSlug}-${counter}`;
+		counter++;
+		query.slug = slug;
 	}
 	
-	next();
-});
+	return slug;
+};
 
 // Virtual method to check if survey requires answers
 surveySchema.virtual('requiresAnswers').get(function() {
