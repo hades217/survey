@@ -233,9 +233,9 @@ surveySchema.virtual('scoringDescription').get(function() {
 	const totalPoints = this.scoringSettings.totalPoints;
 	
 	if (mode === 'percentage') {
-		return `按百分比计分，满分100分，及格线${threshold}分`;
+		return `Percentage scoring, max score 100, passing threshold ${threshold}`;
 	} else {
-		return `按累积分数计分，满分${totalPoints}分，及格线${threshold}分`;
+		return `Accumulated scoring, max score ${totalPoints}, passing threshold ${threshold}`;
 	}
 });
 

@@ -6,8 +6,8 @@ This implementation adds a flexible assessment scoring system to the survey plat
 ## Key Features
 
 ### 1. Scoring Modes
-- **Percentage Mode (百分制)**: Converts all scores to 0-100 scale regardless of actual point values
-- **Accumulated Mode (累积计分)**: Uses actual point values for scoring
+- **Percentage Mode**: Converts all scores to 0-100 scale regardless of actual point values
+- **Accumulated Mode**: Uses actual point values for scoring
 
 ### 2. Management Features
 - **Scoring Configuration**: Admin can set scoring mode, passing threshold, and display options
@@ -98,13 +98,13 @@ score: {
 - Question 1: 5 points (correct) → 5/5 points
 - Question 2: 10 points (wrong) → 0/10 points
 - Question 3: 15 points (correct) → 15/15 points
-- **Total**: 20/30 points = 66.67% (displayed as 66.67分)
+- **Total**: 20/30 points = 66.67% (displayed as 66.67 points)
 
 #### Accumulated Mode Example
 - Question 1: 5 points (correct) → 5 points
 - Question 2: 10 points (wrong) → 0 points
 - Question 3: 15 points (correct) → 15 points
-- **Total**: 20 points out of 30 (displayed as 20分 / 30分)
+- **Total**: 20 points out of 30 (displayed as 20 / 30 points)
 
 ## Configuration Options
 

@@ -142,7 +142,7 @@ const TakeSurvey: React.FC = () => {
 					};
 				});
 				
-				// Calculate scoring result
+												// Calculate scoring result
 				const scoringMode = survey.scoringSettings?.scoringMode || 'percentage';
 				const passingThreshold = survey.scoringSettings?.passingThreshold || 60;
 				const percentage = maxPossiblePoints > 0 ? (totalPoints / maxPossiblePoints) * 100 : 0;
@@ -154,11 +154,11 @@ const TakeSurvey: React.FC = () => {
 				if (scoringMode === 'percentage') {
 					displayScore = Math.round(percentage * 100) / 100;
 					passed = percentage >= passingThreshold;
-					scoringDescription = `百分制计分，满分100分，及格线${passingThreshold}分`;
+					scoringDescription = `Percentage scoring, max score 100, passing threshold ${passingThreshold}`;
 				} else {
 					displayScore = totalPoints;
 					passed = totalPoints >= passingThreshold;
-					scoringDescription = `累积计分，满分${maxPossiblePoints}分，及格线${passingThreshold}分`;
+					scoringDescription = `Accumulated scoring, max score ${maxPossiblePoints}, passing threshold ${passingThreshold}`;
 				}
 				
 				const scoring: ScoringResult = {
@@ -223,8 +223,8 @@ const TakeSurvey: React.FC = () => {
 					<h2 className="text-2xl font-bold text-gray-800 mb-2">Survey Unavailable</h2>
 					<p className="text-gray-600 mb-6">
 						{survey.status === 'draft' 
-							? '此问卷尚未开放。' 
-							: '此问卷已关闭。'
+							? 'This survey is not yet open.' 
+							: 'This survey has been closed.'
 						}
 					</p>
 					<button 
@@ -294,9 +294,9 @@ const TakeSurvey: React.FC = () => {
 													s.type === 'iq' ? 'bg-purple-100 text-purple-800' :
 													'bg-gray-100 text-gray-800'
 												}`}>
-													{s.type === 'assessment' ? '测评' : 
-													 s.type === 'quiz' ? '测验' :
-													 s.type === 'iq' ? 'IQ测试' : '调研'}
+													{s.type === 'assessment' ? 'Assessment' : 
+													 s.type === 'quiz' ? 'Quiz' :
+													 s.type === 'iq' ? 'IQ Test' : 'Survey'}
 												</span>
 											</div>
 											{s.description && (
@@ -306,21 +306,21 @@ const TakeSurvey: React.FC = () => {
 										<div className="flex flex-col gap-2">
 											{/* Enhanced Assessment Interface for quiz/assessment/iq */}
 											{['quiz', 'assessment', 'iq'].includes(s.type) && (
-												<button 
-													onClick={() => navigate(`/assessment/${s.slug || s._id}`)}
-													className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-												>
-													开始增强版测评 →
-												</button>
+																							<button 
+												onClick={() => navigate(`/assessment/${s.slug || s._id}`)}
+												className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+											>
+												Start Enhanced Assessment →
+											</button>
 											)}
 											{/* Regular Interface */}
 											<button 
 												onClick={() => navigate(`/survey/${s.slug || s._id}`)}
 												className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
 											>
-												{s.type === 'assessment' ? '经典版测评' : 
-												 s.type === 'quiz' ? '经典版测验' :
-												 s.type === 'iq' ? '经典版IQ测试' : '开始调研'} →
+												{s.type === 'assessment' ? 'Classic Assessment' : 
+												 s.type === 'quiz' ? 'Classic Quiz' :
+												 s.type === 'iq' ? 'Classic IQ Test' : 'Start Survey'} →
 											</button>
 										</div>
 									</div>
@@ -414,19 +414,19 @@ const TakeSurvey: React.FC = () => {
 								{scoringResult.passed ? '🎉' : '📊'}
 							</div>
 							<h2 className="text-3xl font-bold text-gray-800 mb-2">
-								{scoringResult.passed ? '恭喜通过!' : '测评结果'}
+								{scoringResult.passed ? 'Congratulations! You Passed!' : 'Assessment Results'}
 							</h2>
 							<div className="space-y-2 mb-4">
 								<div className={`text-2xl font-bold ${scoringResult.passed ? 'text-green-600' : 'text-red-600'}`}>
 									{scoringResult.scoringMode === 'percentage' 
-										? `${scoringResult.displayScore}分`
-										: `${scoringResult.displayScore}分 / ${scoringResult.maxPossiblePoints}分`}
+										? `${scoringResult.displayScore} points`
+										: `${scoringResult.displayScore} / ${scoringResult.maxPossiblePoints} points`}
 								</div>
 								<div className="text-sm text-gray-600">
 									{scoringResult.scoringDescription}
 								</div>
 								<div className="text-sm text-gray-600">
-									正确答题: {scoringResult.correctAnswers} / {scoringResult.correctAnswers + scoringResult.wrongAnswers}
+									Correct answers: {scoringResult.correctAnswers} / {scoringResult.correctAnswers + scoringResult.wrongAnswers}
 								</div>
 							</div>
 						</div>
@@ -445,16 +445,16 @@ const TakeSurvey: React.FC = () => {
 													</div>
 												</div>
 												<div className={`text-sm font-medium px-2 py-1 rounded ${result.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-													{result.pointsAwarded}/{result.maxPoints} 分
+													{result.pointsAwarded}/{result.maxPoints} pts
 												</div>
 											</div>
 											<div className="space-y-1 text-sm">
 												<div className="text-gray-700">
-													<span className="font-medium">你的答案:</span> {result.userAnswer}
+													<span className="font-medium">Your answer:</span> {result.userAnswer}
 												</div>
 												{!result.isCorrect && survey?.scoringSettings?.showCorrectAnswers && (
 													<div className="text-green-700">
-														<span className="font-medium">正确答案:</span> {result.correctAnswer}
+														<span className="font-medium">Correct answer:</span> {result.correctAnswer}
 													</div>
 												)}
 											</div>
