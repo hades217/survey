@@ -1,18 +1,18 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(timeout:*)",
-      "Bash(node:*)",
-      "Bash(npm run lint:*)",
-      "Bash(npm run build:*)",
-      "Bash(npm run dev:*)",
-      "Bash(curl:*)",
-      "Bash(pkill:*)",
-      "Bash(grep:*)",
-      "Bash(kill:*)",
-      "Bash(npm run:*)",
-      "Bash(sed:*)"
-    ],
-    "deny": []
-  }
+	"permissions": {
+		"allow": [
+			"Bash(timeout:*)",
+			"Bash(node:*)",
+			"Bash(npm run lint:*)",
+			"Bash(npm run build:*)",
+			"Bash(npm run dev:*)",
+			"Bash(curl:*)",
+			"Bash(pkill:*)",
+			"Bash(grep:*)",
+			"Bash(kill:*)",
+			"Bash(npm run:*)",
+			"Bash(sed:*)"
+		],
+		"deny": []
+	}
 }

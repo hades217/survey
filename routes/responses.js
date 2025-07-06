@@ -11,7 +11,7 @@ router.post('/response', (req, res) => {
 	const responses = readJson(RESPONSES_FILE);
 	responses.push({
 		...req.body,
-		timestamp: new Date().toISOString()
+		timestamp: new Date().toISOString(),
 	});
 	writeJson(RESPONSES_FILE, responses);
 	res.json({ success: true });

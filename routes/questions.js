@@ -16,7 +16,11 @@ router.put('/questions', (req, res) => {
 		return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: ERROR_MESSAGES.UNAUTHORIZED });
 	}
 	const { text, options } = req.body;
-	if (typeof text !== DATA_TYPES.STRING || !Array.isArray(options) || !options.every(o => typeof o === DATA_TYPES.STRING)) {
+	if (
+		typeof text !== DATA_TYPES.STRING ||
+		!Array.isArray(options) ||
+		!options.every(o => typeof o === DATA_TYPES.STRING)
+	) {
 		return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: ERROR_MESSAGES.INVALID_DATA });
 	}
 	const questions = readJson(QUESTIONS_FILE);

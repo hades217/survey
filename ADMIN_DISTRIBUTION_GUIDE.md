@@ -3,11 +3,13 @@
 ## 概述 / Overview
 
 本系统现已支持三种测评分发模式：
+
 - **链接邀请** (Link Invitations): 生成专用链接分享给指定用户
 - **指定学生/用户** (Targeted Distribution): 针对特定学生或用户群体
 - **开放问卷** (Open Questionnaires): 允许任何人访问的公开测评
 
 The system now supports three assessment distribution modes:
+
 - **Link Invitations**: Generate dedicated links to share with specific users
 - **Targeted Distribution**: Target specific students or user groups
 - **Open Questionnaires**: Public assessments accessible to anyone
@@ -27,23 +29,23 @@ The system now supports three assessment distribution modes:
 ```javascript
 // 示例：同一用户可以收到多个邀请
 const user = {
-  email: 'student@example.com' // 在User表中唯一
+	email: 'student@example.com', // 在User表中唯一
 };
 
 // 可以为不同的调查创建多个邀请
 const invitation1 = {
-  surveyId: 'course-feedback',
-  targetEmails: ['student@example.com']
+	surveyId: 'course-feedback',
+	targetEmails: ['student@example.com'],
 };
 
 const invitation2 = {
-  surveyId: 'dormitory-survey', 
-  targetEmails: ['student@example.com'] // 相同邮箱，不同调查
+	surveyId: 'dormitory-survey',
+	targetEmails: ['student@example.com'], // 相同邮箱，不同调查
 };
 
 const invitation3 = {
-  surveyId: 'cafeteria-evaluation',
-  targetEmails: ['student@example.com'] // 相同邮箱，不同调查
+	surveyId: 'cafeteria-evaluation',
+	targetEmails: ['student@example.com'], // 相同邮箱，不同调查
 };
 ```
 
@@ -66,16 +68,19 @@ POST /api/invitations
 ### 🎯 分发模式 / Distribution Modes
 
 #### 1. 开放问卷 (Open Mode)
+
 - 任何人都可以访问和参与
 - 适用于公开调研、意见收集
 - 无需登录或认证
 
 #### 2. 指定用户 (Targeted Mode)
+
 - 只有指定的用户可以参与
 - 支持按用户ID、邮箱地址筛选
 - 可以按角色、部门、班级批量指定
 
 #### 3. 链接邀请 (Link Mode)
+
 - 生成唯一的邀请链接
 - 持有链接的用户可以参与
 - 支持设置访问限制和过期时间
@@ -222,26 +227,26 @@ GET /api/admin/dashboard/statistics
 ```javascript
 // 1. 创建测评
 const survey = await fetch('/api/admin/surveys', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    title: '客户满意度调研',
-    description: '请参与我们的客户满意度调研',
-    type: 'survey'
-  })
+	method: 'POST',
+	headers: { 'Content-Type': 'application/json' },
+	body: JSON.stringify({
+		title: '客户满意度调研',
+		description: '请参与我们的客户满意度调研',
+		type: 'survey',
+	}),
 });
 
 // 2. 发布为开放问卷
 const publication = await fetch(`/api/admin/surveys/${survey.id}/publish`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    distributionMode: 'open',
-    distributionSettings: {
-      allowAnonymous: true,
-      requireLogin: false
-    }
-  })
+	method: 'POST',
+	headers: { 'Content-Type': 'application/json' },
+	body: JSON.stringify({
+		distributionMode: 'open',
+		distributionSettings: {
+			allowAnonymous: true,
+			requireLogin: false,
+		},
+	}),
 });
 ```
 
@@ -250,42 +255,42 @@ const publication = await fetch(`/api/admin/surveys/${survey.id}/publish`, {
 ```javascript
 // 1. 批量创建学生用户
 const users = await fetch('/api/admin/users/bulk', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    users: [
-      {
-        name: '张三',
-        email: 'zhangsan@school.edu',
-        role: 'student',
-        studentId: '2023001',
-        department: '计算机科学',
-        class: '软件工程1班'
-      },
-      {
-        name: '李四',
-        email: 'lisi@school.edu',
-        role: 'student',
-        studentId: '2023002',
-        department: '计算机科学',
-        class: '软件工程1班'
-      }
-    ]
-  })
+	method: 'POST',
+	headers: { 'Content-Type': 'application/json' },
+	body: JSON.stringify({
+		users: [
+			{
+				name: '张三',
+				email: 'zhangsan@school.edu',
+				role: 'student',
+				studentId: '2023001',
+				department: '计算机科学',
+				class: '软件工程1班',
+			},
+			{
+				name: '李四',
+				email: 'lisi@school.edu',
+				role: 'student',
+				studentId: '2023002',
+				department: '计算机科学',
+				class: '软件工程1班',
+			},
+		],
+	}),
 });
 
 // 2. 创建针对特定学生的测评
 const invitation = await fetch('/api/invitations', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    surveyId: 'survey_id',
-    distributionMode: 'targeted',
-    targetUsers: ['user_id1', 'user_id2'],
-    targetEmails: ['external@example.com'],
-    maxResponses: 50,
-    expiresAt: '2024-12-31T23:59:59Z'
-  })
+	method: 'POST',
+	headers: { 'Content-Type': 'application/json' },
+	body: JSON.stringify({
+		surveyId: 'survey_id',
+		distributionMode: 'targeted',
+		targetUsers: ['user_id1', 'user_id2'],
+		targetEmails: ['external@example.com'],
+		maxResponses: 50,
+		expiresAt: '2024-12-31T23:59:59Z',
+	}),
 });
 ```
 
@@ -294,14 +299,14 @@ const invitation = await fetch('/api/invitations', {
 ```javascript
 // 1. 创建链接邀请
 const invitation = await fetch('/api/invitations', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    surveyId: 'survey_id',
-    distributionMode: 'link',
-    maxResponses: 100,
-    expiresAt: '2024-12-31T23:59:59Z'
-  })
+	method: 'POST',
+	headers: { 'Content-Type': 'application/json' },
+	body: JSON.stringify({
+		surveyId: 'survey_id',
+		distributionMode: 'link',
+		maxResponses: 100,
+		expiresAt: '2024-12-31T23:59:59Z',
+	}),
 });
 
 // 2. 获取分享链接
@@ -320,46 +325,44 @@ console.log('用户邀请摘要:', data.summary);
 // 输出: { total: 5, completed: 2, pending: 2, expired: 1 }
 
 // 2. 检查用户是否已被邀请参与特定调查
-const duplicateCheck = await fetch(
-  '/api/invitations/check-duplicate/SURVEY_ID?userId=USER_ID'
-);
+const duplicateCheck = await fetch('/api/invitations/check-duplicate/SURVEY_ID?userId=USER_ID');
 const checkResult = await duplicateCheck.json();
 
 if (checkResult.hasExistingInvitation) {
-  console.log('用户已被邀请参与此调查');
+	console.log('用户已被邀请参与此调查');
 } else {
-  // 3. 创建新邀请（支持防重复）
-  const newInvitation = await fetch('/api/invitations', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      surveyId: 'SURVEY_ID',
-      distributionMode: 'targeted',
-      targetUsers: ['USER_ID'],
-      preventDuplicates: true // 防止重复邀请
-    })
-  });
+	// 3. 创建新邀请（支持防重复）
+	const newInvitation = await fetch('/api/invitations', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			surveyId: 'SURVEY_ID',
+			distributionMode: 'targeted',
+			targetUsers: ['USER_ID'],
+			preventDuplicates: true, // 防止重复邀请
+		}),
+	});
 }
 
 // 4. 批量邀请用户参与多个调查
 const batchInvitations = await fetch('/api/invitations/bulk', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    surveyId: 'SURVEY_ID',
-    invitations: [
-      {
-        distributionMode: 'targeted',
-        targetUsers: ['USER_ID_1', 'USER_ID_2'],
-        targetEmails: ['external1@example.com', 'external2@example.com']
-      },
-      {
-        distributionMode: 'link',
-        maxResponses: 50,
-        expiresAt: '2024-12-31T23:59:59Z'
-      }
-    ]
-  })
+	method: 'POST',
+	headers: { 'Content-Type': 'application/json' },
+	body: JSON.stringify({
+		surveyId: 'SURVEY_ID',
+		invitations: [
+			{
+				distributionMode: 'targeted',
+				targetUsers: ['USER_ID_1', 'USER_ID_2'],
+				targetEmails: ['external1@example.com', 'external2@example.com'],
+			},
+			{
+				distributionMode: 'link',
+				maxResponses: 50,
+				expiresAt: '2024-12-31T23:59:59Z',
+			},
+		],
+	}),
 });
 ```
 
@@ -372,9 +375,9 @@ const invitations = await emailInvitations.json();
 
 console.log(`${invitations.email} 的邀请列表:`);
 invitations.invitations.forEach(inv => {
-  console.log(`- ${inv.surveyId.title} (${inv.distributionMode})`);
-  console.log(`  状态: ${inv.hasCompleted ? '已完成' : '待完成'}`);
-  console.log(`  有效: ${inv.isValid ? '是' : '否'}`);
+	console.log(`- ${inv.surveyId.title} (${inv.distributionMode})`);
+	console.log(`  状态: ${inv.hasCompleted ? '已完成' : '待完成'}`);
+	console.log(`  有效: ${inv.isValid ? '是' : '否'}`);
 });
 ```
 
@@ -435,7 +438,7 @@ invitations.invitations.forEach(inv => {
   type: String,                // survey, assessment
   questions: [Question],
   status: String,              // draft, active, closed
-  
+
   // 分发设置
   distributionSettings: {
     allowAnonymous: Boolean,   // 允许匿名
@@ -443,7 +446,7 @@ invitations.invitations.forEach(inv => {
     allowedRoles: [String],    // 允许的角色
     maxResponsesPerUser: Number // 每用户最大响应数
   },
-  
+
   // 发布设置
   publishingSettings: {
     publishedAt: Date,         // 发布时间
@@ -452,7 +455,7 @@ invitations.invitations.forEach(inv => {
     scheduledCloseAt: Date,    // 计划关闭时间
     autoClose: Boolean         // 自动关闭
   },
-  
+
   createdAt: Date,
   isActive: Boolean
 }
@@ -478,16 +481,19 @@ invitations.invitations.forEach(inv => {
 ## 最佳实践 / Best Practices
 
 ### 1. 用户管理
+
 - 定期清理不活跃用户
 - 使用批量导入功能提高效率
 - 设置合理的用户角色权限
 
 ### 2. 邀请管理
+
 - 为不同场景设置合适的过期时间
 - 限制最大响应数以控制参与规模
 - 定期检查邀请状态和统计数据
 
 ### 3. 测评发布
+
 - 根据测评性质选择合适的分发模式
 - 测试发布前确保所有设置正确
 - 监控发布后的参与情况
@@ -497,19 +503,19 @@ invitations.invitations.forEach(inv => {
 ### 常见问题 / Common Issues
 
 1. **邀请链接无法访问**
-   - 检查邀请是否已过期
-   - 确认邀请状态为激活
-   - 验证用户是否有访问权限
+    - 检查邀请是否已过期
+    - 确认邀请状态为激活
+    - 验证用户是否有访问权限
 
 2. **用户无法参与测评**
-   - 检查用户角色是否在允许范围内
-   - 确认用户是否在目标用户列表中
-   - 验证测评状态是否为活跃
+    - 检查用户角色是否在允许范围内
+    - 确认用户是否在目标用户列表中
+    - 验证测评状态是否为活跃
 
 3. **统计数据不准确**
-   - 检查数据库连接
-   - 确认统计查询的时间范围
-   - 验证数据模型的完整性
+    - 检查数据库连接
+    - 确认统计查询的时间范围
+    - 验证数据模型的完整性
 
 ## 技术支持 / Technical Support
 

@@ -108,11 +108,11 @@ const Admin: React.FC = () => {
 		timeLimit: '',
 		maxAttempts: 1,
 		instructions: '',
-		navigationMode: 'step-by-step' as 'step-by-step' | 'paginated' | 'all-in-one'
+		navigationMode: 'step-by-step' as 'step-by-step' | 'paginated' | 'all-in-one',
 	});
-	const [newSurvey, setNewSurvey] = useState({ 
-		title: '', 
-		description: '', 
+	const [newSurvey, setNewSurvey] = useState({
+		title: '',
+		description: '',
 		type: 'survey' as 'survey' | 'assessment' | 'quiz' | 'iq',
 		timeLimit: undefined as number | undefined,
 		maxAttempts: 1,
@@ -121,7 +121,12 @@ const Admin: React.FC = () => {
 		sourceType: 'manual' as 'manual' | 'question_bank',
 		questionBankId: undefined as string | undefined,
 		questionCount: undefined as number | undefined,
-		questions: [] as { text: string; options: string[]; correctAnswer?: number; points?: number }[],
+		questions: [] as {
+			text: string;
+			options: string[];
+			correctAnswer?: number;
+			points?: number;
+		}[],
 		scoringSettings: {
 			scoringMode: 'percentage' as 'percentage' | 'accumulated',
 			passingThreshold: 60,
@@ -130,11 +135,13 @@ const Admin: React.FC = () => {
 			showScoreBreakdown: true,
 			customScoringRules: {
 				useCustomPoints: false,
-				defaultQuestionPoints: 1
-			}
-		}
+				defaultQuestionPoints: 1,
+			},
+		},
 	});
-	const [questionForms, setQuestionForms] = useState<Record<string, { text: string; options: string[]; correctAnswer?: number; points?: number }>>({});
+	const [questionForms, setQuestionForms] = useState<
+		Record<string, { text: string; options: string[]; correctAnswer?: number; points?: number }>
+	>({});
 	const [stats, setStats] = useState<Record<string, EnhancedStats>>({});
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
@@ -143,7 +150,7 @@ const Admin: React.FC = () => {
 	const [statsView, setStatsView] = useState<StatsViewType>('aggregated');
 	const [newQuestionBank, setNewQuestionBank] = useState({
 		name: '',
-		description: ''
+		description: '',
 	});
 
 	// 登录状态持久化
@@ -239,7 +246,7 @@ const Admin: React.FC = () => {
 			timeLimit: survey.timeLimit ? String(survey.timeLimit) : '',
 			maxAttempts: survey.maxAttempts,
 			instructions: survey.instructions || '',
-			navigationMode: survey.navigationMode || 'step-by-step'
+			navigationMode: survey.navigationMode || 'step-by-step',
 		});
 		setShowEditModal(true);
 	};
@@ -255,67 +262,76 @@ const Admin: React.FC = () => {
 		try {
 			// Prepare survey data with appropriate questions based on type
 			let surveyData;
-			
+
 			// Clean up undefined questionBankId if sourceType is manual
 			if (newSurvey.sourceType === 'manual') {
 				const { questionBankId, questionCount, ...cleanedData } = newSurvey;
 				surveyData = cleanedData;
 			} else {
 				// For question_bank, ensure questionBankId is not undefined
-				surveyData = { 
+				surveyData = {
 					...newSurvey,
 					questionBankId: newSurvey.questionBankId || '',
-					questionCount: newSurvey.questionCount || 1
+					questionCount: newSurvey.questionCount || 1,
 				};
 			}
-			
+
 			// If no questions exist, add a default question based on type
 			if (surveyData.questions.length === 0) {
 				if (['assessment', 'quiz', 'iq'].includes(surveyData.type)) {
 					// For assessment/quiz/iq, add a question with correct answer
-					surveyData.questions = [{
-						text: 'Sample question - please replace with your content',
-						options: ['Option A', 'Option B', 'Option C', 'Option D'],
-						correctAnswer: 0, // First option is correct
-						points: 1
-					}];
+					surveyData.questions = [
+						{
+							text: 'Sample question - please replace with your content',
+							options: ['Option A', 'Option B', 'Option C', 'Option D'],
+							correctAnswer: 0, // First option is correct
+							points: 1,
+						},
+					];
 				} else {
 					// For survey, add a question without correct answer
-					surveyData.questions = [{
-						text: 'Sample question - please replace with your content',
-						options: ['Option A', 'Option B', 'Option C', 'Option D'],
-						points: 1
-					}];
+					surveyData.questions = [
+						{
+							text: 'Sample question - please replace with your content',
+							options: ['Option A', 'Option B', 'Option C', 'Option D'],
+							points: 1,
+						},
+					];
 				}
 			}
-			
+
 			const res = await axios.post<Survey>('/api/admin/surveys', surveyData);
-		setSurveys([...surveys, res.data]);
-		setNewSurvey({ 
-			title: '', 
-			description: '', 
-			type: 'survey',
-			timeLimit: undefined,
-			maxAttempts: 1,
-			instructions: '',
-			navigationMode: 'step-by-step',
-			sourceType: 'manual',
-			questionBankId: undefined as string | undefined,
-			questionCount: undefined as number | undefined,
-			questions: [] as { text: string; options: string[]; correctAnswer?: number; points?: number }[],
-			scoringSettings: {
-				scoringMode: 'percentage',
-				passingThreshold: 60,
-				showScore: true,
-				showCorrectAnswers: false,
-				showScoreBreakdown: true,
-				customScoringRules: {
-					useCustomPoints: false,
-					defaultQuestionPoints: 1
-				}
-			}
-		});
-		setShowCreateModal(false);
+			setSurveys([...surveys, res.data]);
+			setNewSurvey({
+				title: '',
+				description: '',
+				type: 'survey',
+				timeLimit: undefined,
+				maxAttempts: 1,
+				instructions: '',
+				navigationMode: 'step-by-step',
+				sourceType: 'manual',
+				questionBankId: undefined as string | undefined,
+				questionCount: undefined as number | undefined,
+				questions: [] as {
+					text: string;
+					options: string[];
+					correctAnswer?: number;
+					points?: number;
+				}[],
+				scoringSettings: {
+					scoringMode: 'percentage',
+					passingThreshold: 60,
+					showScore: true,
+					showCorrectAnswers: false,
+					showScoreBreakdown: true,
+					customScoringRules: {
+						useCustomPoints: false,
+						defaultQuestionPoints: 1,
+					},
+				},
+			});
+			setShowCreateModal(false);
 		} catch (err) {
 			setError('Failed to create survey. Please try again.');
 		} finally {
@@ -332,7 +348,10 @@ const Admin: React.FC = () => {
 		} else if (field === 'correctAnswer' || field === 'points') {
 			setQuestionForms({
 				...questionForms,
-				[id]: { ...(questionForms[id] || { text: '', options: [] }), [field]: value as number },
+				[id]: {
+					...(questionForms[id] || { text: '', options: [] }),
+					[field]: value as number,
+				},
 			});
 		}
 	};
@@ -357,11 +376,16 @@ const Admin: React.FC = () => {
 
 	const removeOption = (surveyId: string, optionIndex: number) => {
 		const currentForm = questionForms[surveyId] || { text: '', options: [] };
-		const newOptions = currentForm.options.filter((_: string, index: number) => index !== optionIndex);
+		const newOptions = currentForm.options.filter(
+			(_: string, index: number) => index !== optionIndex
+		);
 		// Reset correctAnswer if it was pointing to a removed option
-		const correctAnswer = currentForm.correctAnswer !== undefined && currentForm.correctAnswer >= optionIndex ? 
-			(currentForm.correctAnswer === optionIndex ? undefined : currentForm.correctAnswer - 1) : 
-			currentForm.correctAnswer;
+		const correctAnswer =
+			currentForm.correctAnswer !== undefined && currentForm.correctAnswer >= optionIndex
+				? currentForm.correctAnswer === optionIndex
+					? undefined
+					: currentForm.correctAnswer - 1
+				: currentForm.correctAnswer;
 		setQuestionForms({
 			...questionForms,
 			[surveyId]: { ...currentForm, options: newOptions, correctAnswer },
@@ -373,22 +397,27 @@ const Admin: React.FC = () => {
 		if (!q || !q.text || !q.options.length) return;
 		const options = q.options.filter((option: string) => option.trim() !== '');
 		if (options.length === 0) return;
-		
-		const payload: { text: string; options: string[]; correctAnswer?: number; points?: number } = { 
-			text: q.text, 
-			options 
+
+		const payload: {
+			text: string;
+			options: string[];
+			correctAnswer?: number;
+			points?: number;
+		} = {
+			text: q.text,
+			options,
 		};
-		
+
 		// Include correctAnswer if it's set
 		if (q.correctAnswer !== undefined) {
 			payload.correctAnswer = q.correctAnswer;
 		}
-		
+
 		// Include points if it's set
 		if (q.points !== undefined) {
 			payload.points = q.points;
 		}
-		
+
 		await axios.put(`/api/admin/surveys/${surveyId}/questions`, payload);
 		loadSurveys();
 		setQuestionForms({ ...questionForms, [surveyId]: { text: '', options: [] } });
@@ -485,14 +514,11 @@ const Admin: React.FC = () => {
 		<div className="space-y-4">
 			<div className="flex justify-between items-center">
 				<h2 className="text-xl font-semibold text-gray-800">Question Banks</h2>
-				<button 
-					className="btn-primary"
-					onClick={() => setShowQuestionBankModal(true)}
-				>
+				<button className="btn-primary" onClick={() => setShowQuestionBankModal(true)}>
 					+ Create Question Bank
 				</button>
 			</div>
-			
+
 			{questionBanks.length === 0 ? (
 				<div className="text-center py-8 text-gray-500">
 					<p>No question banks created yet.</p>
@@ -500,34 +526,39 @@ const Admin: React.FC = () => {
 				</div>
 			) : (
 				<div className="grid gap-4">
-					{questionBanks.map((bank) => (
-						<div key={bank._id} className="card hover:shadow-lg transition-shadow cursor-pointer">
-			<div className="flex justify-between items-start">
-				<div className="flex-1">
-					<h3 className="text-lg font-bold text-gray-800">{bank.name}</h3>
-					{bank.description && (
-						<p className="text-gray-600 mt-1">{bank.description}</p>
-					)}
-					<div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-						<span>{bank.questions.length} questions</span>
-						<span>Created: {new Date(bank.createdAt).toLocaleDateString()}</span>
-					</div>
-				</div>
-				<div className="flex gap-2">
-					<button 
-						className="btn-secondary text-sm"
-						onClick={() => setSelectedQuestionBank(bank)}
-					>
-						Edit
-					</button>
-					<button 
-						className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
-						onClick={() => deleteQuestionBank(bank._id)}
-					>
-						Delete
-					</button>
-				</div>
-			</div>
+					{questionBanks.map(bank => (
+						<div
+							key={bank._id}
+							className="card hover:shadow-lg transition-shadow cursor-pointer"
+						>
+							<div className="flex justify-between items-start">
+								<div className="flex-1">
+									<h3 className="text-lg font-bold text-gray-800">{bank.name}</h3>
+									{bank.description && (
+										<p className="text-gray-600 mt-1">{bank.description}</p>
+									)}
+									<div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+										<span>{bank.questions.length} questions</span>
+										<span>
+											Created: {new Date(bank.createdAt).toLocaleDateString()}
+										</span>
+									</div>
+								</div>
+								<div className="flex gap-2">
+									<button
+										className="btn-secondary text-sm"
+										onClick={() => setSelectedQuestionBank(bank)}
+									>
+										Edit
+									</button>
+									<button
+										className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+										onClick={() => deleteQuestionBank(bank._id)}
+									>
+										Delete
+									</button>
+								</div>
+							</div>
 						</div>
 					))}
 				</div>
@@ -538,41 +569,49 @@ const Admin: React.FC = () => {
 	// Survey 列表
 	const renderSurveyList = () => (
 		<div className="space-y-4">
-			{surveys.map((s) => (
-				<div
-					key={s._id}
-					className="card hover:shadow-xl transition-shadow"
-				>
+			{surveys.map(s => (
+				<div key={s._id} className="card hover:shadow-xl transition-shadow">
 					<div className="flex justify-between items-center">
-						<div 
-			className="flex-1 cursor-pointer"
-			onClick={() => handleSurveyClick(s)}
-						>
-			<div className="flex items-center gap-2 mb-1">
-				<h3 className="text-lg font-bold text-gray-800">{s.title}</h3>
-				<span className={`px-2 py-1 text-xs font-medium rounded-full ${
-					s.type === 'assessment' ? 'bg-blue-100 text-blue-800' : 
-					s.type === 'quiz' ? 'bg-green-100 text-green-800' :
-					s.type === 'iq' ? 'bg-purple-100 text-purple-800' :
-					'bg-gray-100 text-gray-800'
-				}`}>
-					{s.type === 'assessment' ? 'Assessment' : 
-					 s.type === 'quiz' ? 'Quiz' :
-					 s.type === 'iq' ? 'IQ Test' : 'Survey'}
-				</span>
-				{s.timeLimit && (
-					<span className="px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-800">
-						⏱️ {s.timeLimit} mins
-					</span>
-				)}
-				<span className={`px-2 py-1 text-xs font-medium rounded-full ${s.status === 'active' ? 'bg-green-100 text-green-800' : s.status === 'closed' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
-					{s.status === 'active' ? 'Active' : s.status === 'closed' ? 'Closed' : 'Draft'}
-				</span>
-			</div>
-			<div className="text-sm text-gray-500">{s.description}</div>
+						<div className="flex-1 cursor-pointer" onClick={() => handleSurveyClick(s)}>
+							<div className="flex items-center gap-2 mb-1">
+								<h3 className="text-lg font-bold text-gray-800">{s.title}</h3>
+								<span
+									className={`px-2 py-1 text-xs font-medium rounded-full ${
+										s.type === 'assessment'
+											? 'bg-blue-100 text-blue-800'
+											: s.type === 'quiz'
+												? 'bg-green-100 text-green-800'
+												: s.type === 'iq'
+													? 'bg-purple-100 text-purple-800'
+													: 'bg-gray-100 text-gray-800'
+									}`}
+								>
+									{s.type === 'assessment'
+										? 'Assessment'
+										: s.type === 'quiz'
+											? 'Quiz'
+											: s.type === 'iq'
+												? 'IQ Test'
+												: 'Survey'}
+								</span>
+								{s.timeLimit && (
+									<span className="px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-800">
+										⏱️ {s.timeLimit} mins
+									</span>
+								)}
+								<span
+									className={`px-2 py-1 text-xs font-medium rounded-full ${s.status === 'active' ? 'bg-green-100 text-green-800' : s.status === 'closed' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}
+								>
+									{s.status === 'active'
+										? 'Active'
+										: s.status === 'closed'
+											? 'Closed'
+											: 'Draft'}
+								</span>
+							</div>
+							<div className="text-sm text-gray-500">{s.description}</div>
 						</div>
-						<div className="flex items-center gap-2">
-						</div>
+						<div className="flex items-center gap-2"></div>
 					</div>
 				</div>
 			))}
@@ -584,67 +623,92 @@ const Admin: React.FC = () => {
 		if (!selectedSurvey) return null;
 		const s = selectedSurvey;
 		const currentForm = questionForms[s._id] || { text: '', options: [] };
-		
+
 		return (
 			<div className="card">
 				<div className="flex justify-between items-start mb-4">
 					<div className="flex-1">
 						<div className="flex items-center gap-3 mb-2">
-			<h3 className="text-xl font-bold text-gray-800">{s.title}</h3>
-					<span className={`px-2 py-1 text-xs font-medium rounded-full ${
-						s.type === 'assessment' ? 'bg-blue-100 text-blue-800' : 
-						s.type === 'quiz' ? 'bg-green-100 text-green-800' :
-						s.type === 'iq' ? 'bg-purple-100 text-purple-800' :
-						'bg-gray-100 text-gray-800'
-					}`}>
-						{s.type === 'assessment' ? 'Assessment' : 
-						 s.type === 'quiz' ? 'Quiz' :
-						 s.type === 'iq' ? 'IQ Test' : 'Survey'}
-					</span>
-					<span className={`px-2 py-1 text-xs font-medium rounded-full ${s.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{s.isActive ? 'Active' : 'Inactive'}</span>
+							<h3 className="text-xl font-bold text-gray-800">{s.title}</h3>
+							<span
+								className={`px-2 py-1 text-xs font-medium rounded-full ${
+									s.type === 'assessment'
+										? 'bg-blue-100 text-blue-800'
+										: s.type === 'quiz'
+											? 'bg-green-100 text-green-800'
+											: s.type === 'iq'
+												? 'bg-purple-100 text-purple-800'
+												: 'bg-gray-100 text-gray-800'
+								}`}
+							>
+								{s.type === 'assessment'
+									? 'Assessment'
+									: s.type === 'quiz'
+										? 'Quiz'
+										: s.type === 'iq'
+											? 'IQ Test'
+											: 'Survey'}
+							</span>
+							<span
+								className={`px-2 py-1 text-xs font-medium rounded-full ${s.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+							>
+								{s.isActive ? 'Active' : 'Inactive'}
+							</span>
 						</div>
 						{s.description && <p className="text-gray-600 mb-3">{s.description}</p>}
 					</div>
 					<div className="flex items-center gap-2">
 						<button
-			className="btn-secondary text-sm px-3 py-1"
-			onClick={() => openEditModal(s)}
+							className="btn-secondary text-sm px-3 py-1"
+							onClick={() => openEditModal(s)}
 						>
-			编辑
+							编辑
 						</button>
 					</div>
 				</div>
-				
+
 				{/* New Fields Display */}
-				{(s.timeLimit || s.maxAttempts !== 1 || s.instructions || s.navigationMode !== 'step-by-step') && (
+				{(s.timeLimit ||
+					s.maxAttempts !== 1 ||
+					s.instructions ||
+					s.navigationMode !== 'step-by-step') && (
 					<div className="bg-blue-50 rounded-lg p-3 mb-3">
 						<h5 className="font-medium text-gray-800 mb-2">Assessment Configuration</h5>
 						<div className="grid grid-cols-2 gap-2 text-sm">
 							{s.timeLimit && (
 								<div className="flex justify-between">
 									<span className="text-gray-600">Time Limit:</span>
-									<span className="font-medium text-blue-600">{s.timeLimit} minutes</span>
+									<span className="font-medium text-blue-600">
+										{s.timeLimit} minutes
+									</span>
 								</div>
 							)}
 							{s.maxAttempts !== 1 && (
 								<div className="flex justify-between">
 									<span className="text-gray-600">Max Attempts:</span>
-									<span className="font-medium text-blue-600">{s.maxAttempts} times</span>
+									<span className="font-medium text-blue-600">
+										{s.maxAttempts} times
+									</span>
 								</div>
 							)}
 							{s.navigationMode !== 'step-by-step' && (
 								<div className="flex justify-between">
 									<span className="text-gray-600">Navigation Mode:</span>
 									<span className="font-medium text-blue-600">
-										{s.navigationMode === 'paginated' ? 'Paginated' : 
-										 s.navigationMode === 'all-in-one' ? 'All-in-one' : 'Step-by-step'}
+										{s.navigationMode === 'paginated'
+											? 'Paginated'
+											: s.navigationMode === 'all-in-one'
+												? 'All-in-one'
+												: 'Step-by-step'}
 									</span>
 								</div>
 							)}
 						</div>
 						{s.instructions && (
 							<div className="mt-2 pt-2 border-t border-blue-200">
-								<div className="text-xs text-gray-600 mb-1">Special Instructions:</div>
+								<div className="text-xs text-gray-600 mb-1">
+									Special Instructions:
+								</div>
 								<div className="text-sm text-gray-700">{s.instructions}</div>
 							</div>
 						)}
@@ -656,7 +720,7 @@ const Admin: React.FC = () => {
 					<div className="bg-green-50 rounded-lg p-3 mb-3">
 						<div className="flex items-center justify-between mb-2">
 							<h5 className="font-medium text-gray-800">Scoring Rules</h5>
-							<button 
+							<button
 								className="text-sm text-blue-600 hover:text-blue-800"
 								onClick={() => setShowScoringModal(true)}
 							>
@@ -667,7 +731,9 @@ const Admin: React.FC = () => {
 							<div className="flex justify-between">
 								<span className="text-gray-600">Scoring Mode:</span>
 								<span className="font-medium text-green-600">
-									{s.scoringSettings.scoringMode === 'percentage' ? 'Percentage' : 'Accumulated'}
+									{s.scoringSettings.scoringMode === 'percentage'
+										? 'Percentage'
+										: 'Accumulated'}
 								</span>
 							</div>
 							<div className="flex justify-between">
@@ -679,23 +745,30 @@ const Admin: React.FC = () => {
 							<div className="flex justify-between">
 								<span className="text-gray-600">Total Score:</span>
 								<span className="font-medium text-green-600">
-									{s.scoringSettings.scoringMode === 'percentage' ? '100' : s.scoringSettings.totalPoints} points
+									{s.scoringSettings.scoringMode === 'percentage'
+										? '100'
+										: s.scoringSettings.totalPoints}{' '}
+									points
 								</span>
 							</div>
 							<div className="flex justify-between">
 								<span className="text-gray-600">Custom Points:</span>
 								<span className="font-medium text-green-600">
-									{s.scoringSettings.customScoringRules.useCustomPoints ? 'Yes' : 'No'}
+									{s.scoringSettings.customScoringRules.useCustomPoints
+										? 'Yes'
+										: 'No'}
 								</span>
 							</div>
 						</div>
 					</div>
 				)}
-				
+
 				{/* Question Source Display */}
 				{s.sourceType === 'question_bank' && (
 					<div className="bg-purple-50 rounded-lg p-3 mb-3">
-						<h5 className="font-medium text-gray-800 mb-2">Question Bank Configuration</h5>
+						<h5 className="font-medium text-gray-800 mb-2">
+							Question Bank Configuration
+						</h5>
 						<div className="grid grid-cols-2 gap-2 text-sm">
 							<div className="flex justify-between">
 								<span className="text-gray-600">Source:</span>
@@ -703,178 +776,284 @@ const Admin: React.FC = () => {
 							</div>
 							<div className="flex justify-between">
 								<span className="text-gray-600">Questions to Select:</span>
-								<span className="font-medium text-purple-600">{s.questionCount} random</span>
+								<span className="font-medium text-purple-600">
+									{s.questionCount} random
+								</span>
 							</div>
 						</div>
 					</div>
 				)}
-				
-				<div className="text-sm text-gray-500">Created: {new Date(s.createdAt).toLocaleDateString()}</div>
-				
-				<div className="flex gap-2">
-					<button className="btn-secondary text-sm" onClick={() => toggleSurveyStatus(s._id, s.isActive)}>{s.isActive ? 'Deactivate' : 'Activate'}</button>
-					<button className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors" onClick={() => deleteSurvey(s._id)}>Delete</button>
+
+				<div className="text-sm text-gray-500">
+					Created: {new Date(s.createdAt).toLocaleDateString()}
 				</div>
-				
+
+				<div className="flex gap-2">
+					<button
+						className="btn-secondary text-sm"
+						onClick={() => toggleSurveyStatus(s._id, s.isActive)}
+					>
+						{s.isActive ? 'Deactivate' : 'Activate'}
+					</button>
+					<button
+						className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+						onClick={() => deleteSurvey(s._id)}
+					>
+						Delete
+					</button>
+				</div>
+
 				<div className="bg-gray-50 rounded-lg p-4 mb-4">
 					<div className="space-y-3">
 						<div className="flex items-center justify-between">
-			<div>
-				<label className="block text-sm font-medium text-gray-700 mb-1">经典版 Survey URL</label>
-				<div className="text-sm text-gray-600 font-mono">{getSurveyUrl(s.slug)}</div>
-			</div>
-			<div className="flex gap-2">
-				<button className="btn-secondary text-sm" onClick={() => copyToClipboard(getSurveyUrl(s.slug))}>Copy URL</button>
-				<button className="btn-primary text-sm" onClick={() => toggleQR(s._id)}>{showQR[s._id] ? 'Hide QR' : 'Show QR'}</button>
-			</div>
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-1">
+									经典版 Survey URL
+								</label>
+								<div className="text-sm text-gray-600 font-mono">
+									{getSurveyUrl(s.slug)}
+								</div>
+							</div>
+							<div className="flex gap-2">
+								<button
+									className="btn-secondary text-sm"
+									onClick={() => copyToClipboard(getSurveyUrl(s.slug))}
+								>
+									Copy URL
+								</button>
+								<button
+									className="btn-primary text-sm"
+									onClick={() => toggleQR(s._id)}
+								>
+									{showQR[s._id] ? 'Hide QR' : 'Show QR'}
+								</button>
+							</div>
 						</div>
-						
+
 						{['quiz', 'assessment', 'iq'].includes(s.type) && (
-			<div className="flex items-center justify-between pt-3 border-t border-gray-200">
-				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-1">增强版测评 URL</label>
-					<div className="text-sm text-gray-600 font-mono">{getSurveyUrl(s.slug).replace('/survey/', '/assessment/')}</div>
-				</div>
-				<div className="flex gap-2">
-					<button className="btn-secondary text-sm" onClick={() => copyToClipboard(getSurveyUrl(s.slug).replace('/survey/', '/assessment/'))}>Copy Enhanced URL</button>
-				</div>
-			</div>
+							<div className="flex items-center justify-between pt-3 border-t border-gray-200">
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-1">
+										增强版测评 URL
+									</label>
+									<div className="text-sm text-gray-600 font-mono">
+										{getSurveyUrl(s.slug).replace('/survey/', '/assessment/')}
+									</div>
+								</div>
+								<div className="flex gap-2">
+									<button
+										className="btn-secondary text-sm"
+										onClick={() =>
+											copyToClipboard(
+												getSurveyUrl(s.slug).replace(
+													'/survey/',
+													'/assessment/'
+												)
+											)
+										}
+									>
+										Copy Enhanced URL
+									</button>
+								</div>
+							</div>
 						)}
 					</div>
 					{showQR[s._id] && (
 						<div className="border-t border-gray-200 pt-4">
-			<QRCodeComponent url={getSurveyUrl(s.slug)} />
+							<QRCodeComponent url={getSurveyUrl(s.slug)} />
 						</div>
 					)}
 				</div>
 				{s.sourceType === 'manual' ? (
 					// Manual Question Management
 					<div className="mb-4">
-						<h4 className="font-semibold text-gray-800 mb-3">Questions ({s.questions.length})</h4>
+						<h4 className="font-semibold text-gray-800 mb-3">
+							Questions ({s.questions.length})
+						</h4>
 						{s.questions.length > 0 ? (
-			<div className="space-y-2">
-				{s.questions.map((q, idx) => (
-					<div key={idx} className="bg-gray-50 rounded-lg p-3">
-						<div className="flex justify-between items-start mb-1">
-							<div className="font-medium text-gray-800">{idx + 1}. {q.text}</div>
-							{['assessment', 'quiz', 'iq'].includes(s.type) && (
-								<div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-									{q.points || 1} pts
-								</div>
-							)}
-						</div>
-						<div className="text-sm text-gray-600 mb-1">
-							Options: {q.options.map((opt, optIdx) => (
-								<span key={optIdx} className={`${['assessment', 'quiz', 'iq'].includes(s.type) && q.correctAnswer === optIdx ? 'font-semibold text-green-600' : ''}`}>
-									{opt}{optIdx < q.options.length - 1 ? ', ' : ''}
-								</span>
-							))}
-						</div>
-						{['assessment', 'quiz', 'iq'].includes(s.type) && q.correctAnswer !== undefined && (
-							<div className="text-xs text-green-600 font-medium">
-								✓ Correct Answer: {q.options[q.correctAnswer]}
+							<div className="space-y-2">
+								{s.questions.map((q, idx) => (
+									<div key={idx} className="bg-gray-50 rounded-lg p-3">
+										<div className="flex justify-between items-start mb-1">
+											<div className="font-medium text-gray-800">
+												{idx + 1}. {q.text}
+											</div>
+											{['assessment', 'quiz', 'iq'].includes(s.type) && (
+												<div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+													{q.points || 1} pts
+												</div>
+											)}
+										</div>
+										<div className="text-sm text-gray-600 mb-1">
+											Options:{' '}
+											{q.options.map((opt, optIdx) => (
+												<span
+													key={optIdx}
+													className={`${['assessment', 'quiz', 'iq'].includes(s.type) && q.correctAnswer === optIdx ? 'font-semibold text-green-600' : ''}`}
+												>
+													{opt}
+													{optIdx < q.options.length - 1 ? ', ' : ''}
+												</span>
+											))}
+										</div>
+										{['assessment', 'quiz', 'iq'].includes(s.type) &&
+											q.correctAnswer !== undefined && (
+												<div className="text-xs text-green-600 font-medium">
+													✓ Correct Answer: {q.options[q.correctAnswer]}
+												</div>
+											)}
+									</div>
+								))}
 							</div>
-						)}
-					</div>
-				))}
-			</div>
 						) : (
-			<p className="text-gray-500 text-sm">No questions added yet.</p>
+							<p className="text-gray-500 text-sm">No questions added yet.</p>
 						)}
-						
+
 						{/* Add Question Form for Manual Surveys */}
 						<div className="border-t border-gray-200 pt-4 mt-4">
-			<h4 className="font-semibold text-gray-800 mb-3">Add Question</h4>
-			<div className="space-y-4">
-				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">Question Text</label>
-					<input 
-						className="input-field w-full" 
-						placeholder="Enter question text" 
-						value={currentForm.text} 
-						onChange={(e) => handleQuestionChange(s._id, 'text', e.target.value)} 
-					/>
-				</div>
-				<div>
-					<div className="flex items-center justify-between mb-2">
-						<label className="block text-sm font-medium text-gray-700">Options</label>
-						<button 
-							className="btn-secondary text-sm"
-							onClick={() => addOption(s._id)}
-							type="button"
-						>
-							+ Add Option
-						</button>
-					</div>
-					{currentForm.options.length > 0 ? (
-						<div className="space-y-2">
-							{currentForm.options.map((option, index) => (
-								<div key={index} className="flex items-center gap-2">
+							<h4 className="font-semibold text-gray-800 mb-3">Add Question</h4>
+							<div className="space-y-4">
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-2">
+										Question Text
+									</label>
 									<input
-										className="input-field flex-1"
-										placeholder={`Option ${index + 1}`}
-										value={option}
-										onChange={(e) => handleOptionChange(s._id, index, e.target.value)}
+										className="input-field w-full"
+										placeholder="Enter question text"
+										value={currentForm.text}
+										onChange={e =>
+											handleQuestionChange(s._id, 'text', e.target.value)
+										}
 									/>
-									<button
-										className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
-										onClick={() => removeOption(s._id, index)}
-										type="button"
-									>
-										Remove
-									</button>
 								</div>
-							))}
-						</div>
-					) : (
-						<div className="text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center">
-							No options added yet. Click "Add Option" to start.
-						</div>
-					)}
-				</div>
-				{['assessment', 'quiz', 'iq'].includes(s.type) && currentForm.options.length > 0 && (
-					<div className="space-y-4">
-						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-2">Select Correct Answer</label>
-							<select 
-								className="input-field w-full"
-								value={currentForm.correctAnswer ?? ''}
-								onChange={(e) => handleQuestionChange(s._id, 'correctAnswer', e.target.value ? parseInt(e.target.value) : undefined)}
-							>
-								<option value="">Please select correct answer</option>
-								{currentForm.options.map((opt, idx) => (
-									<option key={idx} value={idx}>{opt || `Option ${idx + 1}`}</option>
-								))}
-							</select>
-						</div>
-						{s.scoringSettings?.customScoringRules?.useCustomPoints && (
-							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-2">Question Points</label>
-								<input
-									type="number"
-									className="input-field w-full"
-									placeholder={`Default points: ${s.scoringSettings.customScoringRules.defaultQuestionPoints}`}
-									value={currentForm.points || ''}
-									onChange={(e) => handleQuestionChange(s._id, 'points', e.target.value ? parseInt(e.target.value) : undefined)}
-									min="1"
-									max="100"
-								/>
-								<div className="text-xs text-gray-500 mt-1">
-									Leave empty to use default points ({s.scoringSettings.customScoringRules.defaultQuestionPoints} points)
+								<div>
+									<div className="flex items-center justify-between mb-2">
+										<label className="block text-sm font-medium text-gray-700">
+											Options
+										</label>
+										<button
+											className="btn-secondary text-sm"
+											onClick={() => addOption(s._id)}
+											type="button"
+										>
+											+ Add Option
+										</button>
+									</div>
+									{currentForm.options.length > 0 ? (
+										<div className="space-y-2">
+											{currentForm.options.map((option, index) => (
+												<div
+													key={index}
+													className="flex items-center gap-2"
+												>
+													<input
+														className="input-field flex-1"
+														placeholder={`Option ${index + 1}`}
+														value={option}
+														onChange={e =>
+															handleOptionChange(
+																s._id,
+																index,
+																e.target.value
+															)
+														}
+													/>
+													<button
+														className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+														onClick={() => removeOption(s._id, index)}
+														type="button"
+													>
+														Remove
+													</button>
+												</div>
+											))}
+										</div>
+									) : (
+										<div className="text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center">
+											No options added yet. Click "Add Option" to start.
+										</div>
+									)}
 								</div>
+								{['assessment', 'quiz', 'iq'].includes(s.type) &&
+									currentForm.options.length > 0 && (
+										<div className="space-y-4">
+											<div>
+												<label className="block text-sm font-medium text-gray-700 mb-2">
+													Select Correct Answer
+												</label>
+												<select
+													className="input-field w-full"
+													value={currentForm.correctAnswer ?? ''}
+													onChange={e =>
+														handleQuestionChange(
+															s._id,
+															'correctAnswer',
+															e.target.value
+																? parseInt(e.target.value)
+																: undefined
+														)
+													}
+												>
+													<option value="">
+														Please select correct answer
+													</option>
+													{currentForm.options.map((opt, idx) => (
+														<option key={idx} value={idx}>
+															{opt || `Option ${idx + 1}`}
+														</option>
+													))}
+												</select>
+											</div>
+											{s.scoringSettings?.customScoringRules
+												?.useCustomPoints && (
+												<div>
+													<label className="block text-sm font-medium text-gray-700 mb-2">
+														Question Points
+													</label>
+													<input
+														type="number"
+														className="input-field w-full"
+														placeholder={`Default points: ${s.scoringSettings.customScoringRules.defaultQuestionPoints}`}
+														value={currentForm.points || ''}
+														onChange={e =>
+															handleQuestionChange(
+																s._id,
+																'points',
+																e.target.value
+																	? parseInt(e.target.value)
+																	: undefined
+															)
+														}
+														min="1"
+														max="100"
+													/>
+													<div className="text-xs text-gray-500 mt-1">
+														Leave empty to use default points (
+														{
+															s.scoringSettings.customScoringRules
+																.defaultQuestionPoints
+														}{' '}
+														points)
+													</div>
+												</div>
+											)}
+										</div>
+									)}
+								<button
+									className="btn-primary text-sm"
+									onClick={() => addQuestion(s._id)}
+									type="button"
+									disabled={
+										!currentForm.text ||
+										currentForm.options.filter(opt => opt.trim()).length ===
+											0 ||
+										(['assessment', 'quiz', 'iq'].includes(s.type) &&
+											currentForm.correctAnswer === undefined)
+									}
+								>
+									Add Question
+								</button>
 							</div>
-						)}
-					</div>
-				)}
-				<button 
-					className="btn-primary text-sm" 
-					onClick={() => addQuestion(s._id)} 
-					type="button"
-					disabled={!currentForm.text || currentForm.options.filter(opt => opt.trim()).length === 0 || (['assessment', 'quiz', 'iq'].includes(s.type) && currentForm.correctAnswer === undefined)}
-				>
-					Add Question
-				</button>
-			</div>
 						</div>
 					</div>
 				) : (
@@ -882,140 +1061,196 @@ const Admin: React.FC = () => {
 					<div className="mb-4">
 						<h4 className="font-semibold text-gray-800 mb-3">Question Bank Survey</h4>
 						<div className="bg-purple-50 rounded-lg p-4">
-			<div className="flex items-center justify-between mb-3">
-				<div>
-					<div className="font-medium text-gray-800">Random Question Selection</div>
-					<div className="text-sm text-gray-600">
-						This survey will randomly select {s.questionCount} questions from the linked question bank for each student.
-					</div>
-				</div>
-				<div className="text-lg font-bold text-purple-600">
-					{s.questionCount} questions
-				</div>
-			</div>
-			<div className="text-xs text-gray-500">
-				💡 Questions are randomized per student to ensure assessment fairness
-			</div>
+							<div className="flex items-center justify-between mb-3">
+								<div>
+									<div className="font-medium text-gray-800">
+										Random Question Selection
+									</div>
+									<div className="text-sm text-gray-600">
+										This survey will randomly select {s.questionCount} questions
+										from the linked question bank for each student.
+									</div>
+								</div>
+								<div className="text-lg font-bold text-purple-600">
+									{s.questionCount} questions
+								</div>
+							</div>
+							<div className="text-xs text-gray-500">
+								💡 Questions are randomized per student to ensure assessment
+								fairness
+							</div>
 						</div>
 					</div>
 				)}
 				<div className="border-t border-gray-200 pt-4">
 					<div className="flex justify-between items-center mb-3">
 						<h4 className="font-semibold text-gray-800">Statistics</h4>
-						<button className="btn-secondary text-sm" onClick={() => loadStats(s._id)} type="button">View Statistics</button>
+						<button
+							className="btn-secondary text-sm"
+							onClick={() => loadStats(s._id)}
+							type="button"
+						>
+							View Statistics
+						</button>
 					</div>
 					{stats[s._id] && (
 						<div className="space-y-4">
-			{/* Statistics Summary */}
-			<div className="bg-blue-50 rounded-lg p-4">
-				<h5 className="font-semibold text-gray-800 mb-2">Summary</h5>
-				<div className="grid grid-cols-3 gap-4 text-sm">
-					<div className="text-center">
-						<div className="font-bold text-blue-600 text-lg">{stats[s._id].summary.totalResponses}</div>
-						<div className="text-gray-600">Total Responses</div>
-					</div>
-					<div className="text-center">
-						<div className="font-bold text-green-600 text-lg">{stats[s._id].summary.completionRate}%</div>
-						<div className="text-gray-600">Completion Rate</div>
-					</div>
-					<div className="text-center">
-						<div className="font-bold text-purple-600 text-lg">{stats[s._id].summary.totalQuestions}</div>
-						<div className="text-gray-600">Total Questions</div>
-					</div>
-				</div>
-			</div>
-
-			{/* Statistics View Toggle */}
-			<div className="flex space-x-4 border-b border-gray-200 pb-2">
-				<button
-					className={`py-2 px-4 font-medium text-sm transition-colors ${
-						statsView === 'aggregated' 
-							? 'text-blue-600 border-b-2 border-blue-600' 
-							: 'text-gray-500 hover:text-blue-600'
-					}`}
-					onClick={() => setStatsView('aggregated')}
-				>
-					Aggregated Results
-				</button>
-				<button
-					className={`py-2 px-4 font-medium text-sm transition-colors ${
-						statsView === 'individual' 
-							? 'text-blue-600 border-b-2 border-blue-600' 
-							: 'text-gray-500 hover:text-blue-600'
-					}`}
-					onClick={() => setStatsView('individual')}
-				>
-					Individual Responses ({stats[s._id].userResponses.length})
-				</button>
-			</div>
-
-			{/* Aggregated Statistics */}
-			{statsView === 'aggregated' && (
-				<div className="space-y-4">
-					{stats[s._id].aggregatedStats.map((st, idx) => (
-						<div key={idx} className="bg-gray-50 rounded-lg p-4">
-							<div className="font-semibold text-gray-800 mb-2">{st.question}</div>
-							<div className="space-y-2">
-								{Object.entries(st.options).map(([opt, count]) => {
-									const percentage = stats[s._id].summary.totalResponses > 0 
-										? ((count / stats[s._id].summary.totalResponses) * 100).toFixed(1) 
-										: 0;
-									return (
-										<div key={opt} className="flex justify-between items-center">
-											<span className="text-gray-700">{opt}</span>
-											<div className="flex items-center gap-2">
-												<div className="w-20 bg-gray-200 rounded-full h-2">
-													<div 
-														className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-														style={{ width: `${percentage}%` }}
-													></div>
-												</div>
-												<span className="font-medium text-blue-600 text-sm w-12">{count}</span>
-												<span className="text-gray-500 text-xs w-12">({percentage}%)</span>
-											</div>
+							{/* Statistics Summary */}
+							<div className="bg-blue-50 rounded-lg p-4">
+								<h5 className="font-semibold text-gray-800 mb-2">Summary</h5>
+								<div className="grid grid-cols-3 gap-4 text-sm">
+									<div className="text-center">
+										<div className="font-bold text-blue-600 text-lg">
+											{stats[s._id].summary.totalResponses}
 										</div>
-									);
-								})}
-							</div>
-						</div>
-					))}
-				</div>
-			)}
-
-			{/* Individual User Responses */}
-			{statsView === 'individual' && (
-				<div className="space-y-4">
-					{stats[s._id].userResponses.length > 0 ? (
-						stats[s._id].userResponses.map((response, idx) => (
-							<div key={response._id} className="bg-gray-50 rounded-lg p-4">
-								<div className="flex justify-between items-start mb-3">
-									<div>
-										<div className="font-semibold text-gray-800">{response.name}</div>
-										<div className="text-sm text-gray-500">{response.email}</div>
+										<div className="text-gray-600">Total Responses</div>
 									</div>
-									<div className="text-xs text-gray-500">
-										{new Date(response.createdAt).toLocaleDateString()} {new Date(response.createdAt).toLocaleTimeString()}
+									<div className="text-center">
+										<div className="font-bold text-green-600 text-lg">
+											{stats[s._id].summary.completionRate}%
+										</div>
+										<div className="text-gray-600">Completion Rate</div>
+									</div>
+									<div className="text-center">
+										<div className="font-bold text-purple-600 text-lg">
+											{stats[s._id].summary.totalQuestions}
+										</div>
+										<div className="text-gray-600">Total Questions</div>
 									</div>
 								</div>
-								<div className="space-y-2">
-									{Object.entries(response.answers).map(([question, answer]) => (
-										<div key={question} className="border-l-4 border-blue-200 pl-3">
-											<div className="font-medium text-gray-700 text-sm">{question}</div>
-											<div className={`text-sm ${answer === 'No answer' ? 'text-gray-400 italic' : 'text-gray-900'}`}>
-												{answer}
+							</div>
+
+							{/* Statistics View Toggle */}
+							<div className="flex space-x-4 border-b border-gray-200 pb-2">
+								<button
+									className={`py-2 px-4 font-medium text-sm transition-colors ${
+										statsView === 'aggregated'
+											? 'text-blue-600 border-b-2 border-blue-600'
+											: 'text-gray-500 hover:text-blue-600'
+									}`}
+									onClick={() => setStatsView('aggregated')}
+								>
+									Aggregated Results
+								</button>
+								<button
+									className={`py-2 px-4 font-medium text-sm transition-colors ${
+										statsView === 'individual'
+											? 'text-blue-600 border-b-2 border-blue-600'
+											: 'text-gray-500 hover:text-blue-600'
+									}`}
+									onClick={() => setStatsView('individual')}
+								>
+									Individual Responses ({stats[s._id].userResponses.length})
+								</button>
+							</div>
+
+							{/* Aggregated Statistics */}
+							{statsView === 'aggregated' && (
+								<div className="space-y-4">
+									{stats[s._id].aggregatedStats.map((st, idx) => (
+										<div key={idx} className="bg-gray-50 rounded-lg p-4">
+											<div className="font-semibold text-gray-800 mb-2">
+												{st.question}
+											</div>
+											<div className="space-y-2">
+												{Object.entries(st.options).map(([opt, count]) => {
+													const percentage =
+														stats[s._id].summary.totalResponses > 0
+															? (
+																	(count /
+																		stats[s._id].summary
+																			.totalResponses) *
+																	100
+																).toFixed(1)
+															: 0;
+													return (
+														<div
+															key={opt}
+															className="flex justify-between items-center"
+														>
+															<span className="text-gray-700">
+																{opt}
+															</span>
+															<div className="flex items-center gap-2">
+																<div className="w-20 bg-gray-200 rounded-full h-2">
+																	<div
+																		className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+																		style={{
+																			width: `${percentage}%`,
+																		}}
+																	></div>
+																</div>
+																<span className="font-medium text-blue-600 text-sm w-12">
+																	{count}
+																</span>
+																<span className="text-gray-500 text-xs w-12">
+																	({percentage}%)
+																</span>
+															</div>
+														</div>
+													);
+												})}
 											</div>
 										</div>
 									))}
 								</div>
-							</div>
-						))
-					) : (
-						<div className="text-center py-8 text-gray-500">
-							<p>No responses yet for this survey.</p>
-						</div>
-					)}
-				</div>
-			)}
+							)}
+
+							{/* Individual User Responses */}
+							{statsView === 'individual' && (
+								<div className="space-y-4">
+									{stats[s._id].userResponses.length > 0 ? (
+										stats[s._id].userResponses.map((response, idx) => (
+											<div
+												key={response._id}
+												className="bg-gray-50 rounded-lg p-4"
+											>
+												<div className="flex justify-between items-start mb-3">
+													<div>
+														<div className="font-semibold text-gray-800">
+															{response.name}
+														</div>
+														<div className="text-sm text-gray-500">
+															{response.email}
+														</div>
+													</div>
+													<div className="text-xs text-gray-500">
+														{new Date(
+															response.createdAt
+														).toLocaleDateString()}{' '}
+														{new Date(
+															response.createdAt
+														).toLocaleTimeString()}
+													</div>
+												</div>
+												<div className="space-y-2">
+													{Object.entries(response.answers).map(
+														([question, answer]) => (
+															<div
+																key={question}
+																className="border-l-4 border-blue-200 pl-3"
+															>
+																<div className="font-medium text-gray-700 text-sm">
+																	{question}
+																</div>
+																<div
+																	className={`text-sm ${answer === 'No answer' ? 'text-gray-400 italic' : 'text-gray-900'}`}
+																>
+																	{answer}
+																</div>
+															</div>
+														)
+													)}
+												</div>
+											</div>
+										))
+									) : (
+										<div className="text-center py-8 text-gray-500">
+											<p>No responses yet for this survey.</p>
+										</div>
+									)}
+								</div>
+							)}
 						</div>
 					)}
 				</div>
@@ -1025,305 +1260,437 @@ const Admin: React.FC = () => {
 
 	// Create Sigma Modal
 	const renderCreateModal = () => (
-		<Modal show={showCreateModal} title="Create Sigma" onClose={() => setShowCreateModal(false)}>
+		<Modal
+			show={showCreateModal}
+			title="Create Sigma"
+			onClose={() => setShowCreateModal(false)}
+		>
 			<form onSubmit={createSurvey} className="space-y-4">
 				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">Sigma Title *</label>
-					<input className="input-field" placeholder="Enter sigma title" value={newSurvey.title} onChange={(e) => setNewSurvey({ ...newSurvey, title: e.target.value })} required />
+					<label className="block text-sm font-medium text-gray-700 mb-2">
+						Sigma Title *
+					</label>
+					<input
+						className="input-field"
+						placeholder="Enter sigma title"
+						value={newSurvey.title}
+						onChange={e => setNewSurvey({ ...newSurvey, title: e.target.value })}
+						required
+					/>
 				</div>
 				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-					<textarea className="input-field" placeholder="Enter sigma description" value={newSurvey.description} onChange={(e) => setNewSurvey({ ...newSurvey, description: e.target.value })} rows={2} />
+					<label className="block text-sm font-medium text-gray-700 mb-2">
+						Description
+					</label>
+					<textarea
+						className="input-field"
+						placeholder="Enter sigma description"
+						value={newSurvey.description}
+						onChange={e => setNewSurvey({ ...newSurvey, description: e.target.value })}
+						rows={2}
+					/>
 				</div>
 				<div>
 					<label className="block text-sm font-medium text-gray-700 mb-2">Type *</label>
-					<select className="input-field" value={newSurvey.type} onChange={(e) => setNewSurvey({ ...newSurvey, type: e.target.value as 'survey' | 'assessment' | 'quiz' | 'iq' })} required>
+					<select
+						className="input-field"
+						value={newSurvey.type}
+						onChange={e =>
+							setNewSurvey({
+								...newSurvey,
+								type: e.target.value as 'survey' | 'assessment' | 'quiz' | 'iq',
+							})
+						}
+						required
+					>
 						<option value="survey">Survey</option>
 						<option value="quiz">Quiz</option>
 						<option value="assessment">Assessment</option>
 						<option value="iq">IQ Test</option>
 					</select>
 					<div className="text-xs text-gray-500 mt-1">
-						{newSurvey.type === 'survey' ? 'Survey mode for collecting feedback and opinions, no correct answers needed' :
-						 newSurvey.type === 'quiz' ? 'Quiz mode for simple tests with scoring features' :
-						 newSurvey.type === 'assessment' ? 'Assessment mode for formal evaluation with complete assessment features' :
-						 'IQ test mode for intelligence testing with professional scoring'}
+						{newSurvey.type === 'survey'
+							? 'Survey mode for collecting feedback and opinions, no correct answers needed'
+							: newSurvey.type === 'quiz'
+								? 'Quiz mode for simple tests with scoring features'
+								: newSurvey.type === 'assessment'
+									? 'Assessment mode for formal evaluation with complete assessment features'
+									: 'IQ test mode for intelligence testing with professional scoring'}
 					</div>
 				</div>
-				
+
 				{/* Question Source Selection */}
 				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">Question Source</label>
-					<select 
-						className="input-field" 
-						value={newSurvey.sourceType} 
-						onChange={(e) => setNewSurvey({ 
-			...newSurvey, 
-			sourceType: e.target.value as 'manual' | 'question_bank',
-			questionBankId: e.target.value === 'manual' ? undefined : (newSurvey.questionBankId || ''),
-			questionCount: e.target.value === 'manual' ? undefined : (newSurvey.questionCount || 1)
-						})}
+					<label className="block text-sm font-medium text-gray-700 mb-2">
+						Question Source
+					</label>
+					<select
+						className="input-field"
+						value={newSurvey.sourceType}
+						onChange={e =>
+							setNewSurvey({
+								...newSurvey,
+								sourceType: e.target.value as 'manual' | 'question_bank',
+								questionBankId:
+									e.target.value === 'manual'
+										? undefined
+										: newSurvey.questionBankId || '',
+								questionCount:
+									e.target.value === 'manual'
+										? undefined
+										: newSurvey.questionCount || 1,
+							})
+						}
 					>
 						<option value="manual">Manual - Add questions individually</option>
-						<option value="question_bank">Question Bank - Random selection from existing bank</option>
+						<option value="question_bank">
+							Question Bank - Random selection from existing bank
+						</option>
 					</select>
 					<div className="text-xs text-gray-500 mt-1">
-						{newSurvey.sourceType === 'manual' 
-			? 'Add questions one by one to this survey' 
-			: 'Select questions randomly from a question bank'}
+						{newSurvey.sourceType === 'manual'
+							? 'Add questions one by one to this survey'
+							: 'Select questions randomly from a question bank'}
 					</div>
 				</div>
-				
+
 				{/* Question Bank Configuration */}
 				{newSurvey.sourceType === 'question_bank' && (
 					<div className="bg-purple-50 rounded-lg p-4 space-y-4">
 						<h4 className="font-medium text-gray-800">Question Bank Configuration</h4>
 						<div>
-			<label className="block text-sm font-medium text-gray-700 mb-2">Question Bank *</label>
-			<select 
-				className="input-field" 
-				value={newSurvey.questionBankId} 
-				onChange={(e) => setNewSurvey({ ...newSurvey, questionBankId: e.target.value })}
-				required
-			>
-				<option value="">Select a question bank</option>
-				{questionBanks.map(bank => (
-					<option key={bank._id} value={bank._id}>
-						{bank.name} ({bank.questions.length} questions)
-					</option>
-				))}
-			</select>
-			{questionBanks.length === 0 && (
-				<div className="text-xs text-red-500 mt-1">
-					No question banks available. Create a question bank first.
-				</div>
-			)}
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Question Bank *
+							</label>
+							<select
+								className="input-field"
+								value={newSurvey.questionBankId}
+								onChange={e =>
+									setNewSurvey({ ...newSurvey, questionBankId: e.target.value })
+								}
+								required
+							>
+								<option value="">Select a question bank</option>
+								{questionBanks.map(bank => (
+									<option key={bank._id} value={bank._id}>
+										{bank.name} ({bank.questions.length} questions)
+									</option>
+								))}
+							</select>
+							{questionBanks.length === 0 && (
+								<div className="text-xs text-red-500 mt-1">
+									No question banks available. Create a question bank first.
+								</div>
+							)}
 						</div>
 						<div>
-			<label className="block text-sm font-medium text-gray-700 mb-2">Number of Questions</label>
-			<input 
-				type="number" 
-				className="input-field" 
-				placeholder="Number of questions to randomly select" 
-				value={newSurvey.questionCount || ''} 
-				onChange={(e) => setNewSurvey({ 
-					...newSurvey, 
-					questionCount: e.target.value ? parseInt(e.target.value) : undefined 
-				})} 
-				min="1"
-				max={newSurvey.questionBankId ? questionBanks.find(b => b._id === newSurvey.questionBankId)?.questions.length || 100 : 100}
-			/>
-			<div className="text-xs text-gray-500 mt-1">
-				{newSurvey.questionBankId && questionBanks.find(b => b._id === newSurvey.questionBankId) && 
-					`Available: ${questionBanks.find(b => b._id === newSurvey.questionBankId)?.questions.length} questions`
-				}
-			</div>
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Number of Questions
+							</label>
+							<input
+								type="number"
+								className="input-field"
+								placeholder="Number of questions to randomly select"
+								value={newSurvey.questionCount || ''}
+								onChange={e =>
+									setNewSurvey({
+										...newSurvey,
+										questionCount: e.target.value
+											? parseInt(e.target.value)
+											: undefined,
+									})
+								}
+								min="1"
+								max={
+									newSurvey.questionBankId
+										? questionBanks.find(
+												b => b._id === newSurvey.questionBankId
+											)?.questions.length || 100
+										: 100
+								}
+							/>
+							<div className="text-xs text-gray-500 mt-1">
+								{newSurvey.questionBankId &&
+									questionBanks.find(b => b._id === newSurvey.questionBankId) &&
+									`Available: ${questionBanks.find(b => b._id === newSurvey.questionBankId)?.questions.length} questions`}
+							</div>
 						</div>
 					</div>
 				)}
-				
+
 				{/* Enhanced settings for quiz/assessment/iq */}
 				{['quiz', 'assessment', 'iq'].includes(newSurvey.type) && (
 					<div className="bg-blue-50 rounded-lg p-4 space-y-4">
 						<h4 className="font-medium text-gray-800">Assessment Configuration</h4>
-						
+
 						<div className="grid grid-cols-2 gap-4">
-			<div>
-				<label className="block text-sm font-medium text-gray-700 mb-2">Time Limit (minutes)</label>
-				<input 
-					type="number" 
-					className="input-field" 
-					placeholder="No limit" 
-					value={newSurvey.timeLimit || ''} 
-					onChange={(e) => setNewSurvey({ 
-						...newSurvey, 
-						timeLimit: e.target.value ? parseInt(e.target.value) : undefined 
-					})} 
-					min="1"
-					max="300"
-				/>
-				<div className="text-xs text-gray-500 mt-1">Leave empty for no time limit</div>
-			</div>
-			<div>
-				<label className="block text-sm font-medium text-gray-700 mb-2">Max Attempts</label>
-				<input 
-					type="number" 
-					className="input-field" 
-					value={newSurvey.maxAttempts} 
-					onChange={(e) => setNewSurvey({ 
-						...newSurvey, 
-						maxAttempts: parseInt(e.target.value) || 1 
-					})} 
-					min="1"
-					max="10"
-					required
-				/>
-			</div>
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">
+									Time Limit (minutes)
+								</label>
+								<input
+									type="number"
+									className="input-field"
+									placeholder="No limit"
+									value={newSurvey.timeLimit || ''}
+									onChange={e =>
+										setNewSurvey({
+											...newSurvey,
+											timeLimit: e.target.value
+												? parseInt(e.target.value)
+												: undefined,
+										})
+									}
+									min="1"
+									max="300"
+								/>
+								<div className="text-xs text-gray-500 mt-1">
+									Leave empty for no time limit
+								</div>
+							</div>
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">
+									Max Attempts
+								</label>
+								<input
+									type="number"
+									className="input-field"
+									value={newSurvey.maxAttempts}
+									onChange={e =>
+										setNewSurvey({
+											...newSurvey,
+											maxAttempts: parseInt(e.target.value) || 1,
+										})
+									}
+									min="1"
+									max="10"
+									required
+								/>
+							</div>
 						</div>
-						
+
 						<div>
-			<label className="block text-sm font-medium text-gray-700 mb-2">Navigation Mode</label>
-			<select 
-				className="input-field" 
-				value={newSurvey.navigationMode} 
-				onChange={(e) => setNewSurvey({ 
-					...newSurvey, 
-					navigationMode: e.target.value as 'step-by-step' | 'paginated' | 'all-in-one' 
-				})}
-			>
-				<option value="step-by-step">Step-by-step (Recommended)</option>
-				<option value="paginated">Paginated</option>
-				<option value="all-in-one">All-in-one</option>
-			</select>
-			<div className="text-xs text-gray-500 mt-1">
-				Step-by-step: Display one question at a time for best experience
-			</div>
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Navigation Mode
+							</label>
+							<select
+								className="input-field"
+								value={newSurvey.navigationMode}
+								onChange={e =>
+									setNewSurvey({
+										...newSurvey,
+										navigationMode: e.target.value as
+											| 'step-by-step'
+											| 'paginated'
+											| 'all-in-one',
+									})
+								}
+							>
+								<option value="step-by-step">Step-by-step (Recommended)</option>
+								<option value="paginated">Paginated</option>
+								<option value="all-in-one">All-in-one</option>
+							</select>
+							<div className="text-xs text-gray-500 mt-1">
+								Step-by-step: Display one question at a time for best experience
+							</div>
 						</div>
-						
+
 						<div>
-			<label className="block text-sm font-medium text-gray-700 mb-2">Special Instructions</label>
-			<textarea 
-				className="input-field" 
-				placeholder="Additional instructions or notes for students" 
-				value={newSurvey.instructions} 
-				onChange={(e) => setNewSurvey({ ...newSurvey, instructions: e.target.value })} 
-				rows={3}
-			/>
-			<div className="text-xs text-gray-500 mt-1">These instructions will be shown to students before starting the assessment</div>
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Special Instructions
+							</label>
+							<textarea
+								className="input-field"
+								placeholder="Additional instructions or notes for students"
+								value={newSurvey.instructions}
+								onChange={e =>
+									setNewSurvey({ ...newSurvey, instructions: e.target.value })
+								}
+								rows={3}
+							/>
+							<div className="text-xs text-gray-500 mt-1">
+								These instructions will be shown to students before starting the
+								assessment
+							</div>
 						</div>
-						
+
 						{/* Scoring Settings */}
 						<div className="border-t border-blue-200 pt-4">
-			<h5 className="font-medium text-gray-800 mb-3">Scoring Rules</h5>
-			<div className="space-y-4">
-				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">Scoring Mode</label>
-					<select 
-						className="input-field" 
-						value={newSurvey.scoringSettings.scoringMode} 
-						onChange={(e) => setNewSurvey({ 
-							...newSurvey, 
-							scoringSettings: {
-								...newSurvey.scoringSettings,
-								scoringMode: e.target.value as 'percentage' | 'accumulated'
-							}
-						})}
-					>
-						<option value="percentage">Percentage (0-100 points)</option>
-						<option value="accumulated">Accumulated (sum by question points)</option>
-					</select>
-					<div className="text-xs text-gray-500 mt-1">
-						{newSurvey.scoringSettings.scoringMode === 'percentage' 
-							? 'Percentage: Final score converted to 0-100 scale regardless of question points' 
-							: 'Accumulated: Total score calculated by summing actual question points'}
-					</div>
-				</div>
-				
-				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">Passing Threshold</label>
-					<input 
-						type="number" 
-						className="input-field" 
-						value={newSurvey.scoringSettings.passingThreshold} 
-						onChange={(e) => setNewSurvey({ 
-							...newSurvey, 
-							scoringSettings: {
-								...newSurvey.scoringSettings,
-								passingThreshold: parseInt(e.target.value) || 60
-							}
-						})} 
-						min="1"
-						max={newSurvey.scoringSettings.scoringMode === 'percentage' ? 100 : 1000}
-					/>
-					<div className="text-xs text-gray-500 mt-1">
-						{newSurvey.scoringSettings.scoringMode === 'percentage' 
-							? 'Percentage passing threshold (1-100)' 
-							: 'Accumulated scoring passing threshold (by actual points)'}
-					</div>
-				</div>
-				
-				<div className="grid grid-cols-2 gap-4">
-					<div>
-						<label className="flex items-center">
-							<input 
-								type="checkbox" 
-								className="mr-2"
-								checked={newSurvey.scoringSettings.customScoringRules.useCustomPoints}
-								onChange={(e) => setNewSurvey({ 
-									...newSurvey, 
-									scoringSettings: {
-										...newSurvey.scoringSettings,
-										customScoringRules: {
-											...newSurvey.scoringSettings.customScoringRules,
-											useCustomPoints: e.target.checked
+							<h5 className="font-medium text-gray-800 mb-3">Scoring Rules</h5>
+							<div className="space-y-4">
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-2">
+										Scoring Mode
+									</label>
+									<select
+										className="input-field"
+										value={newSurvey.scoringSettings.scoringMode}
+										onChange={e =>
+											setNewSurvey({
+												...newSurvey,
+												scoringSettings: {
+													...newSurvey.scoringSettings,
+													scoringMode: e.target.value as
+														| 'percentage'
+														| 'accumulated',
+												},
+											})
 										}
-									}
-								})}
-							/>
-							<span className="text-sm text-gray-700">Use Custom Points</span>
-						</label>
-					</div>
-					{newSurvey.scoringSettings.customScoringRules.useCustomPoints && (
-						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-2">Default Question Points</label>
-							<input 
-								type="number" 
-								className="input-field" 
-								value={newSurvey.scoringSettings.customScoringRules.defaultQuestionPoints} 
-								onChange={(e) => setNewSurvey({ 
-									...newSurvey, 
-									scoringSettings: {
-										...newSurvey.scoringSettings,
-										customScoringRules: {
-											...newSurvey.scoringSettings.customScoringRules,
-											defaultQuestionPoints: parseInt(e.target.value) || 1
+									>
+										<option value="percentage">
+											Percentage (0-100 points)
+										</option>
+										<option value="accumulated">
+											Accumulated (sum by question points)
+										</option>
+									</select>
+									<div className="text-xs text-gray-500 mt-1">
+										{newSurvey.scoringSettings.scoringMode === 'percentage'
+											? 'Percentage: Final score converted to 0-100 scale regardless of question points'
+											: 'Accumulated: Total score calculated by summing actual question points'}
+									</div>
+								</div>
+
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-2">
+										Passing Threshold
+									</label>
+									<input
+										type="number"
+										className="input-field"
+										value={newSurvey.scoringSettings.passingThreshold}
+										onChange={e =>
+											setNewSurvey({
+												...newSurvey,
+												scoringSettings: {
+													...newSurvey.scoringSettings,
+													passingThreshold:
+														parseInt(e.target.value) || 60,
+												},
+											})
 										}
-									}
-								})} 
-								min="1"
-								max="100"
-							/>
-						</div>
-					)}
-				</div>
-				
-				<div className="grid grid-cols-2 gap-4">
-					<label className="flex items-center">
-						<input 
-							type="checkbox" 
-							className="mr-2"
-							checked={newSurvey.scoringSettings.showCorrectAnswers}
-							onChange={(e) => setNewSurvey({ 
-								...newSurvey, 
-								scoringSettings: {
-									...newSurvey.scoringSettings,
-									showCorrectAnswers: e.target.checked
-								}
-							})}
-						/>
-						<span className="text-sm text-gray-700">Show Correct Answers</span>
-					</label>
-					<label className="flex items-center">
-						<input 
-							type="checkbox" 
-							className="mr-2"
-							checked={newSurvey.scoringSettings.showScoreBreakdown}
-							onChange={(e) => setNewSurvey({ 
-								...newSurvey, 
-								scoringSettings: {
-									...newSurvey.scoringSettings,
-									showScoreBreakdown: e.target.checked
-								}
-							})}
-						/>
-						<span className="text-sm text-gray-700">Show Score Breakdown</span>
-					</label>
-				</div>
-			</div>
+										min="1"
+										max={
+											newSurvey.scoringSettings.scoringMode === 'percentage'
+												? 100
+												: 1000
+										}
+									/>
+									<div className="text-xs text-gray-500 mt-1">
+										{newSurvey.scoringSettings.scoringMode === 'percentage'
+											? 'Percentage passing threshold (1-100)'
+											: 'Accumulated scoring passing threshold (by actual points)'}
+									</div>
+								</div>
+
+								<div className="grid grid-cols-2 gap-4">
+									<div>
+										<label className="flex items-center">
+											<input
+												type="checkbox"
+												className="mr-2"
+												checked={
+													newSurvey.scoringSettings.customScoringRules
+														.useCustomPoints
+												}
+												onChange={e =>
+													setNewSurvey({
+														...newSurvey,
+														scoringSettings: {
+															...newSurvey.scoringSettings,
+															customScoringRules: {
+																...newSurvey.scoringSettings
+																	.customScoringRules,
+																useCustomPoints: e.target.checked,
+															},
+														},
+													})
+												}
+											/>
+											<span className="text-sm text-gray-700">
+												Use Custom Points
+											</span>
+										</label>
+									</div>
+									{newSurvey.scoringSettings.customScoringRules
+										.useCustomPoints && (
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-2">
+												Default Question Points
+											</label>
+											<input
+												type="number"
+												className="input-field"
+												value={
+													newSurvey.scoringSettings.customScoringRules
+														.defaultQuestionPoints
+												}
+												onChange={e =>
+													setNewSurvey({
+														...newSurvey,
+														scoringSettings: {
+															...newSurvey.scoringSettings,
+															customScoringRules: {
+																...newSurvey.scoringSettings
+																	.customScoringRules,
+																defaultQuestionPoints:
+																	parseInt(e.target.value) || 1,
+															},
+														},
+													})
+												}
+												min="1"
+												max="100"
+											/>
+										</div>
+									)}
+								</div>
+
+								<div className="grid grid-cols-2 gap-4">
+									<label className="flex items-center">
+										<input
+											type="checkbox"
+											className="mr-2"
+											checked={newSurvey.scoringSettings.showCorrectAnswers}
+											onChange={e =>
+												setNewSurvey({
+													...newSurvey,
+													scoringSettings: {
+														...newSurvey.scoringSettings,
+														showCorrectAnswers: e.target.checked,
+													},
+												})
+											}
+										/>
+										<span className="text-sm text-gray-700">
+											Show Correct Answers
+										</span>
+									</label>
+									<label className="flex items-center">
+										<input
+											type="checkbox"
+											className="mr-2"
+											checked={newSurvey.scoringSettings.showScoreBreakdown}
+											onChange={e =>
+												setNewSurvey({
+													...newSurvey,
+													scoringSettings: {
+														...newSurvey.scoringSettings,
+														showScoreBreakdown: e.target.checked,
+													},
+												})
+											}
+										/>
+										<span className="text-sm text-gray-700">
+											Show Score Breakdown
+										</span>
+									</label>
+								</div>
+							</div>
 						</div>
 					</div>
 				)}
-				
+
 				<button className="btn-primary w-full" type="submit" disabled={loading}>
 					{loading ? 'Creating...' : 'Create Sigma'}
 				</button>
@@ -1349,26 +1716,41 @@ const Admin: React.FC = () => {
 		};
 
 		return (
-			<Modal show={showQuestionBankModal} title="Create Question Bank" onClose={() => setShowQuestionBankModal(false)}>
+			<Modal
+				show={showQuestionBankModal}
+				title="Create Question Bank"
+				onClose={() => setShowQuestionBankModal(false)}
+			>
 				<form onSubmit={createQuestionBank} className="space-y-4">
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">Question Bank Name *</label>
-						<input 
-			className="input-field" 
-			placeholder="Enter question bank name" 
-			value={newQuestionBank.name} 
-			onChange={(e) => setNewQuestionBank({ ...newQuestionBank, name: e.target.value })} 
-			required 
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Question Bank Name *
+						</label>
+						<input
+							className="input-field"
+							placeholder="Enter question bank name"
+							value={newQuestionBank.name}
+							onChange={e =>
+								setNewQuestionBank({ ...newQuestionBank, name: e.target.value })
+							}
+							required
 						/>
 					</div>
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-						<textarea 
-			className="input-field" 
-			placeholder="Enter description" 
-			value={newQuestionBank.description} 
-			onChange={(e) => setNewQuestionBank({ ...newQuestionBank, description: e.target.value })} 
-			rows={3} 
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Description
+						</label>
+						<textarea
+							className="input-field"
+							placeholder="Enter description"
+							value={newQuestionBank.description}
+							onChange={e =>
+								setNewQuestionBank({
+									...newQuestionBank,
+									description: e.target.value,
+								})
+							}
+							rows={3}
 						/>
 					</div>
 					<button className="btn-primary w-full" type="submit" disabled={loading}>
@@ -1399,9 +1781,9 @@ const Admin: React.FC = () => {
 				const surveyData = {
 					...editForm,
 					isActive: editForm.status === 'active',
-					timeLimit: editForm.timeLimit ? Number(editForm.timeLimit) : undefined
+					timeLimit: editForm.timeLimit ? Number(editForm.timeLimit) : undefined,
 				};
-				
+
 				await axios.put(`/api/admin/surveys/${editingSurvey._id}`, surveyData);
 				loadSurveys();
 				closeEditModal();
@@ -1412,115 +1794,152 @@ const Admin: React.FC = () => {
 			}
 		};
 
-
 		return (
-			<Modal show={showEditModal} title={`Edit Survey: ${editingSurvey.title}`} onClose={closeEditModal}>
+			<Modal
+				show={showEditModal}
+				title={`Edit Survey: ${editingSurvey.title}`}
+				onClose={closeEditModal}
+			>
 				<form onSubmit={updateSurvey} className="space-y-4 max-h-96 overflow-y-auto">
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
-						<input 
-			className="input-field" 
-			placeholder="Enter survey title" 
-			value={editForm.title} 
-			onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} 
-			required 
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Title *
+						</label>
+						<input
+							className="input-field"
+							placeholder="Enter survey title"
+							value={editForm.title}
+							onChange={e => setEditForm({ ...editForm, title: e.target.value })}
+							required
 						/>
 					</div>
-					
+
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-						<textarea 
-			className="input-field" 
-			placeholder="Enter description" 
-			value={editForm.description} 
-			onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} 
-			rows={3} 
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Description
+						</label>
+						<textarea
+							className="input-field"
+							placeholder="Enter description"
+							value={editForm.description}
+							onChange={e =>
+								setEditForm({ ...editForm, description: e.target.value })
+							}
+							rows={3}
 						/>
 					</div>
 
 					<div className="grid grid-cols-2 gap-4">
 						<div>
-			<label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-			<select 
-				className="input-field" 
-				value={editForm.type} 
-				onChange={(e) => setEditForm({ ...editForm, type: e.target.value as any })}
-			>
-				<option value="survey">Survey</option>
-				<option value="assessment">Assessment</option>
-				<option value="quiz">Quiz</option>
-				<option value="iq">IQ Test</option>
-			</select>
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Type
+							</label>
+							<select
+								className="input-field"
+								value={editForm.type}
+								onChange={e =>
+									setEditForm({ ...editForm, type: e.target.value as any })
+								}
+							>
+								<option value="survey">Survey</option>
+								<option value="assessment">Assessment</option>
+								<option value="quiz">Quiz</option>
+								<option value="iq">IQ Test</option>
+							</select>
 						</div>
-						
+
 						<div>
-			<label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-			<select 
-				className="input-field" 
-				value={editForm.status} 
-				onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-			>
-				<option value="draft">Draft</option>
-				<option value="active">Active</option>
-			</select>
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Status
+							</label>
+							<select
+								className="input-field"
+								value={editForm.status}
+								onChange={e => setEditForm({ ...editForm, status: e.target.value })}
+							>
+								<option value="draft">Draft</option>
+								<option value="active">Active</option>
+							</select>
 						</div>
 					</div>
 
 					<div className="grid grid-cols-2 gap-4">
 						<div>
-			<label className="block text-sm font-medium text-gray-700 mb-2">Time Limit (minutes)</label>
-			<input 
-				type="number" 
-				className="input-field" 
-				placeholder="Optional" 
-				value={editForm.timeLimit} 
-				onChange={(e) => setEditForm({ ...editForm, timeLimit: e.target.value })} 
-			/>
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Time Limit (minutes)
+							</label>
+							<input
+								type="number"
+								className="input-field"
+								placeholder="Optional"
+								value={editForm.timeLimit}
+								onChange={e =>
+									setEditForm({ ...editForm, timeLimit: e.target.value })
+								}
+							/>
 						</div>
-						
+
 						<div>
-			<label className="block text-sm font-medium text-gray-700 mb-2">Max Attempts</label>
-			<input 
-				type="number" 
-				className="input-field" 
-				min="1" 
-				value={editForm.maxAttempts} 
-				onChange={(e) => setEditForm({ ...editForm, maxAttempts: Number(e.target.value) })} 
-			/>
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Max Attempts
+							</label>
+							<input
+								type="number"
+								className="input-field"
+								min="1"
+								value={editForm.maxAttempts}
+								onChange={e =>
+									setEditForm({
+										...editForm,
+										maxAttempts: Number(e.target.value),
+									})
+								}
+							/>
 						</div>
 					</div>
 
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">Instructions</label>
-						<textarea 
-			className="input-field" 
-			placeholder="Instructions for survey takers" 
-			value={editForm.instructions} 
-			onChange={(e) => setEditForm({ ...editForm, instructions: e.target.value })} 
-			rows={2} 
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Instructions
+						</label>
+						<textarea
+							className="input-field"
+							placeholder="Instructions for survey takers"
+							value={editForm.instructions}
+							onChange={e =>
+								setEditForm({ ...editForm, instructions: e.target.value })
+							}
+							rows={2}
 						/>
 					</div>
 
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">Navigation Mode</label>
-						<select 
-			className="input-field" 
-			value={editForm.navigationMode} 
-			onChange={(e) => setEditForm({ ...editForm, navigationMode: e.target.value as any })}
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Navigation Mode
+						</label>
+						<select
+							className="input-field"
+							value={editForm.navigationMode}
+							onChange={e =>
+								setEditForm({ ...editForm, navigationMode: e.target.value as any })
+							}
 						>
-			<option value="step-by-step">Step by Step</option>
-			<option value="paginated">Paginated</option>
-			<option value="all-in-one">All in One</option>
+							<option value="step-by-step">Step by Step</option>
+							<option value="paginated">Paginated</option>
+							<option value="all-in-one">All in One</option>
 						</select>
 					</div>
 
-
 					<div className="flex gap-3 pt-4 border-t">
 						<button className="btn-primary flex-1" type="submit" disabled={loading}>
-			{loading ? 'Saving...' : 'Save Changes'}
+							{loading ? 'Saving...' : 'Save Changes'}
 						</button>
-						<button type="button" className="btn-secondary px-6" onClick={closeEditModal}>
-			Cancel
+						<button
+							type="button"
+							className="btn-secondary px-6"
+							onClick={closeEditModal}
+						>
+							Cancel
 						</button>
 					</div>
 				</form>
@@ -1536,17 +1955,40 @@ const Admin: React.FC = () => {
 						<h2 className="text-3xl font-bold text-gray-900">Admin Login</h2>
 						<p className="mt-2 text-sm text-gray-600">Sign in to manage your surveys</p>
 					</div>
-					{error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">{error}</div>}
+					{error && (
+						<div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+							{error}
+						</div>
+					)}
 					<form onSubmit={login} className="space-y-6">
 						<div>
-			<label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
-			<input name="username" className="input-field" onChange={handleLoginChange} required placeholder="Enter username" />
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Username
+							</label>
+							<input
+								name="username"
+								className="input-field"
+								onChange={handleLoginChange}
+								required
+								placeholder="Enter username"
+							/>
 						</div>
 						<div>
-			<label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-			<input type="password" name="password" className="input-field" onChange={handleLoginChange} required placeholder="Enter password" />
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Password
+							</label>
+							<input
+								type="password"
+								name="password"
+								className="input-field"
+								onChange={handleLoginChange}
+								required
+								placeholder="Enter password"
+							/>
 						</div>
-						<button className="btn-primary w-full" type="submit" disabled={loading}>{loading ? 'Signing in...' : 'Sign In'}</button>
+						<button className="btn-primary w-full" type="submit" disabled={loading}>
+							{loading ? 'Signing in...' : 'Sign In'}
+						</button>
 					</form>
 				</div>
 			</div>
@@ -1559,16 +2001,17 @@ const Admin: React.FC = () => {
 				<div className="flex justify-between items-center mb-8">
 					<div>
 						<h1 className="text-3xl font-bold text-gray-900">Sigma Admin Dashboard</h1>
-						<p className="text-gray-600 mt-1">Manage your surveys, assessments and view responses</p>
+						<p className="text-gray-600 mt-1">
+							Manage your surveys, assessments and view responses
+						</p>
 					</div>
 					<div className="flex gap-3">
-						<button 
-			className="btn-primary"
-			onClick={() => setShowCreateModal(true)}
-						>
-			+ Create Sigma
+						<button className="btn-primary" onClick={() => setShowCreateModal(true)}>
+							+ Create Sigma
 						</button>
-						<button className="btn-secondary" onClick={logout}>Logout</button>
+						<button className="btn-secondary" onClick={logout}>
+							Logout
+						</button>
 					</div>
 				</div>
 				{renderTabs()}
@@ -1582,11 +2025,11 @@ const Admin: React.FC = () => {
 			</div>
 		</div>
 	);
-	
+
 	// Edit Scoring Rules Modal
 	function renderScoringModal() {
 		if (!selectedSurvey || !showScoringModal) return null;
-		
+
 		const [localScoring, setLocalScoring] = useState({
 			scoringMode: selectedSurvey.scoringSettings?.scoringMode || 'percentage',
 			passingThreshold: selectedSurvey.scoringSettings?.passingThreshold || 60,
@@ -1594,145 +2037,174 @@ const Admin: React.FC = () => {
 			showCorrectAnswers: selectedSurvey.scoringSettings?.showCorrectAnswers || false,
 			showScoreBreakdown: selectedSurvey.scoringSettings?.showScoreBreakdown || true,
 			customScoringRules: {
-				useCustomPoints: selectedSurvey.scoringSettings?.customScoringRules?.useCustomPoints || false,
-				defaultQuestionPoints: selectedSurvey.scoringSettings?.customScoringRules?.defaultQuestionPoints || 1
-			}
+				useCustomPoints:
+					selectedSurvey.scoringSettings?.customScoringRules?.useCustomPoints || false,
+				defaultQuestionPoints:
+					selectedSurvey.scoringSettings?.customScoringRules?.defaultQuestionPoints || 1,
+			},
 		});
-		
+
 		return (
-			<Modal show={showScoringModal} title="Edit Scoring Rules" onClose={() => setShowScoringModal(false)}>
+			<Modal
+				show={showScoringModal}
+				title="Edit Scoring Rules"
+				onClose={() => setShowScoringModal(false)}
+			>
 				<div className="space-y-4 max-h-96 overflow-y-auto">
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">Scoring Mode</label>
-						<select 
-			className="input-field" 
-			value={localScoring.scoringMode} 
-			onChange={(e) => setLocalScoring({ 
-				...localScoring, 
-				scoringMode: e.target.value as 'percentage' | 'accumulated'
-			})}
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Scoring Mode
+						</label>
+						<select
+							className="input-field"
+							value={localScoring.scoringMode}
+							onChange={e =>
+								setLocalScoring({
+									...localScoring,
+									scoringMode: e.target.value as 'percentage' | 'accumulated',
+								})
+							}
 						>
-			<option value="percentage">Percentage (0-100 points)</option>
-			<option value="accumulated">Accumulated (sum by question points)</option>
+							<option value="percentage">Percentage (0-100 points)</option>
+							<option value="accumulated">
+								Accumulated (sum by question points)
+							</option>
 						</select>
 						<div className="text-xs text-gray-500 mt-1">
-			{localScoring.scoringMode === 'percentage' 
-				? 'Percentage: Final score converted to 0-100 scale regardless of question points' 
-				: 'Accumulated: Total score calculated by summing actual question points'}
+							{localScoring.scoringMode === 'percentage'
+								? 'Percentage: Final score converted to 0-100 scale regardless of question points'
+								: 'Accumulated: Total score calculated by summing actual question points'}
 						</div>
 					</div>
-					
+
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">Passing Threshold</label>
-						<input 
-			type="number" 
-			className="input-field" 
-			value={localScoring.passingThreshold} 
-			onChange={(e) => setLocalScoring({ 
-				...localScoring, 
-				passingThreshold: parseInt(e.target.value) || 60
-			})} 
-			min="1"
-			max={localScoring.scoringMode === 'percentage' ? 100 : 1000}
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Passing Threshold
+						</label>
+						<input
+							type="number"
+							className="input-field"
+							value={localScoring.passingThreshold}
+							onChange={e =>
+								setLocalScoring({
+									...localScoring,
+									passingThreshold: parseInt(e.target.value) || 60,
+								})
+							}
+							min="1"
+							max={localScoring.scoringMode === 'percentage' ? 100 : 1000}
 						/>
 						<div className="text-xs text-gray-500 mt-1">
-			{localScoring.scoringMode === 'percentage' 
-				? 'Percentage passing threshold (1-100)' 
-				: 'Accumulated scoring passing threshold (by actual points)'}
+							{localScoring.scoringMode === 'percentage'
+								? 'Percentage passing threshold (1-100)'
+								: 'Accumulated scoring passing threshold (by actual points)'}
 						</div>
 					</div>
-					
+
 					<div className="grid grid-cols-2 gap-4">
 						<div>
-			<label className="flex items-center">
-				<input 
-					type="checkbox" 
-					className="mr-2"
-					checked={localScoring.customScoringRules.useCustomPoints}
-					onChange={(e) => setLocalScoring({ 
-						...localScoring, 
-						customScoringRules: {
-							...localScoring.customScoringRules,
-							useCustomPoints: e.target.checked
-						}
-					})}
-				/>
-				<span className="text-sm text-gray-700">Use Custom Points</span>
-			</label>
+							<label className="flex items-center">
+								<input
+									type="checkbox"
+									className="mr-2"
+									checked={localScoring.customScoringRules.useCustomPoints}
+									onChange={e =>
+										setLocalScoring({
+											...localScoring,
+											customScoringRules: {
+												...localScoring.customScoringRules,
+												useCustomPoints: e.target.checked,
+											},
+										})
+									}
+								/>
+								<span className="text-sm text-gray-700">Use Custom Points</span>
+							</label>
 						</div>
 						{localScoring.customScoringRules.useCustomPoints && (
-			<div>
-				<label className="block text-sm font-medium text-gray-700 mb-2">Default Question Points</label>
-				<input 
-					type="number" 
-					className="input-field" 
-					value={localScoring.customScoringRules.defaultQuestionPoints} 
-					onChange={(e) => setLocalScoring({ 
-						...localScoring, 
-						customScoringRules: {
-							...localScoring.customScoringRules,
-							defaultQuestionPoints: parseInt(e.target.value) || 1
-						}
-					})} 
-					min="1"
-					max="100"
-				/>
-			</div>
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">
+									Default Question Points
+								</label>
+								<input
+									type="number"
+									className="input-field"
+									value={localScoring.customScoringRules.defaultQuestionPoints}
+									onChange={e =>
+										setLocalScoring({
+											...localScoring,
+											customScoringRules: {
+												...localScoring.customScoringRules,
+												defaultQuestionPoints:
+													parseInt(e.target.value) || 1,
+											},
+										})
+									}
+									min="1"
+									max="100"
+								/>
+							</div>
 						)}
 					</div>
-					
+
 					<div className="space-y-2">
 						<label className="flex items-center">
-			<input 
-				type="checkbox" 
-				className="mr-2"
-				checked={localScoring.showScore}
-				onChange={(e) => setLocalScoring({ 
-					...localScoring, 
-					showScore: e.target.checked
-				})}
-			/>
-			<span className="text-sm text-gray-700">Show Score</span>
+							<input
+								type="checkbox"
+								className="mr-2"
+								checked={localScoring.showScore}
+								onChange={e =>
+									setLocalScoring({
+										...localScoring,
+										showScore: e.target.checked,
+									})
+								}
+							/>
+							<span className="text-sm text-gray-700">Show Score</span>
 						</label>
 						<label className="flex items-center">
-			<input 
-				type="checkbox" 
-				className="mr-2"
-				checked={localScoring.showCorrectAnswers}
-				onChange={(e) => setLocalScoring({ 
-					...localScoring, 
-					showCorrectAnswers: e.target.checked
-				})}
-			/>
-			<span className="text-sm text-gray-700">Show Correct Answers</span>
+							<input
+								type="checkbox"
+								className="mr-2"
+								checked={localScoring.showCorrectAnswers}
+								onChange={e =>
+									setLocalScoring({
+										...localScoring,
+										showCorrectAnswers: e.target.checked,
+									})
+								}
+							/>
+							<span className="text-sm text-gray-700">Show Correct Answers</span>
 						</label>
 						<label className="flex items-center">
-			<input 
-				type="checkbox" 
-				className="mr-2"
-				checked={localScoring.showScoreBreakdown}
-				onChange={(e) => setLocalScoring({ 
-					...localScoring, 
-					showScoreBreakdown: e.target.checked
-				})}
-			/>
-			<span className="text-sm text-gray-700">Show Score Breakdown</span>
+							<input
+								type="checkbox"
+								className="mr-2"
+								checked={localScoring.showScoreBreakdown}
+								onChange={e =>
+									setLocalScoring({
+										...localScoring,
+										showScoreBreakdown: e.target.checked,
+									})
+								}
+							/>
+							<span className="text-sm text-gray-700">Show Score Breakdown</span>
 						</label>
 					</div>
-					
+
 					<div className="flex justify-end space-x-3 pt-4 border-t">
-						<button 
-			className="btn-secondary"
-			onClick={() => setShowScoringModal(false)}
+						<button
+							className="btn-secondary"
+							onClick={() => setShowScoringModal(false)}
 						>
-			Cancel
+							Cancel
 						</button>
-						<button 
-			className="btn-primary"
-			onClick={() => updateScoringSettings(selectedSurvey._id, localScoring)}
-			disabled={loading}
+						<button
+							className="btn-primary"
+							onClick={() => updateScoringSettings(selectedSurvey._id, localScoring)}
+							disabled={loading}
 						>
-			{loading ? 'Saving...' : 'Save Settings'}
+							{loading ? 'Saving...' : 'Save Settings'}
 						</button>
 					</div>
 				</div>

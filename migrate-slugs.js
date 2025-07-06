@@ -9,12 +9,8 @@ async function migrateSlugs() {
 		console.log('Connected to MongoDB');
 
 		// Find all surveys without slug
-		const surveysWithoutSlug = await Survey.find({ 
-			$or: [
-				{ slug: { $exists: false } },
-				{ slug: null },
-				{ slug: '' }
-			]
+		const surveysWithoutSlug = await Survey.find({
+			$or: [{ slug: { $exists: false } }, { slug: null }, { slug: '' }],
 		});
 
 		console.log(`Found ${surveysWithoutSlug.length} surveys without slug`);
@@ -25,7 +21,7 @@ async function migrateSlugs() {
 				.toLowerCase()
 				.replace(/[^a-z0-9]+/g, '-')
 				.replace(/(^-|-$)/g, '');
-			
+
 			// Make sure slug is unique
 			let uniqueSlug = slug;
 			let counter = 1;

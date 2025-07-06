@@ -1,51 +1,51 @@
 // 错误消息常量
 const ERROR_MESSAGES = {
-  SURVEY_NOT_FOUND: 'Survey not found',
-  INVALID_STATUS: 'Invalid status. Must be one of: draft, active, closed',
-  UNAUTHORIZED: 'unauthorized',
-  INVALID_DATA: 'invalid data',
-  INVALID_CORRECT_ANSWER: 'invalid correctAnswer',
-  INVALID_QUESTION_TYPE: 'Invalid question type. Must be one of: single_choice, multiple_choice',
-  MISSING_CORRECT_ANSWER: 'Quiz/Assessment questions must have correct answers',
-  INVALID_MULTIPLE_CHOICE_ANSWER: 'Multiple choice answers must be an array of indices'
+	SURVEY_NOT_FOUND: 'Survey not found',
+	INVALID_STATUS: 'Invalid status. Must be one of: draft, active, closed',
+	UNAUTHORIZED: 'unauthorized',
+	INVALID_DATA: 'invalid data',
+	INVALID_CORRECT_ANSWER: 'invalid correctAnswer',
+	INVALID_QUESTION_TYPE: 'Invalid question type. Must be one of: single_choice, multiple_choice',
+	MISSING_CORRECT_ANSWER: 'Quiz/Assessment questions must have correct answers',
+	INVALID_MULTIPLE_CHOICE_ANSWER: 'Multiple choice answers must be an array of indices',
 };
 
 // 状态常量
 const SURVEY_STATUS = {
-  DRAFT: 'draft',
-  ACTIVE: 'active',
-  CLOSED: 'closed'
+	DRAFT: 'draft',
+	ACTIVE: 'active',
+	CLOSED: 'closed',
 };
 
 // 类型常量
 const SURVEY_TYPE = {
-  SURVEY: 'survey',
-  ASSESSMENT: 'assessment',
-  QUIZ: 'quiz',
-  IQ: 'iq'
+	SURVEY: 'survey',
+	ASSESSMENT: 'assessment',
+	QUIZ: 'quiz',
+	IQ: 'iq',
 };
 
 // 问题类型常量
 const QUESTION_TYPE = {
-  SINGLE_CHOICE: 'single_choice',
-  MULTIPLE_CHOICE: 'multiple_choice'
+	SINGLE_CHOICE: 'single_choice',
+	MULTIPLE_CHOICE: 'multiple_choice',
 };
 
 // 数据类型常量
 const DATA_TYPES = {
-  STRING: 'string',
-  NUMBER: 'number',
-  ARRAY: 'array'
+	STRING: 'string',
+	NUMBER: 'number',
+	ARRAY: 'array',
 };
 
 // HTTP状态码常量
 const HTTP_STATUS = {
-  OK: 200,
-  CREATED: 201,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  NOT_FOUND: 404,
-  INTERNAL_SERVER_ERROR: 500
+	OK: 200,
+	CREATED: 201,
+	BAD_REQUEST: 400,
+	UNAUTHORIZED: 401,
+	NOT_FOUND: 404,
+	INTERNAL_SERVER_ERROR: 500,
 };
 
 // 有效状态数组
@@ -58,13 +58,13 @@ const TYPES_REQUIRING_ANSWERS = [SURVEY_TYPE.ASSESSMENT, SURVEY_TYPE.QUIZ, SURVE
 const VALID_QUESTION_TYPES = [QUESTION_TYPE.SINGLE_CHOICE, QUESTION_TYPE.MULTIPLE_CHOICE];
 
 module.exports = {
-  ERROR_MESSAGES,
-  SURVEY_STATUS,
-  SURVEY_TYPE,
-  QUESTION_TYPE,
-  DATA_TYPES,
-  HTTP_STATUS,
-  VALID_STATUSES,
-  TYPES_REQUIRING_ANSWERS,
-  VALID_QUESTION_TYPES
+	ERROR_MESSAGES,
+	SURVEY_STATUS,
+	SURVEY_TYPE,
+	QUESTION_TYPE,
+	DATA_TYPES,
+	HTTP_STATUS,
+	VALID_STATUSES,
+	TYPES_REQUIRING_ANSWERS,
+	VALID_QUESTION_TYPES,
 };

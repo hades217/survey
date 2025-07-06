@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 interface Question {
-  id: string;
-  text: string;
-  options: string[];
+	id: string;
+	text: string;
+	options: string[];
 }
 
 const Survey: React.FC = () => {
@@ -13,7 +13,7 @@ const Survey: React.FC = () => {
 	const [submitted, setSubmitted] = useState(false);
 
 	useEffect(() => {
-		axios.get<Question[]>('/api/questions').then((res) => setQuestions(res.data));
+		axios.get<Question[]>('/api/questions').then(res => setQuestions(res.data));
 	}, []);
 
 	const handleChange = (id: string, value: string) => {
@@ -32,10 +32,10 @@ const Survey: React.FC = () => {
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-4 max-w-xl">
-			{questions.map((q) => (
+			{questions.map(q => (
 				<div key={q.id}>
 					<label className="block mb-1 font-semibold">{q.text}</label>
-					{q.options.map((opt) => (
+					{q.options.map(opt => (
 						<label key={opt} className="block">
 							<input
 								type="radio"
@@ -51,7 +51,7 @@ const Survey: React.FC = () => {
 				</div>
 			))}
 			<button className="px-4 py-2 bg-blue-500 text-white rounded" type="submit">
-        Submit
+				Submit
 			</button>
 		</form>
 	);

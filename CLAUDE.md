@@ -5,16 +5,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 ### Server (Root Directory)
+
 - `npm start` - Start the Express server (production)
 - `node server.js` - Start the Express server directly
 - `npm run lint` - Run ESLint on JS/TS files
 
 ### Client (React Frontend)
+
 - `cd client && npm run dev` - Start Vite development server
 - `cd client && npm run build` - Build React app for production
 - `cd client && npm run preview` - Preview production build
 
 ### Full Development Setup
+
 ```bash
 # Install server dependencies
 npm install
@@ -34,6 +37,7 @@ npm start
 This is a full-stack survey application with MongoDB, Express, React, and Node.js.
 
 ### Backend Structure
+
 - **Entry Point**: `server.js` - Express server with session management and static file serving
 - **Models**: `models/` - Mongoose schemas (Survey, Response)
 - **Routes**: `routes/` - API endpoints organized by feature (surveys, responses, admin, questions)
@@ -44,6 +48,7 @@ This is a full-stack survey application with MongoDB, Express, React, and Node.j
 - **Utils**: `utils/` - File helpers and custom error classes
 
 ### Frontend Structure
+
 - **Framework**: React 18 with TypeScript, bundled by Vite
 - **Routing**: React Router DOM for SPA navigation
 - **Forms**: React Hook Form with Zod validation
@@ -51,6 +56,7 @@ This is a full-stack survey application with MongoDB, Express, React, and Node.j
 - **Components**: `client/src/` contains main components (Survey, Admin, TakeSurvey, SurveyForm)
 
 ### Key Features
+
 - Survey management with dynamic questions from `questions.json`
 - Admin authentication via environment variables (ADMIN_USERNAME/ADMIN_PASSWORD)
 - Response collection and statistics viewing
@@ -58,10 +64,12 @@ This is a full-stack survey application with MongoDB, Express, React, and Node.j
 - MongoDB for data persistence
 
 ### Environment Variables
+
 - `MONGODB_URI` - MongoDB connection string (default: mongodb://localhost:27017/survey)
 - `ADMIN_USERNAME` - Admin login username (default: admin)
 - `ADMIN_PASSWORD` - Admin login password (default: password)
 - `PORT` - Server port (default: 5050)
 
 ### Mixed TypeScript/JavaScript Codebase
+
 This project contains both .js and .ts files. The backend is primarily JavaScript with some TypeScript files for schemas and controllers. The frontend is fully TypeScript. When editing, match the existing file's language choice.

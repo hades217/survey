@@ -4,44 +4,44 @@ const userSchema = new mongoose.Schema({
 	name: {
 		type: String,
 		required: true,
-		trim: true
+		trim: true,
 	},
 	email: {
 		type: String,
 		required: true,
 		unique: true,
 		lowercase: true,
-		trim: true
+		trim: true,
 	},
 	role: {
 		type: String,
 		enum: ['student', 'teacher', 'admin', 'user'],
-		default: 'user'
+		default: 'user',
 	},
 	studentId: {
 		type: String,
 		sparse: true, // Allows null values but ensures uniqueness when present
-		trim: true
+		trim: true,
 	},
 	department: {
 		type: String,
-		trim: true
+		trim: true,
 	},
 	class: {
 		type: String,
-		trim: true
+		trim: true,
 	},
 	isActive: {
 		type: Boolean,
-		default: true
+		default: true,
 	},
 	createdAt: {
 		type: Date,
-		default: Date.now
+		default: Date.now,
 	},
 	lastLoginAt: {
-		type: Date
-	}
+		type: Date,
+	},
 });
 
 // Index for efficient queries
