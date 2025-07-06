@@ -74,7 +74,7 @@ router.put('/surveys/:id/questions', asyncHandler(async (req, res) => {
 		return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: ERROR_MESSAGES.UNAUTHORIZED });
 	}
 	const { id } = req.params;
-	const { text, options, correctAnswer } = req.body;
+	const { text, options, correctAnswer, points } = req.body;
 	if (typeof text !== DATA_TYPES.STRING || !Array.isArray(options) || !options.every(o => typeof o === DATA_TYPES.STRING)) {
 		return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: ERROR_MESSAGES.INVALID_DATA });
 	}
@@ -82,6 +82,11 @@ router.put('/surveys/:id/questions', asyncHandler(async (req, res) => {
 	// Validate correctAnswer if provided
 	if (correctAnswer !== undefined && (typeof correctAnswer !== DATA_TYPES.NUMBER || correctAnswer < 0 || correctAnswer >= options.length)) {
 		return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
+	}
+
+	// Validate points if provided
+	if (points !== undefined && (typeof points !== DATA_TYPES.NUMBER || points < 1)) {
+		return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Points must be a positive number' });
 	}
 
 	const survey = await Survey.findById(id);
@@ -93,9 +98,71 @@ router.put('/surveys/:id/questions', asyncHandler(async (req, res) => {
 	if (correctAnswer !== undefined) {
 		question.correctAnswer = correctAnswer;
 	}
+	if (points !== undefined) {
+		question.points = points;
+	}
 	
 	survey.questions.push(question);
 	await survey.save();
+	res.json(survey);
+}));
+
+// Update scoring settings for a survey
+router.put('/surveys/:id/scoring', asyncHandler(async (req, res) => {
+	if (!req.session.admin) {
+		return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: ERROR_MESSAGES.UNAUTHORIZED });
+	}
+	
+	const { id } = req.params;
+	const { 
+		scoringMode, 
+		passingThreshold, 
+		showScore, 
+		showCorrectAnswers, 
+		showScoreBreakdown, 
+		customScoringRules 
+	} = req.body;
+	
+	// Validate scoring mode
+	if (scoringMode && !['percentage', 'accumulated'].includes(scoringMode)) {
+		return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+			error: 'Invalid scoring mode. Must be "percentage" or "accumulated"' 
+		});
+	}
+	
+	// Validate passing threshold
+	if (passingThreshold !== undefined && (typeof passingThreshold !== DATA_TYPES.NUMBER || passingThreshold < 0)) {
+		return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+			error: 'Passing threshold must be a non-negative number' 
+		});
+	}
+	
+	const survey = await Survey.findById(id);
+	if (!survey) {
+		throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+	}
+	
+	// Only allow scoring settings for quiz/assessment/iq types
+	if (!['quiz', 'assessment', 'iq'].includes(survey.type)) {
+		return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+			error: 'Scoring settings are only available for quiz, assessment, and IQ test types' 
+		});
+	}
+	
+	// Update scoring settings
+	const updatedScoringSettings = {
+		...survey.scoringSettings,
+		...(scoringMode && { scoringMode }),
+		...(passingThreshold !== undefined && { passingThreshold }),
+		...(showScore !== undefined && { showScore }),
+		...(showCorrectAnswers !== undefined && { showCorrectAnswers }),
+		...(showScoreBreakdown !== undefined && { showScoreBreakdown }),
+		...(customScoringRules && { customScoringRules: { ...survey.scoringSettings.customScoringRules, ...customScoringRules } })
+	};
+	
+	survey.scoringSettings = updatedScoringSettings;
+	await survey.save();
+	
 	res.json(survey);
 }));
 

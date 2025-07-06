@@ -11,13 +11,25 @@ interface Survey {
 	description: string;
 	slug: string;
 	type: 'survey' | 'assessment' | 'quiz' | 'iq';
-	questions: { text: string; options: string[]; correctAnswer?: number }[];
+	questions: { text: string; options: string[]; correctAnswer?: number; points?: number }[];
 	createdAt: string;
 	isActive: boolean;
 	timeLimit?: number;
 	maxAttempts?: number;
 	instructions?: string;
 	navigationMode?: 'step-by-step' | 'paginated' | 'all-in-one';
+	scoringSettings?: {
+		scoringMode: 'percentage' | 'accumulated';
+		totalPoints: number;
+		passingThreshold: number;
+		showScore: boolean;
+		showCorrectAnswers: boolean;
+		showScoreBreakdown: boolean;
+		customScoringRules: {
+			useCustomPoints: boolean;
+			defaultQuestionPoints: number;
+		};
+	};
 }
 
 interface StatsItem {
@@ -56,6 +68,7 @@ const Admin: React.FC = () => {
 	const [surveys, setSurveys] = useState<Survey[]>([]);
 	const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
 	const [showCreateModal, setShowCreateModal] = useState(false);
+	const [showScoringModal, setShowScoringModal] = useState(false);
 	const [newSurvey, setNewSurvey] = useState({ 
 		title: '', 
 		description: '', 
@@ -63,9 +76,20 @@ const Admin: React.FC = () => {
 		timeLimit: undefined as number | undefined,
 		maxAttempts: 1,
 		instructions: '',
-		navigationMode: 'step-by-step' as 'step-by-step' | 'paginated' | 'all-in-one'
+		navigationMode: 'step-by-step' as 'step-by-step' | 'paginated' | 'all-in-one',
+		scoringSettings: {
+			scoringMode: 'percentage' as 'percentage' | 'accumulated',
+			passingThreshold: 60,
+			showScore: true,
+			showCorrectAnswers: false,
+			showScoreBreakdown: true,
+			customScoringRules: {
+				useCustomPoints: false,
+				defaultQuestionPoints: 1
+			}
+		}
 	});
-	const [questionForms, setQuestionForms] = useState<Record<string, { text: string; options: string[]; correctAnswer?: number }>>({});
+	const [questionForms, setQuestionForms] = useState<Record<string, { text: string; options: string[]; correctAnswer?: number; points?: number }>>({});
 	const [stats, setStats] = useState<Record<string, EnhancedStats>>({});
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
@@ -154,7 +178,18 @@ const Admin: React.FC = () => {
 			timeLimit: undefined,
 			maxAttempts: 1,
 			instructions: '',
-			navigationMode: 'step-by-step'
+			navigationMode: 'step-by-step',
+			scoringSettings: {
+				scoringMode: 'percentage',
+				passingThreshold: 60,
+				showScore: true,
+				showCorrectAnswers: false,
+				showScoreBreakdown: true,
+				customScoringRules: {
+					useCustomPoints: false,
+					defaultQuestionPoints: 1
+				}
+			}
 		});
 		setShowCreateModal(false);
 		} catch (err) {
@@ -170,7 +205,7 @@ const Admin: React.FC = () => {
 				...questionForms,
 				[id]: { ...(questionForms[id] || { text: '', options: [] }), [field]: value },
 			});
-		} else if (field === 'correctAnswer') {
+		} else if (field === 'correctAnswer' || field === 'points') {
 			setQuestionForms({
 				...questionForms,
 				[id]: { ...(questionForms[id] || { text: '', options: [] }), [field]: value as number },
@@ -215,7 +250,7 @@ const Admin: React.FC = () => {
 		const options = q.options.filter((option: string) => option.trim() !== '');
 		if (options.length === 0) return;
 		
-		const payload: { text: string; options: string[]; correctAnswer?: number } = { 
+		const payload: { text: string; options: string[]; correctAnswer?: number; points?: number } = { 
 			text: q.text, 
 			options 
 		};
@@ -223,6 +258,11 @@ const Admin: React.FC = () => {
 		// Include correctAnswer if it's set
 		if (q.correctAnswer !== undefined) {
 			payload.correctAnswer = q.correctAnswer;
+		}
+		
+		// Include points if it's set
+		if (q.points !== undefined) {
+			payload.points = q.points;
 		}
 		
 		await axios.put(`/api/admin/surveys/${surveyId}/questions`, payload);
@@ -398,6 +438,48 @@ const Admin: React.FC = () => {
 							)}
 						</div>
 					)}
+
+					{/* Scoring Settings Display */}
+					{['quiz', 'assessment', 'iq'].includes(s.type) && s.scoringSettings && (
+						<div className="bg-green-50 rounded-lg p-3 mb-3">
+							<div className="flex items-center justify-between mb-2">
+								<h5 className="font-medium text-gray-800">计分规则</h5>
+								<button 
+									className="text-sm text-blue-600 hover:text-blue-800"
+									onClick={() => setShowScoringModal(true)}
+								>
+									编辑计分规则
+								</button>
+							</div>
+							<div className="grid grid-cols-2 gap-2 text-sm">
+								<div className="flex justify-between">
+									<span className="text-gray-600">计分模式:</span>
+									<span className="font-medium text-green-600">
+										{s.scoringSettings.scoringMode === 'percentage' ? '百分制' : '累积计分'}
+									</span>
+								</div>
+								<div className="flex justify-between">
+									<span className="text-gray-600">及格线:</span>
+									<span className="font-medium text-green-600">
+										{s.scoringSettings.passingThreshold}
+										{s.scoringSettings.scoringMode === 'percentage' ? '分' : '分'}
+									</span>
+								</div>
+								<div className="flex justify-between">
+									<span className="text-gray-600">总分:</span>
+									<span className="font-medium text-green-600">
+										{s.scoringSettings.scoringMode === 'percentage' ? '100' : s.scoringSettings.totalPoints}分
+									</span>
+								</div>
+								<div className="flex justify-between">
+									<span className="text-gray-600">自定义分值:</span>
+									<span className="font-medium text-green-600">
+										{s.scoringSettings.customScoringRules.useCustomPoints ? '是' : '否'}
+									</span>
+								</div>
+							</div>
+						</div>
+					)}
 					
 					<div className="text-sm text-gray-500">Created: {new Date(s.createdAt).toLocaleDateString()}</div>
 					</div>
@@ -443,15 +525,22 @@ const Admin: React.FC = () => {
 						<div className="space-y-2">
 							{s.questions.map((q, idx) => (
 								<div key={idx} className="bg-gray-50 rounded-lg p-3">
-									<div className="font-medium text-gray-800 mb-1">{idx + 1}. {q.text}</div>
-																	<div className="text-sm text-gray-600 mb-1">
-									Options: {q.options.map((opt, optIdx) => (
-										<span key={optIdx} className={`${['assessment', 'quiz', 'iq'].includes(s.type) && q.correctAnswer === optIdx ? 'font-semibold text-green-600' : ''}`}>
-											{opt}{optIdx < q.options.length - 1 ? ', ' : ''}
-										</span>
-									))}
-								</div>
-								{['assessment', 'quiz', 'iq'].includes(s.type) && q.correctAnswer !== undefined && (
+									<div className="flex justify-between items-start mb-1">
+										<div className="font-medium text-gray-800">{idx + 1}. {q.text}</div>
+										{['assessment', 'quiz', 'iq'].includes(s.type) && (
+											<div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+												{q.points || 1} 分
+											</div>
+										)}
+									</div>
+									<div className="text-sm text-gray-600 mb-1">
+										Options: {q.options.map((opt, optIdx) => (
+											<span key={optIdx} className={`${['assessment', 'quiz', 'iq'].includes(s.type) && q.correctAnswer === optIdx ? 'font-semibold text-green-600' : ''}`}>
+												{opt}{optIdx < q.options.length - 1 ? ', ' : ''}
+											</span>
+										))}
+									</div>
+									{['assessment', 'quiz', 'iq'].includes(s.type) && q.correctAnswer !== undefined && (
 										<div className="text-xs text-green-600 font-medium">
 											✓ 正确答案: {q.options[q.correctAnswer]}
 										</div>
@@ -513,18 +602,37 @@ const Admin: React.FC = () => {
 							)}
 						</div>
 						{['assessment', 'quiz', 'iq'].includes(s.type) && currentForm.options.length > 0 && (
-							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-2">选择正确答案</label>
-								<select 
-									className="input-field w-full"
-									value={currentForm.correctAnswer ?? ''}
-									onChange={(e) => handleQuestionChange(s._id, 'correctAnswer', e.target.value ? parseInt(e.target.value) : undefined)}
-								>
-									<option value="">请选择正确答案</option>
-									{currentForm.options.map((opt, idx) => (
-										<option key={idx} value={idx}>{opt || `选项 ${idx + 1}`}</option>
-									))}
-								</select>
+							<div className="space-y-4">
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-2">选择正确答案</label>
+									<select 
+										className="input-field w-full"
+										value={currentForm.correctAnswer ?? ''}
+										onChange={(e) => handleQuestionChange(s._id, 'correctAnswer', e.target.value ? parseInt(e.target.value) : undefined)}
+									>
+										<option value="">请选择正确答案</option>
+										{currentForm.options.map((opt, idx) => (
+											<option key={idx} value={idx}>{opt || `选项 ${idx + 1}`}</option>
+										))}
+									</select>
+								</div>
+								{s.scoringSettings?.customScoringRules?.useCustomPoints && (
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-2">题目分值</label>
+										<input
+											type="number"
+											className="input-field w-full"
+											placeholder={`默认分值: ${s.scoringSettings.customScoringRules.defaultQuestionPoints}`}
+											value={currentForm.points || ''}
+											onChange={(e) => handleQuestionChange(s._id, 'points', e.target.value ? parseInt(e.target.value) : undefined)}
+											min="1"
+											max="100"
+										/>
+										<div className="text-xs text-gray-500 mt-1">
+											留空使用默认分值 ({s.scoringSettings.customScoringRules.defaultQuestionPoints} 分)
+										</div>
+									</div>
+								)}
 							</div>
 						)}
 						<button 
@@ -758,6 +866,136 @@ const Admin: React.FC = () => {
 							/>
 							<div className="text-xs text-gray-500 mt-1">这些说明会在测评开始前显示给学生</div>
 						</div>
+						
+						{/* Scoring Settings */}
+						<div className="border-t border-blue-200 pt-4">
+							<h5 className="font-medium text-gray-800 mb-3">计分规则</h5>
+							<div className="space-y-4">
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-2">计分模式</label>
+									<select 
+										className="input-field" 
+										value={newSurvey.scoringSettings.scoringMode} 
+										onChange={(e) => setNewSurvey({ 
+											...newSurvey, 
+											scoringSettings: {
+												...newSurvey.scoringSettings,
+												scoringMode: e.target.value as 'percentage' | 'accumulated'
+											}
+										})}
+									>
+										<option value="percentage">百分制 (0-100分)</option>
+										<option value="accumulated">累积计分 (按题目分值累加)</option>
+									</select>
+									<div className="text-xs text-gray-500 mt-1">
+										{newSurvey.scoringSettings.scoringMode === 'percentage' 
+											? '百分制：无论题目分值如何，最终得分都转换为0-100分' 
+											: '累积计分：按照题目实际分值累加计算总分'}
+									</div>
+								</div>
+								
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-2">及格线</label>
+									<input 
+										type="number" 
+										className="input-field" 
+										value={newSurvey.scoringSettings.passingThreshold} 
+										onChange={(e) => setNewSurvey({ 
+											...newSurvey, 
+											scoringSettings: {
+												...newSurvey.scoringSettings,
+												passingThreshold: parseInt(e.target.value) || 60
+											}
+										})} 
+										min="1"
+										max={newSurvey.scoringSettings.scoringMode === 'percentage' ? 100 : 1000}
+									/>
+									<div className="text-xs text-gray-500 mt-1">
+										{newSurvey.scoringSettings.scoringMode === 'percentage' 
+											? '百分制及格线 (1-100)' 
+											: '累积计分及格线 (按实际分值)'}
+									</div>
+								</div>
+								
+								<div className="grid grid-cols-2 gap-4">
+									<div>
+										<label className="flex items-center">
+											<input 
+												type="checkbox" 
+												className="mr-2"
+												checked={newSurvey.scoringSettings.customScoringRules.useCustomPoints}
+												onChange={(e) => setNewSurvey({ 
+													...newSurvey, 
+													scoringSettings: {
+														...newSurvey.scoringSettings,
+														customScoringRules: {
+															...newSurvey.scoringSettings.customScoringRules,
+															useCustomPoints: e.target.checked
+														}
+													}
+												})}
+											/>
+											<span className="text-sm text-gray-700">使用自定义分值</span>
+										</label>
+									</div>
+									{newSurvey.scoringSettings.customScoringRules.useCustomPoints && (
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-2">默认题目分值</label>
+											<input 
+												type="number" 
+												className="input-field" 
+												value={newSurvey.scoringSettings.customScoringRules.defaultQuestionPoints} 
+												onChange={(e) => setNewSurvey({ 
+													...newSurvey, 
+													scoringSettings: {
+														...newSurvey.scoringSettings,
+														customScoringRules: {
+															...newSurvey.scoringSettings.customScoringRules,
+															defaultQuestionPoints: parseInt(e.target.value) || 1
+														}
+													}
+												})} 
+												min="1"
+												max="100"
+											/>
+										</div>
+									)}
+								</div>
+								
+								<div className="grid grid-cols-2 gap-4">
+									<label className="flex items-center">
+										<input 
+											type="checkbox" 
+											className="mr-2"
+											checked={newSurvey.scoringSettings.showCorrectAnswers}
+											onChange={(e) => setNewSurvey({ 
+												...newSurvey, 
+												scoringSettings: {
+													...newSurvey.scoringSettings,
+													showCorrectAnswers: e.target.checked
+												}
+											})}
+										/>
+										<span className="text-sm text-gray-700">显示正确答案</span>
+									</label>
+									<label className="flex items-center">
+										<input 
+											type="checkbox" 
+											className="mr-2"
+											checked={newSurvey.scoringSettings.showScoreBreakdown}
+											onChange={(e) => setNewSurvey({ 
+												...newSurvey, 
+												scoringSettings: {
+													...newSurvey.scoringSettings,
+													showScoreBreakdown: e.target.checked
+												}
+											})}
+										/>
+										<span className="text-sm text-gray-700">显示详细得分</span>
+									</label>
+								</div>
+							</div>
+						</div>
 					</div>
 				)}
 				
@@ -767,6 +1005,16 @@ const Admin: React.FC = () => {
 			</form>
 		</Modal>
 	);
+
+	const updateScoringSettings = async (surveyId: string, scoringSettings: any) => {
+		try {
+			await axios.put(`/api/admin/surveys/${surveyId}/scoring`, scoringSettings);
+			loadSurveys();
+			setShowScoringModal(false);
+		} catch (err) {
+			console.error('Error updating scoring settings:', err);
+		}
+	};
 
 	if (!loggedIn) {
 		return (
@@ -815,9 +1063,167 @@ const Admin: React.FC = () => {
 				{tab === 'list' && renderSurveyList()}
 				{tab === 'detail' && renderSurveyDetail()}
 				{renderCreateModal()}
+				{renderScoringModal()}
 			</div>
 		</div>
 	);
+	
+	// 编辑计分规则弹窗
+	function renderScoringModal() {
+		if (!selectedSurvey || !showScoringModal) return null;
+		
+		const [localScoring, setLocalScoring] = useState({
+			scoringMode: selectedSurvey.scoringSettings?.scoringMode || 'percentage',
+			passingThreshold: selectedSurvey.scoringSettings?.passingThreshold || 60,
+			showScore: selectedSurvey.scoringSettings?.showScore || true,
+			showCorrectAnswers: selectedSurvey.scoringSettings?.showCorrectAnswers || false,
+			showScoreBreakdown: selectedSurvey.scoringSettings?.showScoreBreakdown || true,
+			customScoringRules: {
+				useCustomPoints: selectedSurvey.scoringSettings?.customScoringRules?.useCustomPoints || false,
+				defaultQuestionPoints: selectedSurvey.scoringSettings?.customScoringRules?.defaultQuestionPoints || 1
+			}
+		});
+		
+		return (
+			<Modal show={showScoringModal} title="编辑计分规则" onClose={() => setShowScoringModal(false)}>
+				<div className="space-y-4 max-h-96 overflow-y-auto">
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-2">计分模式</label>
+						<select 
+							className="input-field" 
+							value={localScoring.scoringMode} 
+							onChange={(e) => setLocalScoring({ 
+								...localScoring, 
+								scoringMode: e.target.value as 'percentage' | 'accumulated'
+							})}
+						>
+							<option value="percentage">百分制 (0-100分)</option>
+							<option value="accumulated">累积计分 (按题目分值累加)</option>
+						</select>
+						<div className="text-xs text-gray-500 mt-1">
+							{localScoring.scoringMode === 'percentage' 
+								? '百分制：无论题目分值如何，最终得分都转换为0-100分' 
+								: '累积计分：按照题目实际分值累加计算总分'}
+						</div>
+					</div>
+					
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-2">及格线</label>
+						<input 
+							type="number" 
+							className="input-field" 
+							value={localScoring.passingThreshold} 
+							onChange={(e) => setLocalScoring({ 
+								...localScoring, 
+								passingThreshold: parseInt(e.target.value) || 60
+							})} 
+							min="1"
+							max={localScoring.scoringMode === 'percentage' ? 100 : 1000}
+						/>
+						<div className="text-xs text-gray-500 mt-1">
+							{localScoring.scoringMode === 'percentage' 
+								? '百分制及格线 (1-100)' 
+								: '累积计分及格线 (按实际分值)'}
+						</div>
+					</div>
+					
+					<div className="grid grid-cols-2 gap-4">
+						<div>
+							<label className="flex items-center">
+								<input 
+									type="checkbox" 
+									className="mr-2"
+									checked={localScoring.customScoringRules.useCustomPoints}
+									onChange={(e) => setLocalScoring({ 
+										...localScoring, 
+										customScoringRules: {
+											...localScoring.customScoringRules,
+											useCustomPoints: e.target.checked
+										}
+									})}
+								/>
+								<span className="text-sm text-gray-700">使用自定义分值</span>
+							</label>
+						</div>
+						{localScoring.customScoringRules.useCustomPoints && (
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-2">默认题目分值</label>
+								<input 
+									type="number" 
+									className="input-field" 
+									value={localScoring.customScoringRules.defaultQuestionPoints} 
+									onChange={(e) => setLocalScoring({ 
+										...localScoring, 
+										customScoringRules: {
+											...localScoring.customScoringRules,
+											defaultQuestionPoints: parseInt(e.target.value) || 1
+										}
+									})} 
+									min="1"
+									max="100"
+								/>
+							</div>
+						)}
+					</div>
+					
+					<div className="space-y-2">
+						<label className="flex items-center">
+							<input 
+								type="checkbox" 
+								className="mr-2"
+								checked={localScoring.showScore}
+								onChange={(e) => setLocalScoring({ 
+									...localScoring, 
+									showScore: e.target.checked
+								})}
+							/>
+							<span className="text-sm text-gray-700">显示得分</span>
+						</label>
+						<label className="flex items-center">
+							<input 
+								type="checkbox" 
+								className="mr-2"
+								checked={localScoring.showCorrectAnswers}
+								onChange={(e) => setLocalScoring({ 
+									...localScoring, 
+									showCorrectAnswers: e.target.checked
+								})}
+							/>
+							<span className="text-sm text-gray-700">显示正确答案</span>
+						</label>
+						<label className="flex items-center">
+							<input 
+								type="checkbox" 
+								className="mr-2"
+								checked={localScoring.showScoreBreakdown}
+								onChange={(e) => setLocalScoring({ 
+									...localScoring, 
+									showScoreBreakdown: e.target.checked
+								})}
+							/>
+							<span className="text-sm text-gray-700">显示详细得分</span>
+						</label>
+					</div>
+					
+					<div className="flex justify-end space-x-3 pt-4 border-t">
+						<button 
+							className="btn-secondary"
+							onClick={() => setShowScoringModal(false)}
+						>
+							取消
+						</button>
+						<button 
+							className="btn-primary"
+							onClick={() => updateScoringSettings(selectedSurvey._id, localScoring)}
+							disabled={loading}
+						>
+							{loading ? '保存中...' : '保存设置'}
+						</button>
+					</div>
+				</div>
+			</Modal>
+		);
+	}
 };
 
 export default Admin;

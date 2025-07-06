@@ -18,7 +18,19 @@ const responseSchema = new mongoose.Schema({
 		correctAnswers: { type: Number, default: 0 },
 		wrongAnswers: { type: Number, default: 0 },
 		percentage: { type: Number, default: 0 },
-		passed: { type: Boolean, default: false }
+		passed: { type: Boolean, default: false },
+		// Enhanced scoring details
+		scoringMode: { type: String, enum: ['percentage', 'accumulated'], default: 'percentage' },
+		maxPossiblePoints: { type: Number, default: 0 },
+		displayScore: { type: Number, default: 0 }, // The score to display to user
+		scoringDetails: {
+			questionScores: [{
+				questionIndex: Number,
+				pointsAwarded: Number,
+				maxPoints: Number,
+				isCorrect: Boolean
+			}]
+		}
 	},
 	// Response time tracking
 	timeSpent: {
@@ -48,51 +60,102 @@ responseSchema.methods.calculateScore = function(survey) {
 	let totalPoints = 0;
 	let correctAnswers = 0;
 	let wrongAnswers = 0;
+	const questionScores = [];
 	
+	// Calculate total possible points
+	const maxPossiblePoints = survey.scoringSettings.totalPoints || 
+							  survey.questions.reduce((sum, q) => sum + (q.points || 1), 0);
+	
+	// Calculate score for each question
 	survey.questions.forEach((question, index) => {
 		const userAnswer = this.answers.get(index.toString());
 		const correctAnswer = question.correctAnswer;
 		const questionPoints = question.points || 1;
 		
+		let isCorrect = false;
+		let pointsAwarded = 0;
+		
 		if (userAnswer === undefined || userAnswer === null) {
 			wrongAnswers++;
-			return;
-		}
-		
-		let isCorrect = false;
-		
-		if (question.type === 'single_choice') {
-			isCorrect = userAnswer === correctAnswer;
-		} else if (question.type === 'multiple_choice') {
-			// For multiple choice, both arrays must have same elements
-			if (Array.isArray(userAnswer) && Array.isArray(correctAnswer)) {
-				const userSet = new Set(userAnswer.sort());
-				const correctSet = new Set(correctAnswer.sort());
-				isCorrect = userSet.size === correctSet.size && 
-						   [...userSet].every(val => correctSet.has(val));
+		} else {
+			// Check if answer is correct
+			if (question.type === 'single_choice') {
+				isCorrect = userAnswer === correctAnswer;
+			} else if (question.type === 'multiple_choice') {
+				// For multiple choice, both arrays must have same elements
+				if (Array.isArray(userAnswer) && Array.isArray(correctAnswer)) {
+					const userSet = new Set(userAnswer.sort());
+					const correctSet = new Set(correctAnswer.sort());
+					isCorrect = userSet.size === correctSet.size && 
+							   [...userSet].every(val => correctSet.has(val));
+				}
+			}
+			
+			if (isCorrect) {
+				correctAnswers++;
+				pointsAwarded = questionPoints;
+				totalPoints += questionPoints;
+			} else {
+				wrongAnswers++;
 			}
 		}
 		
-		if (isCorrect) {
-			correctAnswers++;
-			totalPoints += questionPoints;
-		} else {
-			wrongAnswers++;
-		}
+		// Record detailed scoring for this question
+		questionScores.push({
+			questionIndex: index,
+			pointsAwarded,
+			maxPoints: questionPoints,
+			isCorrect
+		});
 	});
 	
-	const totalPossiblePoints = survey.scoringSettings.totalPoints || 
-								survey.questions.reduce((sum, q) => sum + (q.points || 1), 0);
-	const percentage = totalPossiblePoints > 0 ? (totalPoints / totalPossiblePoints) * 100 : 0;
-	const passed = percentage >= (survey.scoringSettings.passingScore || 0);
+	// Calculate percentage
+	const percentage = maxPossiblePoints > 0 ? (totalPoints / maxPossiblePoints) * 100 : 0;
 	
+	// Determine scoring mode and display score
+	const scoringMode = survey.scoringSettings.scoringMode || 'percentage';
+	let displayScore = 0;
+	let passed = false;
+	
+	if (scoringMode === 'percentage') {
+		// Percentage mode: score is 0-100
+		displayScore = Math.round(percentage * 100) / 100;
+		passed = percentage >= (survey.scoringSettings.passingThreshold || 60);
+	} else {
+		// Accumulated mode: score is the actual points earned
+		displayScore = totalPoints;
+		passed = totalPoints >= (survey.scoringSettings.passingThreshold || 0);
+	}
+	
+	// Save all scoring information
 	this.score = {
 		totalPoints,
 		correctAnswers,
 		wrongAnswers,
-		percentage: Math.round(percentage * 100) / 100, // Round to 2 decimal places
-		passed
+		percentage: Math.round(percentage * 100) / 100,
+		passed,
+		scoringMode,
+		maxPossiblePoints,
+		displayScore,
+		scoringDetails: {
+			questionScores
+		}
 	};
 };
+
+// Virtual method to get formatted score display
+responseSchema.virtual('formattedScore').get(function() {
+	if (!this.score) return null;
+	
+	const mode = this.score.scoringMode;
+	const display = this.score.displayScore;
+	const max = mode === 'percentage' ? 100 : this.score.maxPossiblePoints;
+	
+	if (mode === 'percentage') {
+		return `${display}分 (${display}%)`;
+	} else {
+		return `${display}分 (满分${max}分)`;
+	}
+});
 
 module.exports = mongoose.model('Response', responseSchema);

@@ -9,12 +9,24 @@ interface Survey {
   description: string;
   slug: string;
   type: 'survey' | 'assessment' | 'quiz' | 'iq';
-  questions: { _id: string; text: string; options: string[]; correctAnswer?: number }[];
+  questions: { _id: string; text: string; options: string[]; correctAnswer?: number; points?: number }[];
   status?: 'draft' | 'active' | 'closed';
   timeLimit?: number;
   maxAttempts?: number;
   instructions?: string;
   navigationMode?: 'step-by-step' | 'paginated' | 'all-in-one';
+  scoringSettings?: {
+    scoringMode: 'percentage' | 'accumulated';
+    totalPoints: number;
+    passingThreshold: number;
+    showScore: boolean;
+    showCorrectAnswers: boolean;
+    showScoreBreakdown: boolean;
+    customScoringRules: {
+      useCustomPoints: boolean;
+      defaultQuestionPoints: number;
+    };
+  };
 }
 
 interface FormState {
@@ -29,6 +41,19 @@ interface AssessmentResult {
   userAnswer: string;
   correctAnswer: string;
   isCorrect: boolean;
+  pointsAwarded: number;
+  maxPoints: number;
+}
+
+interface ScoringResult {
+  totalPoints: number;
+  maxPossiblePoints: number;
+  correctAnswers: number;
+  wrongAnswers: number;
+  displayScore: number;
+  passed: boolean;
+  scoringMode: 'percentage' | 'accumulated';
+  scoringDescription: string;
 }
 
 const TakeSurvey: React.FC = () => {
@@ -41,6 +66,7 @@ const TakeSurvey: React.FC = () => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
 	const [assessmentResults, setAssessmentResults] = useState<AssessmentResult[]>([]);
+	const [scoringResult, setScoringResult] = useState<ScoringResult | null>(null);
 
 	useEffect(() => {
 		// If slug is provided, fetch that specific survey
@@ -84,18 +110,70 @@ const TakeSurvey: React.FC = () => {
 			
 			// Calculate assessment results if this is an assessment, quiz, or iq test
 			if (['assessment', 'quiz', 'iq'].includes(survey.type)) {
-				const results: AssessmentResult[] = survey.questions.map((q: { _id: string; text: string; options: string[]; correctAnswer?: number }) => {
+				let totalPoints = 0;
+				let maxPossiblePoints = 0;
+				let correctAnswers = 0;
+				let wrongAnswers = 0;
+				
+				const results: AssessmentResult[] = survey.questions.map((q: { _id: string; text: string; options: string[]; correctAnswer?: number; points?: number }) => {
 					const userAnswer = form.answers[q._id];
 					const correctAnswer = q.correctAnswer !== undefined ? q.options[q.correctAnswer] : '';
+					const isCorrect = userAnswer === correctAnswer;
+					const maxPoints = q.points || survey.scoringSettings?.customScoringRules?.defaultQuestionPoints || 1;
+					const pointsAwarded = isCorrect ? maxPoints : 0;
+					
+					totalPoints += pointsAwarded;
+					maxPossiblePoints += maxPoints;
+					
+					if (isCorrect) {
+						correctAnswers++;
+					} else {
+						wrongAnswers++;
+					}
+					
 					return {
 						questionId: q._id,
 						questionText: q.text,
 						userAnswer: userAnswer || '',
 						correctAnswer: correctAnswer,
-						isCorrect: userAnswer === correctAnswer
+						isCorrect,
+						pointsAwarded,
+						maxPoints
 					};
 				});
+				
+				// Calculate scoring result
+				const scoringMode = survey.scoringSettings?.scoringMode || 'percentage';
+				const passingThreshold = survey.scoringSettings?.passingThreshold || 60;
+				const percentage = maxPossiblePoints > 0 ? (totalPoints / maxPossiblePoints) * 100 : 0;
+				
+				let displayScore = 0;
+				let passed = false;
+				let scoringDescription = '';
+				
+				if (scoringMode === 'percentage') {
+					displayScore = Math.round(percentage * 100) / 100;
+					passed = percentage >= passingThreshold;
+					scoringDescription = `百分制计分，满分100分，及格线${passingThreshold}分`;
+				} else {
+					displayScore = totalPoints;
+					passed = totalPoints >= passingThreshold;
+					scoringDescription = `累积计分，满分${maxPossiblePoints}分，及格线${passingThreshold}分`;
+				}
+				
+				const scoring: ScoringResult = {
+					totalPoints,
+					maxPossiblePoints,
+					correctAnswers,
+					wrongAnswers,
+					displayScore,
+					passed,
+					scoringMode,
+					scoringDescription
+				};
+				
 				setAssessmentResults(results);
+				setScoringResult(scoring);
 			}
 			
 			setSubmitted(true);
@@ -329,54 +407,76 @@ const TakeSurvey: React.FC = () => {
 
 				{submitted && (
 					<div className="card">
-						{['assessment', 'quiz', 'iq'].includes(survey?.type || '') && assessmentResults.length > 0 ? (
-							<div>
-								<div className="text-center mb-6">
-									<div className="text-blue-500 text-6xl mb-4">📊</div>
-									<h2 className="text-3xl font-bold text-gray-800 mb-2">Assessment Results</h2>
-									<div className="text-lg text-gray-600 mb-4">
-										Your score: {assessmentResults.filter(r => r.isCorrect).length} / {assessmentResults.length}
-									</div>
+										{['assessment', 'quiz', 'iq'].includes(survey?.type || '') && assessmentResults.length > 0 && scoringResult ? (
+					<div>
+						<div className="text-center mb-6">
+							<div className={`text-6xl mb-4 ${scoringResult.passed ? 'text-green-500' : 'text-red-500'}`}>
+								{scoringResult.passed ? '🎉' : '📊'}
+							</div>
+							<h2 className="text-3xl font-bold text-gray-800 mb-2">
+								{scoringResult.passed ? '恭喜通过!' : '测评结果'}
+							</h2>
+							<div className="space-y-2 mb-4">
+								<div className={`text-2xl font-bold ${scoringResult.passed ? 'text-green-600' : 'text-red-600'}`}>
+									{scoringResult.scoringMode === 'percentage' 
+										? `${scoringResult.displayScore}分`
+										: `${scoringResult.displayScore}分 / ${scoringResult.maxPossiblePoints}分`}
 								</div>
+								<div className="text-sm text-gray-600">
+									{scoringResult.scoringDescription}
+								</div>
+								<div className="text-sm text-gray-600">
+									正确答题: {scoringResult.correctAnswers} / {scoringResult.correctAnswers + scoringResult.wrongAnswers}
+								</div>
+							</div>
+						</div>
 								
+															{survey?.scoringSettings?.showScoreBreakdown && (
 								<div className="space-y-4 mb-6">
 									{assessmentResults.map((result, index) => (
 										<div key={result.questionId} className={`p-4 rounded-lg border-2 ${result.isCorrect ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'}`}>
-											<div className="flex items-center gap-2 mb-2">
-												<span className={`text-2xl ${result.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
-													{result.isCorrect ? '✅' : '❌'}
-												</span>
-												<div className="font-semibold text-gray-800">
-													{index + 1}. {result.questionText}
+											<div className="flex items-center justify-between mb-2">
+												<div className="flex items-center gap-2">
+													<span className={`text-2xl ${result.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+														{result.isCorrect ? '✅' : '❌'}
+													</span>
+													<div className="font-semibold text-gray-800">
+														{index + 1}. {result.questionText}
+													</div>
+												</div>
+												<div className={`text-sm font-medium px-2 py-1 rounded ${result.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+													{result.pointsAwarded}/{result.maxPoints} 分
 												</div>
 											</div>
 											<div className="space-y-1 text-sm">
 												<div className="text-gray-700">
-													<span className="font-medium">Your answer:</span> {result.userAnswer}
+													<span className="font-medium">你的答案:</span> {result.userAnswer}
 												</div>
-												{!result.isCorrect && (
+												{!result.isCorrect && survey?.scoringSettings?.showCorrectAnswers && (
 													<div className="text-green-700">
-														<span className="font-medium">Correct answer:</span> {result.correctAnswer}
+														<span className="font-medium">正确答案:</span> {result.correctAnswer}
 													</div>
 												)}
 											</div>
 										</div>
 									))}
 								</div>
+							)}
 								
 								<div className="text-center">
 									<button 
-										onClick={() => {
-											if (slug) {
-												// If we're on a specific survey page, reset the form
-												setSubmitted(false);
-												setForm({ name: '', email: '', answers: {} });
-												setAssessmentResults([]);
-											} else {
-												// If we're on the home page, go back to survey list
-												navigate('/');
-											}
-										}}
+																			onClick={() => {
+										if (slug) {
+											// If we're on a specific survey page, reset the form
+											setSubmitted(false);
+											setForm({ name: '', email: '', answers: {} });
+											setAssessmentResults([]);
+											setScoringResult(null);
+										} else {
+											// If we're on the home page, go back to survey list
+											navigate('/');
+										}
+									}}
 										className="btn-secondary"
 									>
 										{slug ? 'Take This Assessment Again' : 'Choose Another Survey'}
@@ -396,6 +496,8 @@ const TakeSurvey: React.FC = () => {
 											// If we're on a specific survey page, reset the form
 											setSubmitted(false);
 											setForm({ name: '', email: '', answers: {} });
+											setAssessmentResults([]);
+											setScoringResult(null);
 										} else {
 											// If we're on the home page, go back to survey list
 											navigate('/');

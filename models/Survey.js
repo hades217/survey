@@ -143,6 +143,12 @@ const surveySchema = new mongoose.Schema({
 	},
 	// Scoring settings (for quiz/assessment/iq)
 	scoringSettings: {
+		// Scoring mode: 'percentage' or 'accumulated'
+		scoringMode: {
+			type: String,
+			enum: ['percentage', 'accumulated'],
+			default: 'percentage'
+		},
 		totalPoints: {
 			type: Number,
 			default: 0
@@ -151,6 +157,12 @@ const surveySchema = new mongoose.Schema({
 			type: Number,
 			default: 0
 		},
+		// For percentage mode: passing percentage (0-100)
+		// For accumulated mode: minimum points needed to pass
+		passingThreshold: {
+			type: Number,
+			default: 60 // 60% for percentage mode, or 60 points for accumulated mode
+		},
 		showScore: {
 			type: Boolean,
 			default: true
@@ -158,6 +170,24 @@ const surveySchema = new mongoose.Schema({
 		showCorrectAnswers: {
 			type: Boolean,
 			default: false
+		},
+		// Show detailed breakdown of scoring
+		showScoreBreakdown: {
+			type: Boolean,
+			default: true
+		},
+		// Custom scoring rules
+		customScoringRules: {
+			// Whether to use custom point values per question
+			useCustomPoints: {
+				type: Boolean,
+				default: false
+			},
+			// Default points for new questions when using custom scoring
+			defaultQuestionPoints: {
+				type: Number,
+				default: 1
+			}
 		}
 	},
 	createdAt: {
@@ -182,7 +212,7 @@ surveySchema.pre('save', function(next) {
 	// Calculate total points for scoring
 	if (this.questions && this.questions.length > 0) {
 		this.scoringSettings.totalPoints = this.questions.reduce((total, question) => {
-			return total + (question.points || 1);
+			return total + (question.points || this.scoringSettings.customScoringRules.defaultQuestionPoints || 1);
 		}, 0);
 	}
 	
@@ -192,6 +222,21 @@ surveySchema.pre('save', function(next) {
 // Virtual method to check if survey requires answers
 surveySchema.virtual('requiresAnswers').get(function() {
 	return TYPES_REQUIRING_ANSWERS.includes(this.type);
+});
+
+// Virtual method to get scoring mode description
+surveySchema.virtual('scoringDescription').get(function() {
+	if (!this.requiresAnswers) return null;
+	
+	const mode = this.scoringSettings.scoringMode;
+	const threshold = this.scoringSettings.passingThreshold;
+	const totalPoints = this.scoringSettings.totalPoints;
+	
+	if (mode === 'percentage') {
+		return `按百分比计分，满分100分，及格线${threshold}分`;
+	} else {
+		return `按累积分数计分，满分${totalPoints}分，及格线${threshold}分`;
+	}
 });
 
 module.exports = mongoose.model('Survey', surveySchema);
