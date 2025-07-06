@@ -18,6 +18,9 @@ interface Survey {
 	maxAttempts?: number;
 	instructions?: string;
 	navigationMode?: 'step-by-step' | 'paginated' | 'all-in-one';
+	sourceType?: 'manual' | 'question_bank';
+	questionBankId?: string;
+	questionCount?: number;
 	scoringSettings?: {
 		scoringMode: 'percentage' | 'accumulated';
 		totalPoints: number;
@@ -30,6 +33,29 @@ interface Survey {
 			defaultQuestionPoints: number;
 		};
 	};
+}
+
+interface QuestionBank {
+	_id: string;
+	name: string;
+	description: string;
+	questions: Question[];
+	createdBy: string;
+	createdAt: string;
+	updatedAt: string;
+	questionCount: number;
+}
+
+interface Question {
+	_id: string;
+	text: string;
+	type: 'single_choice' | 'multiple_choice';
+	options: string[];
+	correctAnswer: number | number[];
+	explanation?: string;
+	points?: number;
+	tags?: string[];
+	difficulty?: 'easy' | 'medium' | 'hard';
 }
 
 interface StatsItem {
@@ -57,7 +83,7 @@ interface EnhancedStats {
 	summary: StatsSummary;
 }
 
-type TabType = 'list' | 'detail';
+type TabType = 'list' | 'detail' | 'question-banks';
 type StatsViewType = 'aggregated' | 'individual';
 
 const Admin: React.FC = () => {
@@ -67,8 +93,11 @@ const Admin: React.FC = () => {
 	const [loginForm, setLoginForm] = useState({ username: '', password: '' });
 	const [surveys, setSurveys] = useState<Survey[]>([]);
 	const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
+	const [questionBanks, setQuestionBanks] = useState<QuestionBank[]>([]);
+	const [selectedQuestionBank, setSelectedQuestionBank] = useState<QuestionBank | null>(null);
 	const [showCreateModal, setShowCreateModal] = useState(false);
 	const [showScoringModal, setShowScoringModal] = useState(false);
+	const [showQuestionBankModal, setShowQuestionBankModal] = useState(false);
 	const [newSurvey, setNewSurvey] = useState({ 
 		title: '', 
 		description: '', 
@@ -77,6 +106,9 @@ const Admin: React.FC = () => {
 		maxAttempts: 1,
 		instructions: '',
 		navigationMode: 'step-by-step' as 'step-by-step' | 'paginated' | 'all-in-one',
+		sourceType: 'manual' as 'manual' | 'question_bank',
+		questionBankId: '',
+		questionCount: undefined as number | undefined,
 		scoringSettings: {
 			scoringMode: 'percentage' as 'percentage' | 'accumulated',
 			passingThreshold: 60,
@@ -103,6 +135,7 @@ const Admin: React.FC = () => {
 		if (isLogged === 'true') {
 			setLoggedIn(true);
 			loadSurveys();
+			loadQuestionBanks();
 		}
 	}, []);
 
@@ -140,6 +173,7 @@ const Admin: React.FC = () => {
 			await axios.post('/api/admin/login', loginForm);
 			setLoggedIn(true);
 			loadSurveys();
+			loadQuestionBanks();
 		} catch {
 			setError('Login failed. Please check your credentials.');
 		} finally {
@@ -153,6 +187,15 @@ const Admin: React.FC = () => {
 			setSurveys(res.data);
 		} catch (err) {
 			console.error('Error loading surveys:', err);
+		}
+	};
+
+	const loadQuestionBanks = async () => {
+		try {
+			const res = await axios.get<QuestionBank[]>('/api/admin/question-banks');
+			setQuestionBanks(res.data);
+		} catch (err) {
+			console.error('Error loading question banks:', err);
 		}
 	};
 
@@ -179,6 +222,9 @@ const Admin: React.FC = () => {
 			maxAttempts: 1,
 			instructions: '',
 			navigationMode: 'step-by-step',
+			sourceType: 'manual',
+			questionBankId: '',
+			questionCount: undefined,
 			scoringSettings: {
 				scoringMode: 'percentage',
 				passingThreshold: 60,
@@ -297,6 +343,17 @@ const Admin: React.FC = () => {
 		}
 	};
 
+	const deleteQuestionBank = async (questionBankId: string) => {
+		if (!confirm('Are you sure you want to delete this question bank?')) return;
+		try {
+			await axios.delete(`/api/admin/question-banks/${questionBankId}`);
+			loadQuestionBanks();
+			setSelectedQuestionBank(null);
+		} catch (err) {
+			console.error('Error deleting question bank:', err);
+		}
+	};
+
 	const copyToClipboard = (text: string) => {
 		navigator.clipboard.writeText(text);
 	};
@@ -328,6 +385,12 @@ const Admin: React.FC = () => {
 			>
 				Survey List
 			</button>
+			<button
+				className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tab === 'question-banks' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
+				onClick={() => setTab('question-banks')}
+			>
+				Question Banks
+			</button>
 			{selectedSurvey && (
 				<button
 					className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tab === 'detail' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
@@ -335,6 +398,61 @@ const Admin: React.FC = () => {
 				>
 					Details
 				</button>
+			)}
+		</div>
+	);
+
+	// Question Banks 列表
+	const renderQuestionBanks = () => (
+		<div className="space-y-4">
+			<div className="flex justify-between items-center">
+				<h2 className="text-xl font-semibold text-gray-800">Question Banks</h2>
+				<button 
+					className="btn-primary"
+					onClick={() => setShowQuestionBankModal(true)}
+				>
+					+ Create Question Bank
+				</button>
+			</div>
+			
+			{questionBanks.length === 0 ? (
+				<div className="text-center py-8 text-gray-500">
+					<p>No question banks created yet.</p>
+					<p className="text-sm mt-2">Create your first question bank to get started.</p>
+				</div>
+			) : (
+				<div className="grid gap-4">
+					{questionBanks.map((bank) => (
+						<div key={bank._id} className="card hover:shadow-lg transition-shadow cursor-pointer">
+							<div className="flex justify-between items-start">
+								<div className="flex-1">
+									<h3 className="text-lg font-bold text-gray-800">{bank.name}</h3>
+									{bank.description && (
+										<p className="text-gray-600 mt-1">{bank.description}</p>
+									)}
+									<div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+										<span>{bank.questions.length} questions</span>
+										<span>Created: {new Date(bank.createdAt).toLocaleDateString()}</span>
+									</div>
+								</div>
+								<div className="flex gap-2">
+									<button 
+										className="btn-secondary text-sm"
+										onClick={() => setSelectedQuestionBank(bank)}
+									>
+										Edit
+									</button>
+									<button 
+										className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+										onClick={() => deleteQuestionBank(bank._id)}
+									>
+										Delete
+									</button>
+								</div>
+							</div>
+						</div>
+					))}
+				</div>
 			)}
 		</div>
 	);
@@ -480,6 +598,23 @@ const Admin: React.FC = () => {
 						</div>
 					)}
 					
+					{/* Question Source Display */}
+					{s.sourceType === 'question_bank' && (
+						<div className="bg-purple-50 rounded-lg p-3 mb-3">
+							<h5 className="font-medium text-gray-800 mb-2">Question Bank Configuration</h5>
+							<div className="grid grid-cols-2 gap-2 text-sm">
+								<div className="flex justify-between">
+									<span className="text-gray-600">Source:</span>
+									<span className="font-medium text-purple-600">Question Bank</span>
+								</div>
+								<div className="flex justify-between">
+									<span className="text-gray-600">Questions to Select:</span>
+									<span className="font-medium text-purple-600">{s.questionCount} random</span>
+								</div>
+							</div>
+						</div>
+					)}
+					
 					<div className="text-sm text-gray-500">Created: {new Date(s.createdAt).toLocaleDateString()}</div>
 					</div>
 					<div className="flex gap-2">
@@ -518,132 +653,158 @@ const Admin: React.FC = () => {
 						</div>
 					)}
 				</div>
-				<div className="mb-4">
-					<h4 className="font-semibold text-gray-800 mb-3">Questions ({s.questions.length})</h4>
-					{s.questions.length > 0 ? (
-						<div className="space-y-2">
-							{s.questions.map((q, idx) => (
-								<div key={idx} className="bg-gray-50 rounded-lg p-3">
-									<div className="flex justify-between items-start mb-1">
-										<div className="font-medium text-gray-800">{idx + 1}. {q.text}</div>
-										{['assessment', 'quiz', 'iq'].includes(s.type) && (
-											<div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-												{q.points || 1} pts
+				{s.sourceType === 'manual' ? (
+					// Manual Question Management
+					<div className="mb-4">
+						<h4 className="font-semibold text-gray-800 mb-3">Questions ({s.questions.length})</h4>
+						{s.questions.length > 0 ? (
+							<div className="space-y-2">
+								{s.questions.map((q, idx) => (
+									<div key={idx} className="bg-gray-50 rounded-lg p-3">
+										<div className="flex justify-between items-start mb-1">
+											<div className="font-medium text-gray-800">{idx + 1}. {q.text}</div>
+											{['assessment', 'quiz', 'iq'].includes(s.type) && (
+												<div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+													{q.points || 1} pts
+												</div>
+											)}
+										</div>
+										<div className="text-sm text-gray-600 mb-1">
+											Options: {q.options.map((opt, optIdx) => (
+												<span key={optIdx} className={`${['assessment', 'quiz', 'iq'].includes(s.type) && q.correctAnswer === optIdx ? 'font-semibold text-green-600' : ''}`}>
+													{opt}{optIdx < q.options.length - 1 ? ', ' : ''}
+												</span>
+											))}
+										</div>
+										{['assessment', 'quiz', 'iq'].includes(s.type) && q.correctAnswer !== undefined && (
+											<div className="text-xs text-green-600 font-medium">
+												✓ Correct Answer: {q.options[q.correctAnswer]}
 											</div>
 										)}
 									</div>
-									<div className="text-sm text-gray-600 mb-1">
-										Options: {q.options.map((opt, optIdx) => (
-											<span key={optIdx} className={`${['assessment', 'quiz', 'iq'].includes(s.type) && q.correctAnswer === optIdx ? 'font-semibold text-green-600' : ''}`}>
-												{opt}{optIdx < q.options.length - 1 ? ', ' : ''}
-											</span>
-										))}
+								))}
+							</div>
+						) : (
+							<p className="text-gray-500 text-sm">No questions added yet.</p>
+						)}
+						
+						{/* Add Question Form for Manual Surveys */}
+						<div className="border-t border-gray-200 pt-4 mt-4">
+							<h4 className="font-semibold text-gray-800 mb-3">Add Question</h4>
+							<div className="space-y-4">
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-2">Question Text</label>
+									<input 
+										className="input-field w-full" 
+										placeholder="Enter question text" 
+										value={currentForm.text} 
+										onChange={(e) => handleQuestionChange(s._id, 'text', e.target.value)} 
+									/>
+								</div>
+								<div>
+									<div className="flex items-center justify-between mb-2">
+										<label className="block text-sm font-medium text-gray-700">Options</label>
+										<button 
+											className="btn-secondary text-sm"
+											onClick={() => addOption(s._id)}
+											type="button"
+										>
+											+ Add Option
+										</button>
 									</div>
-									{['assessment', 'quiz', 'iq'].includes(s.type) && q.correctAnswer !== undefined && (
-										<div className="text-xs text-green-600 font-medium">
-											✓ Correct Answer: {q.options[q.correctAnswer]}
+									{currentForm.options.length > 0 ? (
+										<div className="space-y-2">
+											{currentForm.options.map((option, index) => (
+												<div key={index} className="flex items-center gap-2">
+													<input
+														className="input-field flex-1"
+														placeholder={`Option ${index + 1}`}
+														value={option}
+														onChange={(e) => handleOptionChange(s._id, index, e.target.value)}
+													/>
+													<button
+														className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+														onClick={() => removeOption(s._id, index)}
+														type="button"
+													>
+														Remove
+													</button>
+												</div>
+											))}
+										</div>
+									) : (
+										<div className="text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center">
+											No options added yet. Click "Add Option" to start.
 										</div>
 									)}
 								</div>
-							))}
-						</div>
-					) : (
-						<p className="text-gray-500 text-sm">No questions added yet.</p>
-					)}
-				</div>
-				<div className="border-t border-gray-200 pt-4">
-					<h4 className="font-semibold text-gray-800 mb-3">Add Question</h4>
-					<div className="space-y-4">
-						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-2">Question Text</label>
-							<input 
-								className="input-field w-full" 
-								placeholder="Enter question text" 
-								value={currentForm.text} 
-								onChange={(e) => handleQuestionChange(s._id, 'text', e.target.value)} 
-							/>
-						</div>
-						<div>
-							<div className="flex items-center justify-between mb-2">
-								<label className="block text-sm font-medium text-gray-700">Options</label>
-								<button 
-									className="btn-secondary text-sm"
-									onClick={() => addOption(s._id)}
-									type="button"
-								>
-									+ Add Option
-								</button>
-							</div>
-							{currentForm.options.length > 0 ? (
-								<div className="space-y-2">
-									{currentForm.options.map((option, index) => (
-										<div key={index} className="flex items-center gap-2">
-											<input
-												className="input-field flex-1"
-												placeholder={`Option ${index + 1}`}
-												value={option}
-												onChange={(e) => handleOptionChange(s._id, index, e.target.value)}
-											/>
-											<button
-												className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
-												onClick={() => removeOption(s._id, index)}
-												type="button"
+								{['assessment', 'quiz', 'iq'].includes(s.type) && currentForm.options.length > 0 && (
+									<div className="space-y-4">
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-2">Select Correct Answer</label>
+											<select 
+												className="input-field w-full"
+												value={currentForm.correctAnswer ?? ''}
+												onChange={(e) => handleQuestionChange(s._id, 'correctAnswer', e.target.value ? parseInt(e.target.value) : undefined)}
 											>
-												Remove
-											</button>
+												<option value="">Please select correct answer</option>
+												{currentForm.options.map((opt, idx) => (
+													<option key={idx} value={idx}>{opt || `Option ${idx + 1}`}</option>
+												))}
+											</select>
 										</div>
-									))}
-								</div>
-							) : (
-								<div className="text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center">
-									No options added yet. Click "Add Option" to start.
-								</div>
-							)}
-						</div>
-						{['assessment', 'quiz', 'iq'].includes(s.type) && currentForm.options.length > 0 && (
-							<div className="space-y-4">
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-2">Select Correct Answer</label>
-									<select 
-										className="input-field w-full"
-										value={currentForm.correctAnswer ?? ''}
-										onChange={(e) => handleQuestionChange(s._id, 'correctAnswer', e.target.value ? parseInt(e.target.value) : undefined)}
-									>
-										<option value="">Please select correct answer</option>
-										{currentForm.options.map((opt, idx) => (
-											<option key={idx} value={idx}>{opt || `Option ${idx + 1}`}</option>
-										))}
-									</select>
-								</div>
-								{s.scoringSettings?.customScoringRules?.useCustomPoints && (
-									<div>
-										<label className="block text-sm font-medium text-gray-700 mb-2">Question Points</label>
-										<input
-											type="number"
-											className="input-field w-full"
-											placeholder={`Default points: ${s.scoringSettings.customScoringRules.defaultQuestionPoints}`}
-											value={currentForm.points || ''}
-											onChange={(e) => handleQuestionChange(s._id, 'points', e.target.value ? parseInt(e.target.value) : undefined)}
-											min="1"
-											max="100"
-										/>
-										<div className="text-xs text-gray-500 mt-1">
-											Leave empty to use default points ({s.scoringSettings.customScoringRules.defaultQuestionPoints} points)
-										</div>
+										{s.scoringSettings?.customScoringRules?.useCustomPoints && (
+											<div>
+												<label className="block text-sm font-medium text-gray-700 mb-2">Question Points</label>
+												<input
+													type="number"
+													className="input-field w-full"
+													placeholder={`Default points: ${s.scoringSettings.customScoringRules.defaultQuestionPoints}`}
+													value={currentForm.points || ''}
+													onChange={(e) => handleQuestionChange(s._id, 'points', e.target.value ? parseInt(e.target.value) : undefined)}
+													min="1"
+													max="100"
+												/>
+												<div className="text-xs text-gray-500 mt-1">
+													Leave empty to use default points ({s.scoringSettings.customScoringRules.defaultQuestionPoints} points)
+												</div>
+											</div>
+										)}
 									</div>
 								)}
+								<button 
+									className="btn-primary text-sm" 
+									onClick={() => addQuestion(s._id)} 
+									type="button"
+									disabled={!currentForm.text || currentForm.options.filter(opt => opt.trim()).length === 0 || (['assessment', 'quiz', 'iq'].includes(s.type) && currentForm.correctAnswer === undefined)}
+								>
+									Add Question
+								</button>
 							</div>
-						)}
-						<button 
-							className="btn-primary text-sm" 
-							onClick={() => addQuestion(s._id)} 
-							type="button"
-							disabled={!currentForm.text || currentForm.options.filter(opt => opt.trim()).length === 0 || (['assessment', 'quiz', 'iq'].includes(s.type) && currentForm.correctAnswer === undefined)}
-						>
-							Add Question
-						</button>
+						</div>
 					</div>
-				</div>
+				) : (
+					// Question Bank Survey Information
+					<div className="mb-4">
+						<h4 className="font-semibold text-gray-800 mb-3">Question Bank Survey</h4>
+						<div className="bg-purple-50 rounded-lg p-4">
+							<div className="flex items-center justify-between mb-3">
+								<div>
+									<div className="font-medium text-gray-800">Random Question Selection</div>
+									<div className="text-sm text-gray-600">
+										This survey will randomly select {s.questionCount} questions from the linked question bank for each student.
+									</div>
+								</div>
+								<div className="text-lg font-bold text-purple-600">
+									{s.questionCount} questions
+								</div>
+							</div>
+							<div className="text-xs text-gray-500">
+								💡 Questions are randomized per student to ensure assessment fairness
+							</div>
+						</div>
+					</div>
+				)}
 				<div className="border-t border-gray-200 pt-4">
 					<div className="flex justify-between items-center mb-3">
 						<h4 className="font-semibold text-gray-800">Statistics</h4>
@@ -795,6 +956,77 @@ const Admin: React.FC = () => {
 						 'IQ test mode for intelligence testing with professional scoring'}
 					</div>
 				</div>
+				
+				{/* Question Source Selection */}
+				<div>
+					<label className="block text-sm font-medium text-gray-700 mb-2">Question Source</label>
+					<select 
+						className="input-field" 
+						value={newSurvey.sourceType} 
+						onChange={(e) => setNewSurvey({ 
+							...newSurvey, 
+							sourceType: e.target.value as 'manual' | 'question_bank',
+							questionBankId: e.target.value === 'manual' ? '' : newSurvey.questionBankId,
+							questionCount: e.target.value === 'manual' ? undefined : newSurvey.questionCount
+						})}
+					>
+						<option value="manual">Manual - Add questions individually</option>
+						<option value="question_bank">Question Bank - Random selection from existing bank</option>
+					</select>
+					<div className="text-xs text-gray-500 mt-1">
+						{newSurvey.sourceType === 'manual' 
+							? 'Add questions one by one to this survey' 
+							: 'Select questions randomly from a question bank'}
+					</div>
+				</div>
+				
+				{/* Question Bank Configuration */}
+				{newSurvey.sourceType === 'question_bank' && (
+					<div className="bg-purple-50 rounded-lg p-4 space-y-4">
+						<h4 className="font-medium text-gray-800">Question Bank Configuration</h4>
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-2">Question Bank *</label>
+							<select 
+								className="input-field" 
+								value={newSurvey.questionBankId} 
+								onChange={(e) => setNewSurvey({ ...newSurvey, questionBankId: e.target.value })}
+								required
+							>
+								<option value="">Select a question bank</option>
+								{questionBanks.map(bank => (
+									<option key={bank._id} value={bank._id}>
+										{bank.name} ({bank.questions.length} questions)
+									</option>
+								))}
+							</select>
+							{questionBanks.length === 0 && (
+								<div className="text-xs text-red-500 mt-1">
+									No question banks available. Create a question bank first.
+								</div>
+							)}
+						</div>
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-2">Number of Questions</label>
+							<input 
+								type="number" 
+								className="input-field" 
+								placeholder="Number of questions to randomly select" 
+								value={newSurvey.questionCount || ''} 
+								onChange={(e) => setNewSurvey({ 
+									...newSurvey, 
+									questionCount: e.target.value ? parseInt(e.target.value) : undefined 
+								})} 
+								min="1"
+								max={newSurvey.questionBankId ? questionBanks.find(b => b._id === newSurvey.questionBankId)?.questions.length || 100 : 100}
+							/>
+							<div className="text-xs text-gray-500 mt-1">
+								{newSurvey.questionBankId && questionBanks.find(b => b._id === newSurvey.questionBankId) && 
+									`Available: ${questionBanks.find(b => b._id === newSurvey.questionBankId)?.questions.length} questions`
+								}
+							</div>
+						</div>
+					</div>
+				)}
 				
 				{/* Enhanced settings for quiz/assessment/iq */}
 				{['quiz', 'assessment', 'iq'].includes(newSurvey.type) && (
@@ -1005,6 +1237,59 @@ const Admin: React.FC = () => {
 		</Modal>
 	);
 
+	// Question Bank Modal
+	const renderQuestionBankModal = () => {
+		const [newQuestionBank, setNewQuestionBank] = useState({
+			name: '',
+			description: ''
+		});
+
+		const createQuestionBank = async (e: React.FormEvent) => {
+			e.preventDefault();
+			setLoading(true);
+			try {
+				await axios.post('/api/admin/question-banks', newQuestionBank);
+				loadQuestionBanks();
+				setNewQuestionBank({ name: '', description: '' });
+				setShowQuestionBankModal(false);
+			} catch (err) {
+				setError('Failed to create question bank. Please try again.');
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		return (
+			<Modal show={showQuestionBankModal} title="Create Question Bank" onClose={() => setShowQuestionBankModal(false)}>
+				<form onSubmit={createQuestionBank} className="space-y-4">
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-2">Question Bank Name *</label>
+						<input 
+							className="input-field" 
+							placeholder="Enter question bank name" 
+							value={newQuestionBank.name} 
+							onChange={(e) => setNewQuestionBank({ ...newQuestionBank, name: e.target.value })} 
+							required 
+						/>
+					</div>
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+						<textarea 
+							className="input-field" 
+							placeholder="Enter description" 
+							value={newQuestionBank.description} 
+							onChange={(e) => setNewQuestionBank({ ...newQuestionBank, description: e.target.value })} 
+							rows={3} 
+						/>
+					</div>
+					<button className="btn-primary w-full" type="submit" disabled={loading}>
+						{loading ? 'Creating...' : 'Create Question Bank'}
+					</button>
+				</form>
+			</Modal>
+		);
+	};
+
 	const updateScoringSettings = async (surveyId: string, scoringSettings: any) => {
 		try {
 			await axios.put(`/api/admin/surveys/${surveyId}/scoring`, scoringSettings);
@@ -1061,8 +1346,10 @@ const Admin: React.FC = () => {
 				{renderTabs()}
 				{tab === 'list' && renderSurveyList()}
 				{tab === 'detail' && renderSurveyDetail()}
+				{tab === 'question-banks' && renderQuestionBanks()}
 				{renderCreateModal()}
 				{renderScoringModal()}
+				{renderQuestionBankModal()}
 			</div>
 		</div>
 	);

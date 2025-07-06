@@ -9,14 +9,29 @@ async function saveSurveyResponse(data) {
 		throw new Error('Survey not found');
 	}
 	
+	// Check if user already has a response (for question bank surveys)
+	let existingResponse = null;
+	if (survey.sourceType === 'question_bank') {
+		existingResponse = await ResponseModel.findOne({
+			surveyId: data.surveyId,
+			email: data.email
+		});
+	}
+	
 	// Process answers to convert new format (string values) to old format (indices)
 	const processedAnswers = new Map();
+	
+	// For question bank surveys, we need to use the selectedQuestions
+	let questionsToProcess = survey.questions;
+	if (survey.sourceType === 'question_bank' && existingResponse && existingResponse.selectedQuestions.length > 0) {
+		questionsToProcess = existingResponse.selectedQuestions.map(sq => sq.questionData);
+	}
 	
 	if (Array.isArray(data.answers)) {
 		// New format: array of answers (string values)
 		data.answers.forEach((answer, index) => {
 			if (answer !== null && answer !== undefined && answer !== '') {
-				const question = survey.questions[index];
+				const question = questionsToProcess[index];
 				if (question) {
 					if (question.type === 'single_choice') {
 						// Find the index of the selected option
@@ -44,11 +59,23 @@ async function saveSurveyResponse(data) {
 		});
 	}
 	
-	// Create the response with processed answers
-	const response = new ResponseModel({
-		...data,
-		answers: processedAnswers
-	});
+	let response;
+	
+	if (existingResponse) {
+		// Update existing response
+		existingResponse.name = data.name;
+		existingResponse.answers = processedAnswers;
+		existingResponse.timeSpent = data.timeSpent || 0;
+		existingResponse.isAutoSubmit = data.isAutoSubmit || false;
+		existingResponse.metadata = data.metadata || {};
+		response = existingResponse;
+	} else {
+		// Create new response
+		response = new ResponseModel({
+			...data,
+			answers: processedAnswers
+		});
+	}
 	
 	// Calculate score if it's a quiz/assessment/iq
 	if (survey.requiresAnswers) {

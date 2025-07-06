@@ -9,12 +9,15 @@ interface Survey {
   description: string;
   slug: string;
   type: 'survey' | 'assessment' | 'quiz' | 'iq';
-  questions: { _id: string; text: string; options: string[]; correctAnswer?: number; points?: number }[];
+  questions: Question[];
   status?: 'draft' | 'active' | 'closed';
   timeLimit?: number;
   maxAttempts?: number;
   instructions?: string;
   navigationMode?: 'step-by-step' | 'paginated' | 'all-in-one';
+  sourceType?: 'manual' | 'question_bank';
+  questionBankId?: string;
+  questionCount?: number;
   scoringSettings?: {
     scoringMode: 'percentage' | 'accumulated';
     totalPoints: number;
@@ -27,6 +30,14 @@ interface Survey {
       defaultQuestionPoints: number;
     };
   };
+}
+
+interface Question {
+  _id: string;
+  text: string;
+  options: string[];
+  correctAnswer?: number;
+  points?: number;
 }
 
 interface FormState {
@@ -61,12 +72,32 @@ const TakeSurvey: React.FC = () => {
 	const navigate = useNavigate();
 	const [surveys, setSurveys] = useState<Survey[]>([]);
 	const [survey, setSurvey] = useState<Survey | null>(null);
+	const [questions, setQuestions] = useState<Question[]>([]);
+	const [questionsLoaded, setQuestionsLoaded] = useState(false);
 	const [form, setForm] = useState<FormState>({ name: '', email: '', answers: {} });
 	const [submitted, setSubmitted] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
 	const [assessmentResults, setAssessmentResults] = useState<AssessmentResult[]>([]);
 	const [scoringResult, setScoringResult] = useState<ScoringResult | null>(null);
+
+	const loadQuestions = async (survey: Survey, userEmail?: string) => {
+		if (survey.sourceType === 'question_bank') {
+			try {
+				const response = await axios.get(`/api/survey/${survey.slug}/questions`, {
+					params: { email: userEmail }
+				});
+				setQuestions(response.data.questions);
+			} catch (err) {
+				console.error('Error loading questions:', err);
+				setError('Failed to load questions');
+			}
+		} else {
+			// For manual surveys, use the questions from the survey object
+			setQuestions(survey.questions);
+		}
+		setQuestionsLoaded(true);
+	};
 
 	useEffect(() => {
 		// If slug is provided, fetch that specific survey
@@ -77,6 +108,12 @@ const TakeSurvey: React.FC = () => {
 					console.log('Survey data received:', res.data);
 					console.log('Questions length:', res.data.questions?.length);
 					setSurvey(res.data);
+					
+					// For manual surveys, load questions immediately
+					// For question bank surveys, wait for user email
+					if (res.data.sourceType !== 'question_bank') {
+						loadQuestions(res.data);
+					}
 				})
 				.catch(err => {
 					setError('Survey not found');
@@ -94,9 +131,18 @@ const TakeSurvey: React.FC = () => {
 		setForm({ ...form, answers: { ...form.answers, [qid]: value } });
 	};
 
+	const handleEmailChange = (email: string) => {
+		setForm({ ...form, email });
+		
+		// For question bank surveys, load questions when email is entered
+		if (survey && survey.sourceType === 'question_bank' && email && !questionsLoaded) {
+			loadQuestions(survey, email);
+		}
+	};
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!survey) return;
+		if (!survey || !questionsLoaded) return;
 		
 		setLoading(true);
 		try {
@@ -104,7 +150,7 @@ const TakeSurvey: React.FC = () => {
 				name: form.name,
 				email: form.email,
 				surveyId: survey._id,
-				answers: survey.questions.map((q) => form.answers[q._id]),
+				answers: questions.map((q) => form.answers[q._id]),
 			};
 			await axios.post(`/api/surveys/${survey._id}/responses`, payload);
 			
@@ -115,7 +161,7 @@ const TakeSurvey: React.FC = () => {
 				let correctAnswers = 0;
 				let wrongAnswers = 0;
 				
-				const results: AssessmentResult[] = survey.questions.map((q: { _id: string; text: string; options: string[]; correctAnswer?: number; points?: number }) => {
+				const results: AssessmentResult[] = questions.map((q) => {
 					const userAnswer = form.answers[q._id];
 					const correctAnswer = q.correctAnswer !== undefined ? q.options[q.correctAnswer] : '';
 					const isCorrect = userAnswer === correctAnswer;
@@ -238,8 +284,8 @@ const TakeSurvey: React.FC = () => {
 		);
 	}
 
-	// Check if survey has no questions
-	if (survey && (!survey.questions || survey.questions.length === 0)) {
+	// Check if survey has no questions (for manual surveys) or questions haven't loaded yet
+	if (survey && survey.sourceType === 'manual' && (!survey.questions || survey.questions.length === 0)) {
 		return (
 			<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
 				<div className="card max-w-md mx-auto text-center">
@@ -357,48 +403,72 @@ const TakeSurvey: React.FC = () => {
 										type="email"
 										className="input-field"
 										value={form.email}
-										onChange={e => setForm({ ...form, email: e.target.value })}
+										onChange={e => handleEmailChange(e.target.value)}
 										required
 										placeholder="Enter your email"
 									/>
+									{survey?.sourceType === 'question_bank' && form.email && !questionsLoaded && (
+										<div className="text-sm text-blue-600 mt-1">
+											Loading randomized questions...
+										</div>
+									)}
 								</div>
 							</div>
 
-							<div className="space-y-6">
-								<h3 className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2">
-									Questions
-								</h3>
-								{survey.questions.map((q, index) => (
-									<div key={q._id} className="bg-gray-50 rounded-lg p-6">
-										<label className="block mb-4 font-semibold text-gray-800 text-lg">
-											{index + 1}. {q.text}
-										</label>
-										<div className="space-y-3">
-											{q.options.map(opt => (
-												<label key={opt} className="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-primary-300 cursor-pointer transition-colors">
-													<input
-														type="radio"
-														name={q._id}
-														className="mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
-														value={opt}
-														onChange={() => handleAnswerChange(q._id, opt)}
-														required
-													/>
-													<span className="text-gray-700">{opt}</span>
-												</label>
-											))}
-										</div>
+							{questionsLoaded ? (
+								<div className="space-y-6">
+									<div className="flex items-center justify-between border-b border-gray-200 pb-2">
+										<h3 className="text-xl font-semibold text-gray-800">
+											Questions
+										</h3>
+										{survey.sourceType === 'question_bank' && (
+											<div className="text-sm text-purple-600 bg-purple-50 px-3 py-1 rounded">
+												🎲 Randomized Questions
+											</div>
+										)}
 									</div>
-								))}
-							</div>
+									{questions.map((q, index) => (
+										<div key={q._id} className="bg-gray-50 rounded-lg p-6">
+											<label className="block mb-4 font-semibold text-gray-800 text-lg">
+												{index + 1}. {q.text}
+											</label>
+											<div className="space-y-3">
+												{q.options.map(opt => (
+													<label key={opt} className="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-primary-300 cursor-pointer transition-colors">
+														<input
+															type="radio"
+															name={q._id}
+															className="mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+															value={opt}
+															onChange={() => handleAnswerChange(q._id, opt)}
+															required
+														/>
+														<span className="text-gray-700">{opt}</span>
+													</label>
+												))}
+											</div>
+										</div>
+									))}
+								</div>
+							) : survey?.sourceType === 'question_bank' ? (
+								<div className="text-center py-8">
+									<div className="text-purple-500 text-6xl mb-4">🎲</div>
+									<h3 className="text-xl font-semibold text-gray-700 mb-2">Questions Will Load Soon</h3>
+									<p className="text-gray-500">
+										{form.email ? 'Preparing your randomized questions...' : 'Enter your email address above to load your personalized questions.'}
+									</p>
+								</div>
+							) : null}
 
 							<div className="flex justify-end pt-6 border-t border-gray-200">
 								<button 
 									className="btn-primary px-8 py-3 text-lg"
 									type="submit"
-									disabled={loading}
+									disabled={loading || !questionsLoaded}
 								>
-									{loading ? 'Submitting...' : 'Submit Survey'}
+									{loading ? 'Submitting...' : 
+									 !questionsLoaded ? 'Loading Questions...' : 
+									 'Submit Survey'}
 								</button>
 							</div>
 						</form>
@@ -472,6 +542,8 @@ const TakeSurvey: React.FC = () => {
 											setForm({ name: '', email: '', answers: {} });
 											setAssessmentResults([]);
 											setScoringResult(null);
+											setQuestions([]);
+											setQuestionsLoaded(false);
 										} else {
 											// If we're on the home page, go back to survey list
 											navigate('/');
@@ -498,6 +570,8 @@ const TakeSurvey: React.FC = () => {
 											setForm({ name: '', email: '', answers: {} });
 											setAssessmentResults([]);
 											setScoringResult(null);
+											setQuestions([]);
+											setQuestionsLoaded(false);
 										} else {
 											// If we're on the home page, go back to survey list
 											navigate('/');

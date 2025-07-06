@@ -9,6 +9,7 @@ const adminRouter = require('./routes/admin');
 const surveysRouter = require('./routes/surveys');
 const usersRouter = require('./routes/users');
 const invitationsRouter = require('./routes/invitations');
+const questionBanksRouter = require('./routes/questionBanks');
 const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
@@ -39,6 +40,7 @@ app.use('/api', responsesRouter);
 app.use('/api', surveysRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/admin/users', usersRouter);
+app.use('/api/admin/question-banks', questionBanksRouter);
 app.use('/api/invitations', invitationsRouter);
 app.use(errorHandler);
 

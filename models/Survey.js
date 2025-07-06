@@ -36,6 +36,23 @@ const surveySchema = new mongoose.Schema({
 		enum: ['step-by-step', 'paginated', 'all-in-one'],
 		default: 'step-by-step'
 	},
+	// Question source configuration
+	sourceType: {
+		type: String,
+		enum: ['manual', 'question_bank'],
+		default: 'manual'
+	},
+	// Reference to question bank (when sourceType is 'question_bank')
+	questionBankId: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'QuestionBank',
+		default: null
+	},
+	// Number of questions to randomly select from question bank
+	questionCount: {
+		type: Number,
+		default: null
+	},
 	questions: [
 		{
 			text: {
