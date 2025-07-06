@@ -11,7 +11,7 @@ interface Survey {
 	description: string;
 	slug: string;
 	type: 'survey' | 'assessment' | 'quiz' | 'iq';
-	questions: { text: string; options: string[]; correctAnswer?: number; points?: number }[];
+	questions: { text: string; options: string[]; correctAnswer?: number | number[]; points?: number }[];
 	createdAt: string;
 	isActive: boolean;
 	timeLimit?: number;
@@ -124,7 +124,7 @@ const Admin: React.FC = () => {
 		questions: [] as {
 			text: string;
 			options: string[];
-			correctAnswer?: number;
+			correctAnswer?: number | number[];
 			points?: number;
 		}[],
 		scoringSettings: {
@@ -140,7 +140,11 @@ const Admin: React.FC = () => {
 		},
 	});
 	const [questionForms, setQuestionForms] = useState<
-		Record<string, { text: string; options: string[]; correctAnswer?: number; points?: number }>
+		Record<string, { text: string; options: string[]; correctAnswer?: number | number[]; points?: number }>
+	>({});
+	const [editingQuestions, setEditingQuestions] = useState<Record<string, number>>({});
+	const [questionEditForms, setQuestionEditForms] = useState<
+		Record<string, { text: string; options: string[]; correctAnswer?: number | number[]; points?: number }>
 	>({});
 	const [stats, setStats] = useState<Record<string, EnhancedStats>>({});
 	const [loading, setLoading] = useState(false);
@@ -339,7 +343,7 @@ const Admin: React.FC = () => {
 		}
 	};
 
-	const handleQuestionChange = (id: string, field: string, value: string | number) => {
+	const handleQuestionChange = (id: string, field: string, value: string | number | number[]) => {
 		if (field === 'text') {
 			setQuestionForms({
 				...questionForms,
@@ -350,7 +354,7 @@ const Admin: React.FC = () => {
 				...questionForms,
 				[id]: {
 					...(questionForms[id] || { text: '', options: [] }),
-					[field]: value as number,
+					[field]: field === 'correctAnswer' ? value : (value as number),
 				},
 			});
 		}
@@ -380,16 +384,214 @@ const Admin: React.FC = () => {
 			(_: string, index: number) => index !== optionIndex
 		);
 		// Reset correctAnswer if it was pointing to a removed option
-		const correctAnswer =
-			currentForm.correctAnswer !== undefined && currentForm.correctAnswer >= optionIndex
-				? currentForm.correctAnswer === optionIndex
-					? undefined
-					: currentForm.correctAnswer - 1
-				: currentForm.correctAnswer;
+		let correctAnswer = currentForm.correctAnswer;
+		if (correctAnswer !== undefined) {
+			if (Array.isArray(correctAnswer)) {
+				// Handle array of correct answers
+				correctAnswer = correctAnswer
+					.filter(answer => answer !== optionIndex)
+					.map(answer => answer > optionIndex ? answer - 1 : answer);
+				if (correctAnswer.length === 0) correctAnswer = undefined;
+			} else {
+				// Handle single correct answer
+				if (correctAnswer >= optionIndex) {
+					correctAnswer = correctAnswer === optionIndex ? undefined : correctAnswer - 1;
+				}
+			}
+		}
 		setQuestionForms({
 			...questionForms,
 			[surveyId]: { ...currentForm, options: newOptions, correctAnswer },
 		});
+	};
+
+	// Question editing functions
+	const startEditQuestion = (surveyId: string, questionIndex: number) => {
+		const survey = surveys.find(s => s._id === surveyId);
+		if (!survey) return;
+		
+		const question = survey.questions[questionIndex];
+		setEditingQuestions({ ...editingQuestions, [surveyId]: questionIndex });
+		setQuestionEditForms({
+			...questionEditForms,
+			[`${surveyId}-${questionIndex}`]: {
+				text: question.text,
+				options: [...question.options],
+				correctAnswer: question.correctAnswer,
+				points: question.points,
+			},
+		});
+	};
+
+	const cancelEditQuestion = (surveyId: string) => {
+		setEditingQuestions({ ...editingQuestions, [surveyId]: -1 });
+	};
+
+	const handleQuestionEditChange = (surveyId: string, questionIndex: number, field: string, value: string | number) => {
+		const formKey = `${surveyId}-${questionIndex}`;
+		const currentForm = questionEditForms[formKey] || { text: '', options: [] };
+		
+		if (field === 'text') {
+			setQuestionEditForms({
+				...questionEditForms,
+				[formKey]: { ...currentForm, text: value as string },
+			});
+		} else if (field === 'correctAnswer') {
+			setQuestionEditForms({
+				...questionEditForms,
+				[formKey]: { ...currentForm, correctAnswer: value as number },
+			});
+		} else if (field === 'points') {
+			setQuestionEditForms({
+				...questionEditForms,
+				[formKey]: { ...currentForm, points: value as number },
+			});
+		}
+	};
+
+	const toggleCorrectAnswer = (surveyId: string, questionIndex: number, optionIndex: number) => {
+		const formKey = `${surveyId}-${questionIndex}`;
+		const currentForm = questionEditForms[formKey] || { text: '', options: [] };
+		let newCorrectAnswer: number | number[] | undefined;
+
+		if (currentForm.correctAnswer === undefined) {
+			// No correct answer set, set this option as correct
+			newCorrectAnswer = optionIndex;
+		} else if (Array.isArray(currentForm.correctAnswer)) {
+			// Multiple correct answers, toggle this option
+			if (currentForm.correctAnswer.includes(optionIndex)) {
+				newCorrectAnswer = currentForm.correctAnswer.filter(i => i !== optionIndex);
+				if (newCorrectAnswer.length === 0) newCorrectAnswer = undefined;
+			} else {
+				newCorrectAnswer = [...currentForm.correctAnswer, optionIndex].sort((a, b) => a - b);
+			}
+		} else {
+			// Single correct answer, convert to array and toggle
+			if (currentForm.correctAnswer === optionIndex) {
+				newCorrectAnswer = undefined;
+			} else {
+				newCorrectAnswer = [currentForm.correctAnswer, optionIndex].sort((a, b) => a - b);
+			}
+		}
+
+		setQuestionEditForms({
+			...questionEditForms,
+			[formKey]: { ...currentForm, correctAnswer: newCorrectAnswer },
+		});
+	};
+
+	const handleQuestionEditOptionChange = (surveyId: string, questionIndex: number, optionIndex: number, value: string) => {
+		const formKey = `${surveyId}-${questionIndex}`;
+		const currentForm = questionEditForms[formKey] || { text: '', options: [] };
+		const newOptions = [...currentForm.options];
+		newOptions[optionIndex] = value;
+		
+		setQuestionEditForms({
+			...questionEditForms,
+			[formKey]: { ...currentForm, options: newOptions },
+		});
+	};
+
+	const addQuestionEditOption = (surveyId: string, questionIndex: number) => {
+		const formKey = `${surveyId}-${questionIndex}`;
+		const currentForm = questionEditForms[formKey] || { text: '', options: [] };
+		setQuestionEditForms({
+			...questionEditForms,
+			[formKey]: { ...currentForm, options: [...currentForm.options, ''] },
+		});
+	};
+
+	const removeQuestionEditOption = (surveyId: string, questionIndex: number, optionIndex: number) => {
+		const formKey = `${surveyId}-${questionIndex}`;
+		const currentForm = questionEditForms[formKey] || { text: '', options: [] };
+		const newOptions = currentForm.options.filter((_: string, index: number) => index !== optionIndex);
+		
+		// Reset correctAnswer if it was pointing to a removed option
+		let correctAnswer = currentForm.correctAnswer;
+		if (correctAnswer !== undefined) {
+			if (Array.isArray(correctAnswer)) {
+				// Handle array of correct answers
+				correctAnswer = correctAnswer
+					.filter(answer => answer !== optionIndex)
+					.map(answer => answer > optionIndex ? answer - 1 : answer);
+				if (correctAnswer.length === 0) correctAnswer = undefined;
+			} else {
+				// Handle single correct answer
+				if (correctAnswer >= optionIndex) {
+					correctAnswer = correctAnswer === optionIndex ? undefined : correctAnswer - 1;
+				}
+			}
+		}
+		
+		setQuestionEditForms({
+			...questionEditForms,
+			[formKey]: { ...currentForm, options: newOptions, correctAnswer },
+		});
+	};
+
+	const saveQuestionEdit = async (surveyId: string, questionIndex: number) => {
+		const formKey = `${surveyId}-${questionIndex}`;
+		const currentForm = questionEditForms[formKey];
+		if (!currentForm) return;
+
+		try {
+			const survey = surveys.find(s => s._id === surveyId);
+			if (!survey) return;
+
+			const updatedQuestions = [...survey.questions];
+			updatedQuestions[questionIndex] = {
+				text: currentForm.text,
+				options: currentForm.options.filter(opt => opt.trim()),
+				correctAnswer: currentForm.correctAnswer,
+				points: currentForm.points,
+			};
+
+			const response = await fetch(`/api/surveys/${surveyId}`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					...survey,
+					questions: updatedQuestions,
+				}),
+			});
+
+			if (response.ok) {
+				await loadSurveys();
+				cancelEditQuestion(surveyId);
+			} else {
+				console.error('Failed to update question');
+			}
+		} catch (err) {
+			console.error('Error updating question:', err);
+		}
+	};
+
+	const deleteQuestion = async (surveyId: string, questionIndex: number) => {
+		if (!confirm('Are you sure you want to delete this question?')) return;
+
+		try {
+			const survey = surveys.find(s => s._id === surveyId);
+			if (!survey) return;
+
+			const updatedQuestions = survey.questions.filter((_, index) => index !== questionIndex);
+
+			const response = await fetch(`/api/surveys/${surveyId}`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					...survey,
+					questions: updatedQuestions,
+				}),
+			});
+
+			if (response.ok) {
+				await loadSurveys();
+			} else {
+				console.error('Failed to delete question');
+			}
+		} catch (err) {
+			console.error('Error deleting question:', err);
+		}
 	};
 
 	const addQuestion = async (surveyId: string) => {
@@ -872,38 +1074,230 @@ const Admin: React.FC = () => {
 						</h4>
 						{s.questions.length > 0 ? (
 							<div className="space-y-2">
-								{s.questions.map((q, idx) => (
-									<div key={idx} className="bg-gray-50 rounded-lg p-3">
-										<div className="flex justify-between items-start mb-1">
-											<div className="font-medium text-gray-800">
-												{idx + 1}. {q.text}
-											</div>
-											{['assessment', 'quiz', 'iq'].includes(s.type) && (
-												<div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-													{q.points || 1} pts
+								{s.questions.map((q, idx) => {
+									const isEditing = editingQuestions[s._id] === idx;
+									const formKey = `${s._id}-${idx}`;
+									const editForm = questionEditForms[formKey];
+									
+									return (
+										<div key={idx} className="bg-gray-50 rounded-lg p-3">
+											{isEditing ? (
+												// Edit mode
+												<div className="space-y-3">
+													<div>
+														<label className="block text-sm font-medium text-gray-700 mb-2">
+															Question Text
+														</label>
+														<input
+															className="input-field w-full"
+															placeholder="Enter question text"
+															value={editForm?.text || ''}
+															onChange={e =>
+																handleQuestionEditChange(s._id, idx, 'text', e.target.value)
+															}
+														/>
+													</div>
+													<div>
+														<div className="flex items-center justify-between mb-2">
+															<label className="block text-sm font-medium text-gray-700">
+																Options
+															</label>
+															<button
+																className="btn-secondary text-sm"
+																onClick={() => addQuestionEditOption(s._id, idx)}
+																type="button"
+															>
+																+ Add Option
+															</button>
+														</div>
+														{editForm?.options && editForm.options.length > 0 ? (
+															<div className="space-y-2">
+																{editForm.options.map((option, optionIndex) => (
+																	<div
+																		key={optionIndex}
+																		className="flex items-center gap-2"
+																	>
+																		<input
+																			className="input-field flex-1"
+																			placeholder={`Option ${optionIndex + 1}`}
+																			value={option}
+																			onChange={e =>
+																				handleQuestionEditOptionChange(
+																					s._id,
+																					idx,
+																					optionIndex,
+																					e.target.value
+																				)
+																			}
+																		/>
+																		<button
+																			className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+																			onClick={() => removeQuestionEditOption(s._id, idx, optionIndex)}
+																			type="button"
+																		>
+																			Remove
+																		</button>
+																	</div>
+																))}
+															</div>
+														) : (
+															<div className="text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center">
+																No options added yet. Click "Add Option" to start.
+															</div>
+														)}
+													</div>
+													{['assessment', 'quiz', 'iq'].includes(s.type) &&
+														editForm?.options && editForm.options.length > 0 && (
+															<div className="space-y-4">
+																<div>
+																	<label className="block text-sm font-medium text-gray-700 mb-2">
+																		Select Correct Answer(s)
+																	</label>
+																	<div className="space-y-2">
+																		{editForm.options.map((opt, optIdx) => {
+																			const isCorrect = Array.isArray(editForm.correctAnswer) 
+																				? editForm.correctAnswer.includes(optIdx)
+																				: editForm.correctAnswer === optIdx;
+																			return (
+																				<div key={optIdx} className="flex items-center gap-2">
+																					<button
+																						type="button"
+																						onClick={() => toggleCorrectAnswer(s._id, idx, optIdx)}
+																						className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+																							isCorrect 
+																								? 'bg-green-500 border-green-500 text-white' 
+																								: 'border-gray-300 hover:border-green-400'
+																						}`}
+																					>
+																						{isCorrect && (
+																							<svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+																								<path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+																							</svg>
+																						)}
+																					</button>
+																					<span className="text-sm text-gray-700">
+																						{opt || `Option ${optIdx + 1}`}
+																					</span>
+																				</div>
+																			);
+																		})}
+																	</div>
+																	<div className="text-xs text-gray-500 mt-1">
+																		Click the checkboxes to select multiple correct answers
+																	</div>
+																</div>
+																{s.scoringSettings?.customScoringRules?.useCustomPoints && (
+																	<div>
+																		<label className="block text-sm font-medium text-gray-700 mb-2">
+																			Question Points
+																		</label>
+																		<input
+																			type="number"
+																			className="input-field w-full"
+																			placeholder={`Default points: ${s.scoringSettings.customScoringRules.defaultQuestionPoints}`}
+																			value={editForm.points || ''}
+																			onChange={e =>
+																				handleQuestionEditChange(
+																					s._id,
+																					idx,
+																					'points',
+																					e.target.value ? parseInt(e.target.value) : undefined
+																				)
+																			}
+																			min="1"
+																			max="100"
+																		/>
+																		<div className="text-xs text-gray-500 mt-1">
+																			Leave empty to use default points (
+																			{s.scoringSettings.customScoringRules.defaultQuestionPoints} points)
+																		</div>
+																	</div>
+																)}
+															</div>
+														)}
+													<div className="flex gap-2 pt-2">
+														<button
+															className="btn-primary text-sm"
+															onClick={() => saveQuestionEdit(s._id, idx)}
+															type="button"
+															disabled={
+																!editForm?.text ||
+																!editForm?.options ||
+																editForm.options.filter(opt => opt.trim()).length === 0 ||
+																(['assessment', 'quiz', 'iq'].includes(s.type) &&
+																	editForm.correctAnswer === undefined)
+															}
+														>
+															Save
+														</button>
+														<button
+															className="btn-secondary text-sm"
+															onClick={() => cancelEditQuestion(s._id)}
+															type="button"
+														>
+															Cancel
+														</button>
+													</div>
+												</div>
+											) : (
+												// Display mode
+												<div>
+													<div className="flex justify-between items-start mb-1">
+														<div className="font-medium text-gray-800">
+															{idx + 1}. {q.text}
+														</div>
+														<div className="flex items-center gap-2">
+															{['assessment', 'quiz', 'iq'].includes(s.type) && (
+																<div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+																	{q.points || 1} pts
+																</div>
+															)}
+															<button
+																className="btn-secondary text-sm px-3 py-1"
+																onClick={() => startEditQuestion(s._id, idx)}
+															>
+																Edit
+															</button>
+															<button
+																className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+																onClick={() => deleteQuestion(s._id, idx)}
+															>
+																Delete
+															</button>
+														</div>
+													</div>
+													<div className="text-sm text-gray-600 mb-1">
+														Options:{' '}
+														{q.options.map((opt, optIdx) => {
+															const isCorrect = Array.isArray(q.correctAnswer) 
+																? q.correctAnswer.includes(optIdx)
+																: q.correctAnswer === optIdx;
+															return (
+																<span
+																	key={optIdx}
+																	className={`${['assessment', 'quiz', 'iq'].includes(s.type) && isCorrect ? 'font-semibold text-green-600' : ''}`}
+																>
+																	{opt}
+																	{optIdx < q.options.length - 1 ? ', ' : ''}
+																</span>
+															);
+														})}
+													</div>
+													{['assessment', 'quiz', 'iq'].includes(s.type) &&
+														q.correctAnswer !== undefined && (
+															<div className="text-xs text-green-600 font-medium">
+																✓ Correct Answer{Array.isArray(q.correctAnswer) && q.correctAnswer.length > 1 ? 's' : ''}: {
+																	Array.isArray(q.correctAnswer) 
+																		? q.correctAnswer.map(idx => q.options[idx]).join(', ')
+																		: q.options[q.correctAnswer]
+																}
+															</div>
+														)}
 												</div>
 											)}
 										</div>
-										<div className="text-sm text-gray-600 mb-1">
-											Options:{' '}
-											{q.options.map((opt, optIdx) => (
-												<span
-													key={optIdx}
-													className={`${['assessment', 'quiz', 'iq'].includes(s.type) && q.correctAnswer === optIdx ? 'font-semibold text-green-600' : ''}`}
-												>
-													{opt}
-													{optIdx < q.options.length - 1 ? ', ' : ''}
-												</span>
-											))}
-										</div>
-										{['assessment', 'quiz', 'iq'].includes(s.type) &&
-											q.correctAnswer !== undefined && (
-												<div className="text-xs text-green-600 font-medium">
-													✓ Correct Answer: {q.options[q.correctAnswer]}
-												</div>
-											)}
-									</div>
-								))}
+									);
+								})}
 							</div>
 						) : (
 							<p className="text-gray-500 text-sm">No questions added yet.</p>
@@ -979,30 +1373,51 @@ const Admin: React.FC = () => {
 										<div className="space-y-4">
 											<div>
 												<label className="block text-sm font-medium text-gray-700 mb-2">
-													Select Correct Answer
+													Select Correct Answer(s)
 												</label>
-												<select
-													className="input-field w-full"
-													value={currentForm.correctAnswer ?? ''}
-													onChange={e =>
-														handleQuestionChange(
-															s._id,
-															'correctAnswer',
-															e.target.value
-																? parseInt(e.target.value)
-																: undefined
-														)
-													}
-												>
-													<option value="">
-														Please select correct answer
-													</option>
-													{currentForm.options.map((opt, idx) => (
-														<option key={idx} value={idx}>
-															{opt || `Option ${idx + 1}`}
-														</option>
-													))}
-												</select>
+												<div className="space-y-2">
+													{currentForm.options.map((opt, idx) => {
+														const isCorrect = Array.isArray(currentForm.correctAnswer) 
+															? currentForm.correctAnswer.includes(idx)
+															: currentForm.correctAnswer === idx;
+														return (
+															<div key={idx} className="flex items-center gap-2">
+																<button
+																	type="button"
+																	onClick={() => {
+																		const newCorrectAnswer = isCorrect 
+																			? (Array.isArray(currentForm.correctAnswer) 
+																				? currentForm.correctAnswer.filter(i => i !== idx)
+																				: undefined)
+																			: (Array.isArray(currentForm.correctAnswer)
+																				? [...currentForm.correctAnswer, idx].sort((a, b) => a - b)
+																				: currentForm.correctAnswer !== undefined
+																					? [currentForm.correctAnswer, idx].sort((a, b) => a - b)
+																					: idx);
+																		handleQuestionChange(s._id, 'correctAnswer', newCorrectAnswer);
+																	}}
+																	className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+																		isCorrect 
+																			? 'bg-green-500 border-green-500 text-white' 
+																			: 'border-gray-300 hover:border-green-400'
+																	}`}
+																>
+																	{isCorrect && (
+																		<svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+																			<path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+																		</svg>
+																	)}
+																</button>
+																<span className="text-sm text-gray-700">
+																	{opt || `Option ${idx + 1}`}
+																</span>
+															</div>
+														);
+													})}
+												</div>
+												<div className="text-xs text-gray-500 mt-1">
+													Click the checkboxes to select multiple correct answers
+												</div>
 											</div>
 											{s.scoringSettings?.customScoringRules
 												?.useCustomPoints && (
@@ -2211,6 +2626,8 @@ const Admin: React.FC = () => {
 			</Modal>
 		);
 	}
+
+
 };
 
 export default Admin;
