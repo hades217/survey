@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { SURVEY_STATUS, SURVEY_TYPE } = require('../shared/constants');
 
 const surveySchema = new mongoose.Schema({
 	title: String,
@@ -11,8 +12,8 @@ const surveySchema = new mongoose.Schema({
 	},
 	type: {
 		type: String,
-		enum: ['survey', 'assessment'],
-		default: 'survey'
+		enum: [SURVEY_TYPE.SURVEY, SURVEY_TYPE.ASSESSMENT],
+		default: SURVEY_TYPE.SURVEY
 	},
 	questions: [
 		{
@@ -26,8 +27,8 @@ const surveySchema = new mongoose.Schema({
 	],
 	status: {
 		type: String,
-		enum: ['draft', 'active', 'closed'],
-		default: 'draft'
+		enum: [SURVEY_STATUS.DRAFT, SURVEY_STATUS.ACTIVE, SURVEY_STATUS.CLOSED],
+		default: SURVEY_STATUS.DRAFT
 	},
 	createdAt: {
 		type: Date,
