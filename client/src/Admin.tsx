@@ -21,7 +21,28 @@ interface StatsItem {
 	options: Record<string, number>;
 }
 
+interface UserResponse {
+	_id: string;
+	name: string;
+	email: string;
+	answers: Record<string, string>;
+	createdAt: string;
+}
+
+interface StatsSummary {
+	totalResponses: number;
+	completionRate: number;
+	totalQuestions: number;
+}
+
+interface EnhancedStats {
+	aggregatedStats: StatsItem[];
+	userResponses: UserResponse[];
+	summary: StatsSummary;
+}
+
 type TabType = 'list' | 'detail';
+type StatsViewType = 'aggregated' | 'individual';
 
 const Admin: React.FC = () => {
 	const { id: surveyIdFromUrl } = useParams<{ id: string }>();
@@ -33,11 +54,12 @@ const Admin: React.FC = () => {
 	const [showCreateModal, setShowCreateModal] = useState(false);
 	const [newSurvey, setNewSurvey] = useState({ title: '', description: '', type: 'survey' as 'survey' | 'assessment' });
 	const [questionForms, setQuestionForms] = useState<Record<string, { text: string; options: string[]; correctAnswer?: number }>>({});
-	const [stats, setStats] = useState<Record<string, StatsItem[]>>({});
+	const [stats, setStats] = useState<Record<string, EnhancedStats>>({});
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
 	const [showQR, setShowQR] = useState<Record<string, boolean>>({});
 	const [tab, setTab] = useState<TabType>('list');
+	const [statsView, setStatsView] = useState<StatsViewType>('aggregated');
 
 	// 登录状态持久化
 	useEffect(() => {
@@ -189,7 +211,7 @@ const Admin: React.FC = () => {
 	};
 
 	const loadStats = async (surveyId: string) => {
-		const res = await axios.get<StatsItem[]>(`/api/admin/surveys/${surveyId}/statistics`);
+		const res = await axios.get<EnhancedStats>(`/api/admin/surveys/${surveyId}/statistics`);
 		setStats({ ...stats, [surveyId]: res.data });
 	};
 
@@ -432,19 +454,116 @@ const Admin: React.FC = () => {
 					</div>
 					{stats[s._id] && (
 						<div className="space-y-4">
-							{stats[s._id].map((st, idx) => (
-								<div key={idx} className="bg-gray-50 rounded-lg p-4">
-									<div className="font-semibold text-gray-800 mb-2">{st.question}</div>
-									<div className="space-y-2">
-										{Object.entries(st.options).map(([opt, count]) => (
-											<div key={opt} className="flex justify-between items-center">
-												<span className="text-gray-700">{opt}</span>
-												<span className="font-medium text-blue-600">{count}</span>
-											</div>
-										))}
+							{/* Statistics Summary */}
+							<div className="bg-blue-50 rounded-lg p-4">
+								<h5 className="font-semibold text-gray-800 mb-2">Summary</h5>
+								<div className="grid grid-cols-3 gap-4 text-sm">
+									<div className="text-center">
+										<div className="font-bold text-blue-600 text-lg">{stats[s._id].summary.totalResponses}</div>
+										<div className="text-gray-600">Total Responses</div>
+									</div>
+									<div className="text-center">
+										<div className="font-bold text-green-600 text-lg">{stats[s._id].summary.completionRate}%</div>
+										<div className="text-gray-600">Completion Rate</div>
+									</div>
+									<div className="text-center">
+										<div className="font-bold text-purple-600 text-lg">{stats[s._id].summary.totalQuestions}</div>
+										<div className="text-gray-600">Total Questions</div>
 									</div>
 								</div>
-							))}
+							</div>
+
+							{/* Statistics View Toggle */}
+							<div className="flex space-x-4 border-b border-gray-200 pb-2">
+								<button
+									className={`py-2 px-4 font-medium text-sm transition-colors ${
+										statsView === 'aggregated' 
+											? 'text-blue-600 border-b-2 border-blue-600' 
+											: 'text-gray-500 hover:text-blue-600'
+									}`}
+									onClick={() => setStatsView('aggregated')}
+								>
+									Aggregated Results
+								</button>
+								<button
+									className={`py-2 px-4 font-medium text-sm transition-colors ${
+										statsView === 'individual' 
+											? 'text-blue-600 border-b-2 border-blue-600' 
+											: 'text-gray-500 hover:text-blue-600'
+									}`}
+									onClick={() => setStatsView('individual')}
+								>
+									Individual Responses ({stats[s._id].userResponses.length})
+								</button>
+							</div>
+
+							{/* Aggregated Statistics */}
+							{statsView === 'aggregated' && (
+								<div className="space-y-4">
+									{stats[s._id].aggregatedStats.map((st, idx) => (
+										<div key={idx} className="bg-gray-50 rounded-lg p-4">
+											<div className="font-semibold text-gray-800 mb-2">{st.question}</div>
+											<div className="space-y-2">
+												{Object.entries(st.options).map(([opt, count]) => {
+													const percentage = stats[s._id].summary.totalResponses > 0 
+														? ((count / stats[s._id].summary.totalResponses) * 100).toFixed(1) 
+														: 0;
+													return (
+														<div key={opt} className="flex justify-between items-center">
+															<span className="text-gray-700">{opt}</span>
+															<div className="flex items-center gap-2">
+																<div className="w-20 bg-gray-200 rounded-full h-2">
+																	<div 
+																		className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+																		style={{ width: `${percentage}%` }}
+																	></div>
+																</div>
+																<span className="font-medium text-blue-600 text-sm w-12">{count}</span>
+																<span className="text-gray-500 text-xs w-12">({percentage}%)</span>
+															</div>
+														</div>
+													);
+												})}
+											</div>
+										</div>
+									))}
+								</div>
+							)}
+
+							{/* Individual User Responses */}
+							{statsView === 'individual' && (
+								<div className="space-y-4">
+									{stats[s._id].userResponses.length > 0 ? (
+										stats[s._id].userResponses.map((response, idx) => (
+											<div key={response._id} className="bg-gray-50 rounded-lg p-4">
+												<div className="flex justify-between items-start mb-3">
+													<div>
+														<div className="font-semibold text-gray-800">{response.name}</div>
+														<div className="text-sm text-gray-500">{response.email}</div>
+													</div>
+													<div className="text-xs text-gray-500">
+														{new Date(response.createdAt).toLocaleDateString()} {new Date(response.createdAt).toLocaleTimeString()}
+													</div>
+												</div>
+												<div className="space-y-2">
+													{Object.entries(response.answers).map(([question, answer]) => (
+														<div key={question} className="border-l-4 border-blue-200 pl-3">
+															<div className="font-medium text-gray-700 text-sm">{question}</div>
+															<div className={`text-sm ${answer === 'No answer' ? 'text-gray-400 italic' : 'text-gray-900'}`}>
+																{answer}
+															</div>
+														</div>
+													))}
+												</div>
+											</div>
+										))
+									) : (
+										<div className="text-center py-8 text-gray-500">
+											<p>No responses yet for this survey.</p>
+										</div>
+									)}
+								</div>
+							)}
 						</div>
 					)}
 				</div>

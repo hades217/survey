@@ -118,6 +118,8 @@ router.get('/surveys/:surveyId/statistics', asyncHandler(async (req, res) => {
 	}
 
 	const responses = await Response.find({ surveyId }).lean();
+	
+	// Calculate aggregated statistics
 	const stats = survey.questions.map((q) => {
 		const counts = {};
 		q.options.forEach((opt) => {
@@ -132,7 +134,37 @@ router.get('/surveys/:surveyId/statistics', asyncHandler(async (req, res) => {
 		return { question: q.text, options: counts };
 	});
 
-	res.json(stats);
+	// Prepare individual user responses
+	const userResponses = responses.map((response) => {
+		const userAnswers = {};
+		survey.questions.forEach((q) => {
+			const ans = response.answers?.[q._id] || response.answers?.[String(q._id)] || response.answers?.[q.text];
+			userAnswers[q.text] = ans || 'No answer';
+		});
+		
+		return {
+			_id: response._id,
+			name: response.name,
+			email: response.email,
+			answers: userAnswers,
+			createdAt: response.createdAt
+		};
+	});
+
+	// Calculate total responses and completion rate
+	const totalResponses = responses.length;
+	const completionRate = survey.questions.length > 0 ? 
+		(userResponses.filter(r => Object.values(r.answers).some(ans => ans !== 'No answer')).length / totalResponses * 100) : 0;
+
+	res.json({
+		aggregatedStats: stats,
+		userResponses: userResponses,
+		summary: {
+			totalResponses,
+			completionRate: parseFloat(completionRate.toFixed(2)),
+			totalQuestions: survey.questions.length
+		}
+	});
 }));
 
 router.get('/logout', (req, res) => {
