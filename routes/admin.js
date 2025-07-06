@@ -406,8 +406,8 @@ router.get(
 		const completionRate =
 			survey.questions.length > 0
 				? (userResponses.filter(r =>
-						Object.values(r.answers).some(ans => ans !== 'No answer')
-					).length /
+					Object.values(r.answers).some(ans => ans !== 'No answer')
+				).length /
 						totalResponses) *
 					100
 				: 0;

@@ -228,9 +228,9 @@ router.get(
 				completionRate:
 					invitation.accessLog.length > 0
 						? (
-								(invitation.completedBy.length / invitation.accessLog.length) *
+							(invitation.completedBy.length / invitation.accessLog.length) *
 								100
-							).toFixed(2)
+						).toFixed(2)
 						: 0,
 				recentCompletions: invitation.completedBy.slice(-10).reverse(),
 			},

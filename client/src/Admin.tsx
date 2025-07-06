@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import QRCodeComponent from './components/QRCode';
 import Modal from './components/Modal';
@@ -11,7 +11,12 @@ interface Survey {
 	description: string;
 	slug: string;
 	type: 'survey' | 'assessment' | 'quiz' | 'iq';
-	questions: { text: string; options: string[]; correctAnswer?: number | number[]; points?: number }[];
+	questions: {
+		text: string;
+		options: string[];
+		correctAnswer?: number | number[];
+		points?: number;
+	}[];
 	createdAt: string;
 	isActive: boolean;
 	timeLimit?: number;
@@ -89,6 +94,7 @@ type StatsViewType = 'aggregated' | 'individual';
 const Admin: React.FC = () => {
 	const { id: surveyIdFromUrl } = useParams<{ id: string }>();
 	const navigate = useNavigate();
+	const location = useLocation();
 	const [loggedIn, setLoggedIn] = useState(false);
 	const [loginForm, setLoginForm] = useState({ username: '', password: '' });
 	const [surveys, setSurveys] = useState<Survey[]>([]);
@@ -124,7 +130,7 @@ const Admin: React.FC = () => {
 		questions: [] as {
 			text: string;
 			options: string[];
-			correctAnswer?: number | number[];
+			correctAnswer?: number;
 			points?: number;
 		}[],
 		scoringSettings: {
@@ -140,11 +146,17 @@ const Admin: React.FC = () => {
 		},
 	});
 	const [questionForms, setQuestionForms] = useState<
-		Record<string, { text: string; options: string[]; correctAnswer?: number | number[]; points?: number }>
+		Record<
+			string,
+			{ text: string; options: string[]; correctAnswer?: number | number[]; points?: number }
+		>
 	>({});
 	const [editingQuestions, setEditingQuestions] = useState<Record<string, number>>({});
 	const [questionEditForms, setQuestionEditForms] = useState<
-		Record<string, { text: string; options: string[]; correctAnswer?: number | number[]; points?: number }>
+		Record<
+			string,
+			{ text: string; options: string[]; correctAnswer?: number | number[]; points?: number }
+		>
 	>({});
 	const [stats, setStats] = useState<Record<string, EnhancedStats>>({});
 	const [loading, setLoading] = useState(false);
@@ -184,10 +196,27 @@ const Admin: React.FC = () => {
 				setTab('detail');
 			} else {
 				// 如果找不到 survey，重定向到列表页
-				navigate('/admin');
+				navigate('/admin/surveys');
 			}
 		}
 	}, [surveyIdFromUrl, surveys, navigate]);
+
+	// 根据路由设置标签页
+	useEffect(() => {
+		if (!loggedIn) return;
+
+		const path = location.pathname;
+		if (path === '/admin' || path === '/admin/surveys') {
+			setTab('list');
+			setSelectedSurvey(null);
+		} else if (path === '/admin/question-banks') {
+			setTab('question-banks');
+			setSelectedSurvey(null);
+		} else if (path.startsWith('/admin/survey/')) {
+			// 这个会在上面的 useEffect 中处理
+			return;
+		}
+	}, [location.pathname, loggedIn]);
 
 	const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
@@ -237,7 +266,7 @@ const Admin: React.FC = () => {
 		setSurveys([]);
 		setTab('list');
 		setSelectedSurvey(null);
-		navigate('/admin');
+		navigate('/admin/surveys');
 	};
 
 	const openEditModal = (survey: Survey) => {
@@ -390,7 +419,7 @@ const Admin: React.FC = () => {
 				// Handle array of correct answers
 				correctAnswer = correctAnswer
 					.filter(answer => answer !== optionIndex)
-					.map(answer => answer > optionIndex ? answer - 1 : answer);
+					.map(answer => (answer > optionIndex ? answer - 1 : answer));
 				if (correctAnswer.length === 0) correctAnswer = undefined;
 			} else {
 				// Handle single correct answer
@@ -409,7 +438,7 @@ const Admin: React.FC = () => {
 	const startEditQuestion = (surveyId: string, questionIndex: number) => {
 		const survey = surveys.find(s => s._id === surveyId);
 		if (!survey) return;
-		
+
 		const question = survey.questions[questionIndex];
 		setEditingQuestions({ ...editingQuestions, [surveyId]: questionIndex });
 		setQuestionEditForms({
@@ -427,10 +456,15 @@ const Admin: React.FC = () => {
 		setEditingQuestions({ ...editingQuestions, [surveyId]: -1 });
 	};
 
-	const handleQuestionEditChange = (surveyId: string, questionIndex: number, field: string, value: string | number) => {
+	const handleQuestionEditChange = (
+		surveyId: string,
+		questionIndex: number,
+		field: string,
+		value: string | number
+	) => {
 		const formKey = `${surveyId}-${questionIndex}`;
 		const currentForm = questionEditForms[formKey] || { text: '', options: [] };
-		
+
 		if (field === 'text') {
 			setQuestionEditForms({
 				...questionEditForms,
@@ -463,7 +497,9 @@ const Admin: React.FC = () => {
 				newCorrectAnswer = currentForm.correctAnswer.filter(i => i !== optionIndex);
 				if (newCorrectAnswer.length === 0) newCorrectAnswer = undefined;
 			} else {
-				newCorrectAnswer = [...currentForm.correctAnswer, optionIndex].sort((a, b) => a - b);
+				newCorrectAnswer = [...currentForm.correctAnswer, optionIndex].sort(
+					(a, b) => a - b
+				);
 			}
 		} else {
 			// Single correct answer, convert to array and toggle
@@ -480,12 +516,17 @@ const Admin: React.FC = () => {
 		});
 	};
 
-	const handleQuestionEditOptionChange = (surveyId: string, questionIndex: number, optionIndex: number, value: string) => {
+	const handleQuestionEditOptionChange = (
+		surveyId: string,
+		questionIndex: number,
+		optionIndex: number,
+		value: string
+	) => {
 		const formKey = `${surveyId}-${questionIndex}`;
 		const currentForm = questionEditForms[formKey] || { text: '', options: [] };
 		const newOptions = [...currentForm.options];
 		newOptions[optionIndex] = value;
-		
+
 		setQuestionEditForms({
 			...questionEditForms,
 			[formKey]: { ...currentForm, options: newOptions },
@@ -501,11 +542,17 @@ const Admin: React.FC = () => {
 		});
 	};
 
-	const removeQuestionEditOption = (surveyId: string, questionIndex: number, optionIndex: number) => {
+	const removeQuestionEditOption = (
+		surveyId: string,
+		questionIndex: number,
+		optionIndex: number
+	) => {
 		const formKey = `${surveyId}-${questionIndex}`;
 		const currentForm = questionEditForms[formKey] || { text: '', options: [] };
-		const newOptions = currentForm.options.filter((_: string, index: number) => index !== optionIndex);
-		
+		const newOptions = currentForm.options.filter(
+			(_: string, index: number) => index !== optionIndex
+		);
+
 		// Reset correctAnswer if it was pointing to a removed option
 		let correctAnswer = currentForm.correctAnswer;
 		if (correctAnswer !== undefined) {
@@ -513,7 +560,7 @@ const Admin: React.FC = () => {
 				// Handle array of correct answers
 				correctAnswer = correctAnswer
 					.filter(answer => answer !== optionIndex)
-					.map(answer => answer > optionIndex ? answer - 1 : answer);
+					.map(answer => (answer > optionIndex ? answer - 1 : answer));
 				if (correctAnswer.length === 0) correctAnswer = undefined;
 			} else {
 				// Handle single correct answer
@@ -522,7 +569,7 @@ const Admin: React.FC = () => {
 				}
 			}
 		}
-		
+
 		setQuestionEditForms({
 			...questionEditForms,
 			[formKey]: { ...currentForm, options: newOptions, correctAnswer },
@@ -682,7 +729,7 @@ const Admin: React.FC = () => {
 	const handleBackToList = () => {
 		setSelectedSurvey(null);
 		setTab('list');
-		navigate('/admin');
+		navigate('/admin/surveys');
 	};
 
 	// Tab内容
@@ -690,20 +737,20 @@ const Admin: React.FC = () => {
 		<div className="flex space-x-4 mb-6 border-b border-gray-200">
 			<button
 				className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tab === 'list' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
-				onClick={handleBackToList}
+				onClick={() => navigate('/admin/surveys')}
 			>
 				Survey List
 			</button>
 			<button
 				className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tab === 'question-banks' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
-				onClick={() => setTab('question-banks')}
+				onClick={() => navigate('/admin/question-banks')}
 			>
 				Question Banks
 			</button>
 			{selectedSurvey && (
 				<button
 					className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tab === 'detail' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
-					onClick={() => setTab('detail')}
+					onClick={() => navigate(`/admin/survey/${selectedSurvey._id}`)}
 				>
 					Details
 				</button>
@@ -1078,7 +1125,7 @@ const Admin: React.FC = () => {
 									const isEditing = editingQuestions[s._id] === idx;
 									const formKey = `${s._id}-${idx}`;
 									const editForm = questionEditForms[formKey];
-									
+
 									return (
 										<div key={idx} className="bg-gray-50 rounded-lg p-3">
 											{isEditing ? (
@@ -1093,7 +1140,12 @@ const Admin: React.FC = () => {
 															placeholder="Enter question text"
 															value={editForm?.text || ''}
 															onChange={e =>
-																handleQuestionEditChange(s._id, idx, 'text', e.target.value)
+																handleQuestionEditChange(
+																	s._id,
+																	idx,
+																	'text',
+																	e.target.value
+																)
 															}
 														/>
 													</div>
@@ -1104,135 +1156,210 @@ const Admin: React.FC = () => {
 															</label>
 															<button
 																className="btn-secondary text-sm"
-																onClick={() => addQuestionEditOption(s._id, idx)}
+																onClick={() =>
+																	addQuestionEditOption(
+																		s._id,
+																		idx
+																	)
+																}
 																type="button"
 															>
 																+ Add Option
 															</button>
 														</div>
-														{editForm?.options && editForm.options.length > 0 ? (
-															<div className="space-y-2">
-																{editForm.options.map((option, optionIndex) => (
-																	<div
-																		key={optionIndex}
-																		className="flex items-center gap-2"
-																	>
-																		<input
-																			className="input-field flex-1"
-																			placeholder={`Option ${optionIndex + 1}`}
-																			value={option}
-																			onChange={e =>
-																				handleQuestionEditOptionChange(
-																					s._id,
-																					idx,
-																					optionIndex,
-																					e.target.value
-																				)
-																			}
-																		/>
-																		<button
-																			className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
-																			onClick={() => removeQuestionEditOption(s._id, idx, optionIndex)}
-																			type="button"
-																		>
-																			Remove
-																		</button>
-																	</div>
-																))}
-															</div>
-														) : (
-															<div className="text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center">
-																No options added yet. Click "Add Option" to start.
-															</div>
-														)}
+														{editForm?.options &&
+														editForm.options.length > 0 ? (
+																<div className="space-y-2">
+																	{editForm.options.map(
+																		(option, optionIndex) => (
+																			<div
+																				key={optionIndex}
+																				className="flex items-center gap-2"
+																			>
+																				<input
+																					className="input-field flex-1"
+																					placeholder={`Option ${optionIndex + 1}`}
+																					value={option}
+																					onChange={e =>
+																						handleQuestionEditOptionChange(
+																							s._id,
+																							idx,
+																							optionIndex,
+																							e.target
+																								.value
+																						)
+																					}
+																				/>
+																				<button
+																					className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+																					onClick={() =>
+																						removeQuestionEditOption(
+																							s._id,
+																							idx,
+																							optionIndex
+																						)
+																					}
+																					type="button"
+																				>
+																				Remove
+																				</button>
+																			</div>
+																		)
+																	)}
+																</div>
+															) : (
+																<div className="text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center">
+																No options added yet. Click "Add
+																Option" to start.
+																</div>
+															)}
 													</div>
-													{['assessment', 'quiz', 'iq'].includes(s.type) &&
-														editForm?.options && editForm.options.length > 0 && (
-															<div className="space-y-4">
-																<div>
-																	<label className="block text-sm font-medium text-gray-700 mb-2">
+													{['assessment', 'quiz', 'iq'].includes(
+														s.type
+													) &&
+														editForm?.options &&
+														editForm.options.length > 0 && (
+														<div className="space-y-4">
+															<div>
+																<label className="block text-sm font-medium text-gray-700 mb-2">
 																		Select Correct Answer(s)
-																	</label>
-																	<div className="space-y-2">
-																		{editForm.options.map((opt, optIdx) => {
-																			const isCorrect = Array.isArray(editForm.correctAnswer) 
-																				? editForm.correctAnswer.includes(optIdx)
-																				: editForm.correctAnswer === optIdx;
+																</label>
+																<div className="space-y-2">
+																	{editForm.options.map(
+																		(opt, optIdx) => {
+																			const isCorrect =
+																					Array.isArray(
+																						editForm.correctAnswer
+																					)
+																						? editForm.correctAnswer.includes(
+																							optIdx
+																						)
+																						: editForm.correctAnswer ===
+																							optIdx;
 																			return (
-																				<div key={optIdx} className="flex items-center gap-2">
+																				<div
+																					key={optIdx}
+																					className="flex items-center gap-2"
+																				>
 																					<button
 																						type="button"
-																						onClick={() => toggleCorrectAnswer(s._id, idx, optIdx)}
+																						onClick={() =>
+																							toggleCorrectAnswer(
+																								s._id,
+																								idx,
+																								optIdx
+																							)
+																						}
 																						className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-																							isCorrect 
-																								? 'bg-green-500 border-green-500 text-white' 
+																							isCorrect
+																								? 'bg-green-500 border-green-500 text-white'
 																								: 'border-gray-300 hover:border-green-400'
 																						}`}
 																					>
 																						{isCorrect && (
-																							<svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-																								<path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+																							<svg
+																								className="w-3 h-3"
+																								fill="currentColor"
+																								viewBox="0 0 20 20"
+																							>
+																								<path
+																									fillRule="evenodd"
+																									d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+																									clipRule="evenodd"
+																								/>
 																							</svg>
 																						)}
 																					</button>
 																					<span className="text-sm text-gray-700">
-																						{opt || `Option ${optIdx + 1}`}
+																						{opt ||
+																								`Option ${optIdx + 1}`}
 																					</span>
 																				</div>
 																			);
-																		})}
-																	</div>
+																		}
+																	)}
+																</div>
+																<div className="text-xs text-gray-500 mt-1">
+																		Click the checkboxes to
+																		select multiple correct
+																		answers
+																</div>
+															</div>
+															{s.scoringSettings
+																?.customScoringRules
+																?.useCustomPoints && (
+																<div>
+																	<label className="block text-sm font-medium text-gray-700 mb-2">
+																			Question Points
+																	</label>
+																	<input
+																		type="number"
+																		className="input-field w-full"
+																		placeholder={`Default points: ${s.scoringSettings.customScoringRules.defaultQuestionPoints}`}
+																		value={
+																			editForm.points ||
+																				''
+																		}
+																		onChange={e =>
+																			handleQuestionEditChange(
+																				s._id,
+																				idx,
+																				'points',
+																				e.target.value
+																					? parseInt(
+																						e
+																							.target
+																							.value
+																					)
+																					: undefined
+																			)
+																		}
+																		min="1"
+																		max="100"
+																	/>
 																	<div className="text-xs text-gray-500 mt-1">
-																		Click the checkboxes to select multiple correct answers
+																			Leave empty to use
+																			default points (
+																		{
+																			s.scoringSettings
+																				.customScoringRules
+																				.defaultQuestionPoints
+																		}{' '}
+																			points)
 																	</div>
 																</div>
-																{s.scoringSettings?.customScoringRules?.useCustomPoints && (
-																	<div>
-																		<label className="block text-sm font-medium text-gray-700 mb-2">
-																			Question Points
-																		</label>
-																		<input
-																			type="number"
-																			className="input-field w-full"
-																			placeholder={`Default points: ${s.scoringSettings.customScoringRules.defaultQuestionPoints}`}
-																			value={editForm.points || ''}
-																			onChange={e =>
-																				handleQuestionEditChange(
-																					s._id,
-																					idx,
-																					'points',
-																					e.target.value ? parseInt(e.target.value) : undefined
-																				)
-																			}
-																			min="1"
-																			max="100"
-																		/>
-																		<div className="text-xs text-gray-500 mt-1">
-																			Leave empty to use default points (
-																			{s.scoringSettings.customScoringRules.defaultQuestionPoints} points)
-																		</div>
-																	</div>
-																)}
-															</div>
-														)}
+															)}
+														</div>
+													)}
 													<div className="flex gap-2 pt-2">
 														<button
 															className="btn-primary text-sm"
-															onClick={() => saveQuestionEdit(s._id, idx)}
+															onClick={() =>
+																saveQuestionEdit(s._id, idx)
+															}
 															type="button"
 															disabled={
 																!editForm?.text ||
 																!editForm?.options ||
-																editForm.options.filter(opt => opt.trim()).length === 0 ||
-																(['assessment', 'quiz', 'iq'].includes(s.type) &&
-																	editForm.correctAnswer === undefined)
+																editForm.options.filter(opt =>
+																	opt.trim()
+																).length === 0 ||
+																([
+																	'assessment',
+																	'quiz',
+																	'iq',
+																].includes(s.type) &&
+																	editForm.correctAnswer ===
+																		undefined)
 															}
 														>
 															Save
 														</button>
 														<button
 															className="btn-secondary text-sm"
-															onClick={() => cancelEditQuestion(s._id)}
+															onClick={() =>
+																cancelEditQuestion(s._id)
+															}
 															type="button"
 														>
 															Cancel
@@ -1247,20 +1374,26 @@ const Admin: React.FC = () => {
 															{idx + 1}. {q.text}
 														</div>
 														<div className="flex items-center gap-2">
-															{['assessment', 'quiz', 'iq'].includes(s.type) && (
+															{['assessment', 'quiz', 'iq'].includes(
+																s.type
+															) && (
 																<div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
 																	{q.points || 1} pts
 																</div>
 															)}
 															<button
 																className="btn-secondary text-sm px-3 py-1"
-																onClick={() => startEditQuestion(s._id, idx)}
+																onClick={() =>
+																	startEditQuestion(s._id, idx)
+																}
 															>
 																Edit
 															</button>
 															<button
 																className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
-																onClick={() => deleteQuestion(s._id, idx)}
+																onClick={() =>
+																	deleteQuestion(s._id, idx)
+																}
 															>
 																Delete
 															</button>
@@ -1269,7 +1402,9 @@ const Admin: React.FC = () => {
 													<div className="text-sm text-gray-600 mb-1">
 														Options:{' '}
 														{q.options.map((opt, optIdx) => {
-															const isCorrect = Array.isArray(q.correctAnswer) 
+															const isCorrect = Array.isArray(
+																q.correctAnswer
+															)
 																? q.correctAnswer.includes(optIdx)
 																: q.correctAnswer === optIdx;
 															return (
@@ -1278,21 +1413,34 @@ const Admin: React.FC = () => {
 																	className={`${['assessment', 'quiz', 'iq'].includes(s.type) && isCorrect ? 'font-semibold text-green-600' : ''}`}
 																>
 																	{opt}
-																	{optIdx < q.options.length - 1 ? ', ' : ''}
+																	{optIdx < q.options.length - 1
+																		? ', '
+																		: ''}
 																</span>
 															);
 														})}
 													</div>
-													{['assessment', 'quiz', 'iq'].includes(s.type) &&
+													{['assessment', 'quiz', 'iq'].includes(
+														s.type
+													) &&
 														q.correctAnswer !== undefined && (
-															<div className="text-xs text-green-600 font-medium">
-																✓ Correct Answer{Array.isArray(q.correctAnswer) && q.correctAnswer.length > 1 ? 's' : ''}: {
-																	Array.isArray(q.correctAnswer) 
-																		? q.correctAnswer.map(idx => q.options[idx]).join(', ')
-																		: q.options[q.correctAnswer]
-																}
-															</div>
-														)}
+														<div className="text-xs text-green-600 font-medium">
+																✓ Correct Answer
+															{Array.isArray(q.correctAnswer) &&
+																q.correctAnswer.length > 1
+																? 's'
+																: ''}
+																:{' '}
+															{Array.isArray(q.correctAnswer)
+																? q.correctAnswer
+																	.map(
+																		idx =>
+																			q.options[idx]
+																	)
+																	.join(', ')
+																: q.options[q.correctAnswer]}
+														</div>
+													)}
 												</div>
 											)}
 										</div>
@@ -1370,90 +1518,140 @@ const Admin: React.FC = () => {
 								</div>
 								{['assessment', 'quiz', 'iq'].includes(s.type) &&
 									currentForm.options.length > 0 && (
-										<div className="space-y-4">
+									<div className="space-y-4">
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-2">
+													Select Correct Answer(s)
+											</label>
+											<div className="space-y-2">
+												{currentForm.options.map((opt, idx) => {
+													const isCorrect = Array.isArray(
+														currentForm.correctAnswer
+													)
+														? currentForm.correctAnswer.includes(
+															idx
+														)
+														: currentForm.correctAnswer === idx;
+													return (
+														<div
+															key={idx}
+															className="flex items-center gap-2"
+														>
+															<button
+																type="button"
+																onClick={() => {
+																	const newCorrectAnswer =
+																			isCorrect
+																				? Array.isArray(
+																					currentForm.correctAnswer
+																				)
+																					? currentForm.correctAnswer.filter(
+																						i =>
+																							i !==
+																								idx
+																					)
+																					: undefined
+																				: Array.isArray(
+																					currentForm.correctAnswer
+																					  )
+																					? [
+																						...currentForm.correctAnswer,
+																						idx,
+																					].sort(
+																						(
+																							a,
+																							b
+																						) =>
+																							a -
+																								b
+																					)
+																					: currentForm.correctAnswer !==
+																						  undefined
+																						? [
+																							currentForm.correctAnswer,
+																							idx,
+																						].sort(
+																							(
+																								a,
+																								b
+																							) =>
+																								a -
+																									b
+																						)
+																						: idx;
+																	handleQuestionChange(
+																		s._id,
+																		'correctAnswer',
+																		newCorrectAnswer
+																	);
+																}}
+																className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+																	isCorrect
+																		? 'bg-green-500 border-green-500 text-white'
+																		: 'border-gray-300 hover:border-green-400'
+																}`}
+															>
+																{isCorrect && (
+																	<svg
+																		className="w-3 h-3"
+																		fill="currentColor"
+																		viewBox="0 0 20 20"
+																	>
+																		<path
+																			fillRule="evenodd"
+																			d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+																			clipRule="evenodd"
+																		/>
+																	</svg>
+																)}
+															</button>
+															<span className="text-sm text-gray-700">
+																{opt || `Option ${idx + 1}`}
+															</span>
+														</div>
+													);
+												})}
+											</div>
+											<div className="text-xs text-gray-500 mt-1">
+													Click the checkboxes to select multiple correct
+													answers
+											</div>
+										</div>
+										{s.scoringSettings?.customScoringRules
+											?.useCustomPoints && (
 											<div>
 												<label className="block text-sm font-medium text-gray-700 mb-2">
-													Select Correct Answer(s)
+														Question Points
 												</label>
-												<div className="space-y-2">
-													{currentForm.options.map((opt, idx) => {
-														const isCorrect = Array.isArray(currentForm.correctAnswer) 
-															? currentForm.correctAnswer.includes(idx)
-															: currentForm.correctAnswer === idx;
-														return (
-															<div key={idx} className="flex items-center gap-2">
-																<button
-																	type="button"
-																	onClick={() => {
-																		const newCorrectAnswer = isCorrect 
-																			? (Array.isArray(currentForm.correctAnswer) 
-																				? currentForm.correctAnswer.filter(i => i !== idx)
-																				: undefined)
-																			: (Array.isArray(currentForm.correctAnswer)
-																				? [...currentForm.correctAnswer, idx].sort((a, b) => a - b)
-																				: currentForm.correctAnswer !== undefined
-																					? [currentForm.correctAnswer, idx].sort((a, b) => a - b)
-																					: idx);
-																		handleQuestionChange(s._id, 'correctAnswer', newCorrectAnswer);
-																	}}
-																	className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-																		isCorrect 
-																			? 'bg-green-500 border-green-500 text-white' 
-																			: 'border-gray-300 hover:border-green-400'
-																	}`}
-																>
-																	{isCorrect && (
-																		<svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-																			<path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-																		</svg>
-																	)}
-																</button>
-																<span className="text-sm text-gray-700">
-																	{opt || `Option ${idx + 1}`}
-																</span>
-															</div>
-														);
-													})}
-												</div>
+												<input
+													type="number"
+													className="input-field w-full"
+													placeholder={`Default points: ${s.scoringSettings.customScoringRules.defaultQuestionPoints}`}
+													value={currentForm.points || ''}
+													onChange={e =>
+														handleQuestionChange(
+															s._id,
+															'points',
+															e.target.value
+																? parseInt(e.target.value)
+																: undefined
+														)
+													}
+													min="1"
+													max="100"
+												/>
 												<div className="text-xs text-gray-500 mt-1">
-													Click the checkboxes to select multiple correct answers
+														Leave empty to use default points (
+													{
+														s.scoringSettings.customScoringRules
+															.defaultQuestionPoints
+													}{' '}
+														points)
 												</div>
 											</div>
-											{s.scoringSettings?.customScoringRules
-												?.useCustomPoints && (
-												<div>
-													<label className="block text-sm font-medium text-gray-700 mb-2">
-														Question Points
-													</label>
-													<input
-														type="number"
-														className="input-field w-full"
-														placeholder={`Default points: ${s.scoringSettings.customScoringRules.defaultQuestionPoints}`}
-														value={currentForm.points || ''}
-														onChange={e =>
-															handleQuestionChange(
-																s._id,
-																'points',
-																e.target.value
-																	? parseInt(e.target.value)
-																	: undefined
-															)
-														}
-														min="1"
-														max="100"
-													/>
-													<div className="text-xs text-gray-500 mt-1">
-														Leave empty to use default points (
-														{
-															s.scoringSettings.customScoringRules
-																.defaultQuestionPoints
-														}{' '}
-														points)
-													</div>
-												</div>
-											)}
-										</div>
-									)}
+										)}
+									</div>
+								)}
 								<button
 									className="btn-primary text-sm"
 									onClick={() => addQuestion(s._id)}
@@ -1572,11 +1770,11 @@ const Admin: React.FC = () => {
 													const percentage =
 														stats[s._id].summary.totalResponses > 0
 															? (
-																	(count /
+																(count /
 																		stats[s._id].summary
 																			.totalResponses) *
 																	100
-																).toFixed(1)
+															).toFixed(1)
 															: 0;
 													return (
 														<div
@@ -1819,8 +2017,8 @@ const Admin: React.FC = () => {
 								max={
 									newSurvey.questionBankId
 										? questionBanks.find(
-												b => b._id === newSurvey.questionBankId
-											)?.questions.length || 100
+											b => b._id === newSurvey.questionBankId
+										)?.questions.length || 100
 										: 100
 								}
 							/>
@@ -2626,8 +2824,6 @@ const Admin: React.FC = () => {
 			</Modal>
 		);
 	}
-
-
 };
 
 export default Admin;

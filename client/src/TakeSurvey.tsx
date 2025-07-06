@@ -452,10 +452,10 @@ const TakeSurvey: React.FC = () => {
 									{survey?.sourceType === 'question_bank' &&
 										form.email &&
 										!questionsLoaded && (
-											<div className="text-sm text-blue-600 mt-1">
+										<div className="text-sm text-blue-600 mt-1">
 												Loading randomized questions...
-											</div>
-										)}
+										</div>
+									)}
 								</div>
 							</div>
 
@@ -535,70 +535,70 @@ const TakeSurvey: React.FC = () => {
 						{['assessment', 'quiz', 'iq'].includes(survey?.type || '') &&
 						assessmentResults.length > 0 &&
 						scoringResult ? (
-							<div>
-								<div className="text-center mb-6">
-									<div
-										className={`text-6xl mb-4 ${scoringResult.passed ? 'text-green-500' : 'text-red-500'}`}
-									>
-										{scoringResult.passed ? '🎉' : '📊'}
-									</div>
-									<h2 className="text-3xl font-bold text-gray-800 mb-2">
-										{scoringResult.passed
-											? 'Congratulations! You Passed!'
-											: 'Assessment Results'}
-									</h2>
-									<div className="space-y-2 mb-4">
+								<div>
+									<div className="text-center mb-6">
 										<div
-											className={`text-2xl font-bold ${scoringResult.passed ? 'text-green-600' : 'text-red-600'}`}
+											className={`text-6xl mb-4 ${scoringResult.passed ? 'text-green-500' : 'text-red-500'}`}
 										>
-											{scoringResult.scoringMode === 'percentage'
-												? `${scoringResult.displayScore} points`
-												: `${scoringResult.displayScore} / ${scoringResult.maxPossiblePoints} points`}
+											{scoringResult.passed ? '🎉' : '📊'}
 										</div>
-										<div className="text-sm text-gray-600">
-											{scoringResult.scoringDescription}
-										</div>
-										<div className="text-sm text-gray-600">
+										<h2 className="text-3xl font-bold text-gray-800 mb-2">
+											{scoringResult.passed
+												? 'Congratulations! You Passed!'
+												: 'Assessment Results'}
+										</h2>
+										<div className="space-y-2 mb-4">
+											<div
+												className={`text-2xl font-bold ${scoringResult.passed ? 'text-green-600' : 'text-red-600'}`}
+											>
+												{scoringResult.scoringMode === 'percentage'
+													? `${scoringResult.displayScore} points`
+													: `${scoringResult.displayScore} / ${scoringResult.maxPossiblePoints} points`}
+											</div>
+											<div className="text-sm text-gray-600">
+												{scoringResult.scoringDescription}
+											</div>
+											<div className="text-sm text-gray-600">
 											Correct answers: {scoringResult.correctAnswers} /{' '}
-											{scoringResult.correctAnswers +
+												{scoringResult.correctAnswers +
 												scoringResult.wrongAnswers}
+											</div>
 										</div>
 									</div>
-								</div>
 
-								{survey?.scoringSettings?.showScoreBreakdown && (
-									<div className="space-y-4 mb-6">
-										{assessmentResults.map((result, index) => (
-											<div
-												key={result.questionId}
-												className={`p-4 rounded-lg border-2 ${result.isCorrect ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'}`}
-											>
-												<div className="flex items-center justify-between mb-2">
-													<div className="flex items-center gap-2">
-														<span
-															className={`text-2xl ${result.isCorrect ? 'text-green-600' : 'text-red-600'}`}
+									{survey?.scoringSettings?.showScoreBreakdown && (
+										<div className="space-y-4 mb-6">
+											{assessmentResults.map((result, index) => (
+												<div
+													key={result.questionId}
+													className={`p-4 rounded-lg border-2 ${result.isCorrect ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'}`}
+												>
+													<div className="flex items-center justify-between mb-2">
+														<div className="flex items-center gap-2">
+															<span
+																className={`text-2xl ${result.isCorrect ? 'text-green-600' : 'text-red-600'}`}
+															>
+																{result.isCorrect ? '✅' : '❌'}
+															</span>
+															<div className="font-semibold text-gray-800">
+																{index + 1}. {result.questionText}
+															</div>
+														</div>
+														<div
+															className={`text-sm font-medium px-2 py-1 rounded ${result.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
 														>
-															{result.isCorrect ? '✅' : '❌'}
-														</span>
-														<div className="font-semibold text-gray-800">
-															{index + 1}. {result.questionText}
+															{result.pointsAwarded}/{result.maxPoints}{' '}
+														pts
 														</div>
 													</div>
-													<div
-														className={`text-sm font-medium px-2 py-1 rounded ${result.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
-													>
-														{result.pointsAwarded}/{result.maxPoints}{' '}
-														pts
-													</div>
-												</div>
-												<div className="space-y-1 text-sm">
-													<div className="text-gray-700">
-														<span className="font-medium">
+													<div className="space-y-1 text-sm">
+														<div className="text-gray-700">
+															<span className="font-medium">
 															Your answer:
-														</span>{' '}
-														{result.userAnswer}
-													</div>
-													{!result.isCorrect &&
+															</span>{' '}
+															{result.userAnswer}
+														</div>
+														{!result.isCorrect &&
 														survey?.scoringSettings
 															?.showCorrectAnswers && (
 															<div className="text-green-700">
@@ -608,17 +608,49 @@ const TakeSurvey: React.FC = () => {
 																{result.correctAnswer}
 															</div>
 														)}
+													</div>
 												</div>
-											</div>
-										))}
-									</div>
-								)}
+											))}
+										</div>
+									)}
 
+									<div className="text-center">
+										<button
+											onClick={() => {
+												if (slug) {
+												// If we're on a specific survey page, reset the form
+													setSubmitted(false);
+													setForm({ name: '', email: '', answers: {} });
+													setAssessmentResults([]);
+													setScoringResult(null);
+													setQuestions([]);
+													setQuestionsLoaded(false);
+												} else {
+												// If we're on the home page, go back to survey list
+													navigate('/');
+												}
+											}}
+											className="btn-secondary"
+										>
+											{slug
+												? 'Take This Assessment Again'
+												: 'Choose Another Survey'}
+										</button>
+									</div>
+								</div>
+							) : (
 								<div className="text-center">
+									<div className="text-green-500 text-6xl mb-4">✅</div>
+									<h2 className="text-3xl font-bold text-gray-800 mb-4">
+									Thank You!
+									</h2>
+									<p className="text-gray-600 text-lg mb-6">
+									Your survey response has been submitted successfully.
+									</p>
 									<button
 										onClick={() => {
 											if (slug) {
-												// If we're on a specific survey page, reset the form
+											// If we're on a specific survey page, reset the form
 												setSubmitted(false);
 												setForm({ name: '', email: '', answers: {} });
 												setAssessmentResults([]);
@@ -626,48 +658,16 @@ const TakeSurvey: React.FC = () => {
 												setQuestions([]);
 												setQuestionsLoaded(false);
 											} else {
-												// If we're on the home page, go back to survey list
+											// If we're on the home page, go back to survey list
 												navigate('/');
 											}
 										}}
 										className="btn-secondary"
 									>
-										{slug
-											? 'Take This Assessment Again'
-											: 'Choose Another Survey'}
+										{slug ? 'Take This Survey Again' : 'Choose Another Survey'}
 									</button>
 								</div>
-							</div>
-						) : (
-							<div className="text-center">
-								<div className="text-green-500 text-6xl mb-4">✅</div>
-								<h2 className="text-3xl font-bold text-gray-800 mb-4">
-									Thank You!
-								</h2>
-								<p className="text-gray-600 text-lg mb-6">
-									Your survey response has been submitted successfully.
-								</p>
-								<button
-									onClick={() => {
-										if (slug) {
-											// If we're on a specific survey page, reset the form
-											setSubmitted(false);
-											setForm({ name: '', email: '', answers: {} });
-											setAssessmentResults([]);
-											setScoringResult(null);
-											setQuestions([]);
-											setQuestionsLoaded(false);
-										} else {
-											// If we're on the home page, go back to survey list
-											navigate('/');
-										}
-									}}
-									className="btn-secondary"
-								>
-									{slug ? 'Take This Survey Again' : 'Choose Another Survey'}
-								</button>
-							</div>
-						)}
+							)}
 					</div>
 				)}
 			</div>
