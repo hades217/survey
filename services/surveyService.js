@@ -9,8 +9,46 @@ async function saveSurveyResponse(data) {
 		throw new Error('Survey not found');
 	}
 	
-	// Create the response
-	const response = new ResponseModel(data);
+	// Process answers to convert new format (string values) to old format (indices)
+	const processedAnswers = new Map();
+	
+	if (Array.isArray(data.answers)) {
+		// New format: array of answers (string values)
+		data.answers.forEach((answer, index) => {
+			if (answer !== null && answer !== undefined && answer !== '') {
+				const question = survey.questions[index];
+				if (question) {
+					if (question.type === 'single_choice') {
+						// Find the index of the selected option
+						const optionIndex = question.options.indexOf(answer);
+						if (optionIndex !== -1) {
+							processedAnswers.set(index.toString(), optionIndex);
+						}
+					} else if (question.type === 'multiple_choice' && Array.isArray(answer)) {
+						// Find the indices of the selected options
+						const optionIndices = answer.map(opt => question.options.indexOf(opt))
+							.filter(idx => idx !== -1);
+						if (optionIndices.length > 0) {
+							processedAnswers.set(index.toString(), optionIndices);
+						}
+					}
+				}
+			}
+		});
+	} else {
+		// Old format: object with question IDs as keys
+		Object.entries(data.answers).forEach(([questionId, answer]) => {
+			if (answer !== null && answer !== undefined && answer !== '') {
+				processedAnswers.set(questionId, answer);
+			}
+		});
+	}
+	
+	// Create the response with processed answers
+	const response = new ResponseModel({
+		...data,
+		answers: processedAnswers
+	});
 	
 	// Calculate score if it's a quiz/assessment/iq
 	if (survey.requiresAnswers) {

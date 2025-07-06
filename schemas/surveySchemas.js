@@ -20,6 +20,10 @@ const surveyCreateSchema = z.object({
 	title: z.string().min(1, 'Title is required'),
 	description: z.string().optional(),
 	type: z.enum([SURVEY_TYPE.SURVEY, SURVEY_TYPE.ASSESSMENT, SURVEY_TYPE.QUIZ, SURVEY_TYPE.IQ]),
+	timeLimit: z.number().positive().optional(), // in minutes
+	maxAttempts: z.number().positive().default(1),
+	instructions: z.string().optional(),
+	navigationMode: z.enum(['step-by-step', 'paginated', 'all-in-one']).default('step-by-step'),
 	questions: z.array(questionSchema).min(1, 'At least one question is required'),
 	distributionSettings: z.object({
 		allowAnonymous: z.boolean().default(true),
@@ -73,11 +77,18 @@ const surveyResponseSchema = z.object({
 	name: z.string().min(1, 'Name is required'),
 	email: z.string().email('Valid email is required'),
 	surveyId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid survey ID'),
-	answers: z.record(z.string(), z.union([
-		z.number().int().min(0), // Single choice answer
-		z.array(z.number().int().min(0)) // Multiple choice answers
-	])),
+	answers: z.union([
+		z.record(z.string(), z.union([
+			z.number().int().min(0), // Single choice answer (legacy format)
+			z.array(z.number().int().min(0)) // Multiple choice answers (legacy format)
+		])),
+		z.array(z.union([
+			z.string(), // Single choice answer (new format)
+			z.array(z.string()) // Multiple choice answers (new format)
+		]))
+	]),
 	timeSpent: z.number().min(0).optional(),
+	isAutoSubmit: z.boolean().optional(),
 	metadata: z.object({
 		userAgent: z.string().optional(),
 		ipAddress: z.string().optional(),
