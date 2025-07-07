@@ -15,8 +15,8 @@ router.delete('/:id', questionBankController.deleteQuestionBank);
 
 // Question management routes
 router.post('/:id/questions', questionBankController.addQuestion);
-router.put('/:id/questions/:questionIndex', questionBankController.updateQuestion);
-router.delete('/:id/questions/:questionIndex', questionBankController.deleteQuestion);
+router.put('/:id/questions/:questionId', questionBankController.updateQuestion);
+router.delete('/:id/questions/:questionId', questionBankController.deleteQuestion);
 
 // Utility routes
 router.get('/:id/random-questions', questionBankController.getRandomQuestions);

@@ -54,6 +54,18 @@ const surveyCreateSchema = z
 	})
 	.refine(
 		data => {
+			// Validate that survey type cannot use question banks
+			if (data.type === SURVEY_TYPE.SURVEY && data.sourceType === 'question_bank') {
+				return false;
+			}
+			return true;
+		},
+		{
+			message: 'Survey type cannot use question banks. Please use manual question creation.',
+		}
+	)
+	.refine(
+		data => {
 			// Validate that quiz/assessment/iq questions have correct answers
 			const requiresAnswers = TYPES_REQUIRING_ANSWERS.includes(data.type);
 
