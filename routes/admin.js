@@ -14,6 +14,14 @@ const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'password';
 const RESPONSES_FILE = path.join(__dirname, '..', 'responses.json');
 
+router.get('/check-auth', (req, res) => {
+	if (req.session.admin) {
+		res.json({ success: true, authenticated: true });
+	} else {
+		res.status(HTTP_STATUS.UNAUTHORIZED).json({ success: false, authenticated: false });
+	}
+});
+
 router.post('/login', (req, res) => {
 	const { username, password } = req.body;
 	if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
@@ -38,6 +46,13 @@ router.post(
 		const surveyData = { ...req.body };
 		if (surveyData.title && !surveyData.slug) {
 			surveyData.slug = await Survey.generateSlug(surveyData.title);
+		}
+
+		// Ensure isActive and status are in sync
+		if (surveyData.status) {
+			surveyData.isActive = surveyData.status === 'active';
+		} else if (surveyData.isActive !== undefined) {
+			surveyData.status = surveyData.isActive ? 'active' : 'draft';
 		}
 
 		const survey = new Survey(surveyData);
@@ -69,7 +84,15 @@ router.put(
 				.status(HTTP_STATUS.UNAUTHORIZED)
 				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
 		}
-		const survey = await Survey.findByIdAndUpdate(req.params.id, req.body, { new: true });
+		// Ensure isActive and status are in sync
+		const updateData = { ...req.body };
+		if (updateData.status) {
+			updateData.isActive = updateData.status === 'active';
+		} else if (updateData.isActive !== undefined) {
+			updateData.status = updateData.isActive ? 'active' : 'draft';
+		}
+
+		const survey = await Survey.findByIdAndUpdate(req.params.id, updateData, { new: true });
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
@@ -644,6 +667,30 @@ router.get(
 				invitations: recentInvitations,
 			},
 		});
+	})
+);
+
+// Toggle survey active status
+router.put(
+	'/surveys/:id/toggle-status',
+	asyncHandler(async (req, res) => {
+		if (!req.session.admin) {
+			return res
+				.status(HTTP_STATUS.UNAUTHORIZED)
+				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
+		}
+		
+		const survey = await Survey.findById(req.params.id);
+		if (!survey) {
+			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+		}
+		
+		// Toggle both isActive and status fields to keep them in sync
+		survey.isActive = !survey.isActive;
+		survey.status = survey.isActive ? 'active' : 'draft';
+		await survey.save();
+		
+		res.json(survey);
 	})
 );
 

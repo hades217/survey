@@ -171,7 +171,7 @@ exports.addQuestion = async (req, res) => {
 // Update a question in a question bank
 exports.updateQuestion = async (req, res) => {
 	try {
-		const { questionIndex } = req.params;
+		const { questionId } = req.params;
 		const { text, type, options, correctAnswer, explanation, points, tags, difficulty } =
 			req.body;
 
@@ -181,14 +181,15 @@ exports.updateQuestion = async (req, res) => {
 			return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Question bank not found' });
 		}
 
-		const qIndex = parseInt(questionIndex);
-
-		if (isNaN(qIndex) || qIndex < 0 || qIndex >= questionBank.questions.length) {
-			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Invalid question index' });
+		// Find question by ID
+		const questionIndex = questionBank.questions.findIndex(q => q._id.toString() === questionId);
+		
+		if (questionIndex === -1) {
+			return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Question not found' });
 		}
 
 		// Update the question
-		const question = questionBank.questions[qIndex];
+		const question = questionBank.questions[questionIndex];
 		if (text !== undefined) question.text = text.trim();
 		if (type !== undefined) question.type = type;
 		if (options !== undefined)
@@ -211,7 +212,7 @@ exports.updateQuestion = async (req, res) => {
 // Delete a question from a question bank
 exports.deleteQuestion = async (req, res) => {
 	try {
-		const { questionIndex } = req.params;
+		const { questionId } = req.params;
 
 		const questionBank = await QuestionBank.findById(req.params.id);
 
@@ -219,13 +220,14 @@ exports.deleteQuestion = async (req, res) => {
 			return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Question bank not found' });
 		}
 
-		const qIndex = parseInt(questionIndex);
-
-		if (isNaN(qIndex) || qIndex < 0 || qIndex >= questionBank.questions.length) {
-			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Invalid question index' });
+		// Find question by ID
+		const questionIndex = questionBank.questions.findIndex(q => q._id.toString() === questionId);
+		
+		if (questionIndex === -1) {
+			return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Question not found' });
 		}
 
-		questionBank.questions.splice(qIndex, 1);
+		questionBank.questions.splice(questionIndex, 1);
 		await questionBank.save();
 
 		res.status(HTTP_STATUS.OK).json(questionBank);
