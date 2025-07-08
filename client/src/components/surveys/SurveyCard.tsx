@@ -39,9 +39,9 @@ const SurveyCard: React.FC<SurveyCardProps> = ({ survey }) => {
 						</h3>
 						<span className={`px-2 py-1 text-xs font-medium rounded-full ${
 							survey.type === 'survey' ? 'bg-blue-100 text-blue-800' :
-							survey.type === 'assessment' ? 'bg-green-100 text-green-800' :
-							survey.type === 'quiz' ? 'bg-purple-100 text-purple-800' :
-							'bg-orange-100 text-orange-800'
+								survey.type === 'assessment' ? 'bg-green-100 text-green-800' :
+									survey.type === 'quiz' ? 'bg-purple-100 text-purple-800' :
+										'bg-orange-100 text-orange-800'
 						}`}>
 							{survey.type ? survey.type.charAt(0).toUpperCase() + survey.type.slice(1) : 'Unknown'}
 						</span>
@@ -52,7 +52,7 @@ const SurveyCard: React.FC<SurveyCardProps> = ({ survey }) => {
 						)}
 						<span className={`px-2 py-1 text-xs font-medium rounded-full ${
 							survey.status === 'active' ? 'bg-green-100 text-green-800' : 
-							survey.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+								survey.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
 						}`}>
 							{survey.status === 'active' ? 'Active' : 
 							 survey.status === 'draft' ? 'Draft' : 'Closed'}
@@ -66,60 +66,12 @@ const SurveyCard: React.FC<SurveyCardProps> = ({ survey }) => {
 					</div>
 				</div>
 			</div>
-
-			<div className="flex items-center gap-2">
-				<input
-					type="text"
-					value={surveyUrl}
-					readOnly
-					className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
-				/>
-				<button
-					className="btn-secondary text-sm"
-					onClick={() => copyToClipboard(surveyUrl)}
-				>
-					Copy
-				</button>
-				<button
-					className="btn-secondary text-sm"
-					onClick={() => toggleQR(survey._id)}
-				>
-					QR
-				</button>
-			</div>
-
-			{showQR[survey._id] && (
-				<div className="mt-4 p-4 bg-gray-50 rounded-lg text-center">
-					<div className="w-32 h-32 mx-auto bg-white p-2 rounded border">
-						<div className="w-full h-full bg-gray-200 flex items-center justify-center text-xs text-gray-500">
-							QR Code for<br/>{survey.title}
-						</div>
-					</div>
-				</div>
-			)}
-
 			<div className="flex gap-2 mt-4">
 				<button
 					className="btn-primary text-sm"
 					onClick={() => handleSurveyClick(survey)}
 				>
 					Manage
-				</button>
-				<button
-					className="btn-secondary text-sm"
-					onClick={() => openEditModal(survey)}
-				>
-					Edit
-				</button>
-				<button
-					className={`text-sm px-3 py-1 rounded-lg transition-colors ${
-						survey.status === 'active'
-							? 'bg-red-600 hover:bg-red-700 text-white'
-							: 'bg-green-600 hover:bg-green-700 text-white'
-					}`}
-					onClick={() => toggleSurveyStatus(survey._id)}
-				>
-					{survey.status === 'active' ? 'Deactivate' : 'Activate'}
 				</button>
 				<button
 					className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
