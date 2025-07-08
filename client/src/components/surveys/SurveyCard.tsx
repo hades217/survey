@@ -51,9 +51,11 @@ const SurveyCard: React.FC<SurveyCardProps> = ({ survey }) => {
 							</span>
 						)}
 						<span className={`px-2 py-1 text-xs font-medium rounded-full ${
-							survey.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+							survey.status === 'active' ? 'bg-green-100 text-green-800' : 
+							survey.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
 						}`}>
-							{survey.isActive ? 'Active' : 'Inactive'}
+							{survey.status === 'active' ? 'Active' : 
+							 survey.status === 'draft' ? 'Draft' : 'Closed'}
 						</span>
 					</div>
 					<p className="text-gray-600 mb-2">{survey.description || 'No description'}</p>
@@ -111,13 +113,13 @@ const SurveyCard: React.FC<SurveyCardProps> = ({ survey }) => {
 				</button>
 				<button
 					className={`text-sm px-3 py-1 rounded-lg transition-colors ${
-						survey.isActive
+						survey.status === 'active'
 							? 'bg-red-600 hover:bg-red-700 text-white'
 							: 'bg-green-600 hover:bg-green-700 text-white'
 					}`}
 					onClick={() => toggleSurveyStatus(survey._id)}
 				>
-					{survey.isActive ? 'Deactivate' : 'Activate'}
+					{survey.status === 'active' ? 'Deactivate' : 'Activate'}
 				</button>
 				<button
 					className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"

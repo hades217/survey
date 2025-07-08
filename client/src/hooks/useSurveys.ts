@@ -81,10 +81,11 @@ export const useSurveys = () => {
 		setLoading(true);
 		setError('');
 		try {
-			// Convert isActive to status field for backend
+			// Use status field directly
 			const surveyData = {
 				...newSurvey,
-				status: newSurvey.isActive ? 'active' : 'draft'
+				// Ensure isActive matches status for backward compatibility
+				isActive: newSurvey.status === 'active'
 			};
 			
 			const response = await axios.post('/api/admin/surveys', surveyData);
@@ -95,7 +96,7 @@ export const useSurveys = () => {
 				slug: '',
 				type: 'survey',
 				questions: [],
-				isActive: true,
+				status: 'draft',
 				timeLimit: undefined,
 				maxAttempts: undefined,
 				instructions: '',
@@ -126,10 +127,11 @@ export const useSurveys = () => {
 
 	const updateSurvey = async (surveyId: string, surveyData: any) => {
 		try {
-			// Convert isActive to status field for backend
+			// Use status field directly and ensure isActive matches
 			const dataToSend = {
 				...surveyData,
-				status: surveyData.isActive ? 'active' : 'draft'
+				// Ensure isActive matches status for backward compatibility
+				isActive: surveyData.status === 'active'
 			};
 			
 			const response = await axios.put(`/api/admin/surveys/${surveyId}`, dataToSend);
@@ -193,7 +195,7 @@ export const useSurveys = () => {
 			slug: survey.slug,
 			type: survey.type,
 			questions: survey.questions,
-			isActive: survey.isActive,
+			status: survey.status || 'draft',
 			timeLimit: survey.timeLimit,
 			maxAttempts: survey.maxAttempts,
 			instructions: survey.instructions,
@@ -225,7 +227,7 @@ export const useSurveys = () => {
 			slug: '',
 			type: 'survey',
 			questions: [],
-			isActive: true,
+			status: 'draft',
 			timeLimit: undefined,
 			maxAttempts: undefined,
 			instructions: '',
