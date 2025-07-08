@@ -34,7 +34,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	} = useAdmin();
 
   
-	const { deleteSurvey, toggleSurveyStatus, addQuestion, deleteQuestion, loadStats } = useSurveys();
+	const { deleteSurvey, toggleSurveyStatus, addQuestion, updateQuestion, deleteQuestion, loadStats } = useSurveys();
   
 	// Local state for question editing
 	const [questionEditForms, setQuestionEditForms] = useState<Record<string, QuestionForm>>({});
@@ -97,6 +97,9 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			[surveyId]: {
 				text: '',
 				options: [],
+				type: 'single_choice',
+				correctAnswer: undefined,
+				points: undefined,
 				...prev[surveyId],
 				[field]: value
 			}
@@ -105,7 +108,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 
 	const addOption = (surveyId: string) => {
 		setQuestionForms(prev => {
-			const currentForm = prev[surveyId] || { text: '', options: [] };
+			const currentForm = prev[surveyId] || { text: '', options: [], type: 'single_choice', correctAnswer: undefined, points: undefined };
 			return {
 				...prev,
 				[surveyId]: {
@@ -118,7 +121,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 
 	const removeOption = (surveyId: string, index: number) => {
 		setQuestionForms(prev => {
-			const currentForm = prev[surveyId] || { text: '', options: [] };
+			const currentForm = prev[surveyId] || { text: '', options: [], type: 'single_choice', correctAnswer: undefined, points: undefined };
 			return {
 				...prev,
 				[surveyId]: {
@@ -131,7 +134,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 
 	const handleOptionChange = (surveyId: string, index: number, value: string) => {
 		setQuestionForms(prev => {
-			const currentForm = prev[surveyId] || { text: '', options: [] };
+			const currentForm = prev[surveyId] || { text: '', options: [], type: 'single_choice', correctAnswer: undefined, points: undefined };
 			const newOptions = [...currentForm.options];
 			newOptions[index] = value;
 			return {
@@ -153,6 +156,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			...prev,
 			[formKey]: {
 				text: question.text,
+				type: question.type || 'single_choice',
 				options: [...question.options],
 				correctAnswer: question.correctAnswer,
 				points: question.points
@@ -272,21 +276,27 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		if (!editForm) return;
 
 		try {
-			// This would make an API call to update the question
-			// For now, we'll just update locally
 			setLoading(true);
       
-			// TODO: Implement API call to update question
-			console.log('Saving question edit:', { surveyId, questionIndex, editForm });
+			// Update the question via API
+			await updateQuestion(surveyId, questionIndex, editForm);
       
+			// Clear editing state
 			setEditingQuestions(prev => ({
 				...prev,
 				[surveyId]: undefined
 			}));
+			
+			// Clear edit form
+			setQuestionEditForms(prev => {
+				const updated = { ...prev };
+				delete updated[formKey];
+				return updated;
+			});
       
-			setLoading(false);
 		} catch (err) {
 			setError('Failed to save question. Please try again.');
+		} finally {
 			setLoading(false);
 		}
 	};

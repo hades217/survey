@@ -280,10 +280,31 @@ export const useSurveys = () => {
 			// Reset form
 			setQuestionForms(prev => ({
 				...prev,
-				[surveyId]: { text: '', options: [] }
+				[surveyId]: { 
+					text: '', 
+					options: [],
+					type: 'single_choice',
+					correctAnswer: undefined,
+					points: undefined 
+				}
 			}));
 		} catch (err: any) {
 			setError(err.response?.data?.error || 'Failed to add question');
+		}
+	};
+
+	const updateQuestion = async (surveyId: string, questionIndex: number, questionData: any) => {
+		try {
+			const response = await axios.put(`/api/admin/surveys/${surveyId}/questions/${questionIndex}`, questionData);
+			const updatedSurvey = response.data;
+			setSurveys(surveys.map(s => s._id === surveyId ? updatedSurvey : s));
+			if (selectedSurvey?._id === surveyId) {
+				setSelectedSurvey(updatedSurvey);
+			}
+			return updatedSurvey;
+		} catch (err: any) {
+			setError(err.response?.data?.error || 'Failed to update question');
+			throw err;
 		}
 	};
 
@@ -291,11 +312,12 @@ export const useSurveys = () => {
 		if (!window.confirm('Are you sure you want to delete this question?')) return;
 		
 		try {
-			// This would need a backend endpoint to delete a specific question
-			console.log('Deleting question:', { surveyId, questionIndex });
-			
-			// For now, just show a message
-			setError('Question deletion is not yet implemented in the backend');
+			const response = await axios.delete(`/api/admin/surveys/${surveyId}/questions/${questionIndex}`);
+			const updatedSurvey = response.data;
+			setSurveys(surveys.map(s => s._id === surveyId ? updatedSurvey : s));
+			if (selectedSurvey?._id === surveyId) {
+				setSelectedSurvey(updatedSurvey);
+			}
 		} catch (err: any) {
 			setError(err.response?.data?.error || 'Failed to delete question');
 		}
@@ -335,6 +357,7 @@ export const useSurveys = () => {
 		closeEditModal,
 		loadStats,
 		addQuestion,
+		updateQuestion,
 		deleteQuestion,
 	};
 };

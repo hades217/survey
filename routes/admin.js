@@ -139,15 +139,29 @@ router.put(
 		}
 
 		// Validate correctAnswer if provided
-		if (
-			correctAnswer !== undefined &&
-			(typeof correctAnswer !== DATA_TYPES.NUMBER ||
-				correctAnswer < 0 ||
-				correctAnswer >= options.length)
-		) {
-			return res
-				.status(HTTP_STATUS.BAD_REQUEST)
-				.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
+		if (correctAnswer !== undefined) {
+			// Support both single answer (number) and multiple answers (array)
+			if (Array.isArray(correctAnswer)) {
+				// Multiple choice: validate array of indices
+				if (!correctAnswer.every(idx => 
+					typeof idx === DATA_TYPES.NUMBER && 
+					idx >= 0 && 
+					idx < options.length
+				)) {
+					return res
+						.status(HTTP_STATUS.BAD_REQUEST)
+						.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
+				}
+			} else {
+				// Single choice: validate single index
+				if (typeof correctAnswer !== DATA_TYPES.NUMBER ||
+					correctAnswer < 0 ||
+					correctAnswer >= options.length) {
+					return res
+						.status(HTTP_STATUS.BAD_REQUEST)
+						.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
+				}
+			}
 		}
 
 		// Validate points if provided
@@ -162,15 +176,160 @@ router.put(
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
 
-		const question = { text, options };
+		// Determine question type and normalize correctAnswer format
+		let questionType, normalizedCorrectAnswer;
+		
+		if (Array.isArray(correctAnswer) && correctAnswer.length > 1) {
+			// Multiple correct answers = multiple choice
+			questionType = 'multiple_choice';
+			normalizedCorrectAnswer = correctAnswer;
+		} else if (Array.isArray(correctAnswer) && correctAnswer.length === 1) {
+			// Single answer in array format = single choice
+			questionType = 'single_choice';
+			normalizedCorrectAnswer = correctAnswer[0];
+		} else {
+			// Single answer in number format = single choice
+			questionType = 'single_choice';
+			normalizedCorrectAnswer = correctAnswer;
+		}
+
+		const question = { 
+			text, 
+			options,
+			type: questionType
+		};
+		
 		if (correctAnswer !== undefined) {
-			question.correctAnswer = correctAnswer;
+			question.correctAnswer = normalizedCorrectAnswer;
 		}
 		if (points !== undefined) {
 			question.points = points;
 		}
 
 		survey.questions.push(question);
+		await survey.save();
+		res.json(survey);
+	})
+);
+
+// Update a question in an existing survey
+router.put(
+	'/surveys/:id/questions/:questionIndex',
+	asyncHandler(async (req, res) => {
+		if (!req.session.admin) {
+			return res
+				.status(HTTP_STATUS.UNAUTHORIZED)
+				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
+		}
+		const { id, questionIndex } = req.params;
+		const { text, options, correctAnswer, points } = req.body;
+		
+		// Validate input
+		if (
+			typeof text !== DATA_TYPES.STRING ||
+			!Array.isArray(options) ||
+			!options.every(o => typeof o === DATA_TYPES.STRING)
+		) {
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: ERROR_MESSAGES.INVALID_DATA });
+		}
+
+		// Validate correctAnswer if provided (same logic as add question)
+		if (correctAnswer !== undefined) {
+			if (Array.isArray(correctAnswer)) {
+				if (!correctAnswer.every(idx => 
+					typeof idx === DATA_TYPES.NUMBER && 
+					idx >= 0 && 
+					idx < options.length
+				)) {
+					return res
+						.status(HTTP_STATUS.BAD_REQUEST)
+						.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
+				}
+			} else {
+				if (typeof correctAnswer !== DATA_TYPES.NUMBER ||
+					correctAnswer < 0 ||
+					correctAnswer >= options.length) {
+					return res
+						.status(HTTP_STATUS.BAD_REQUEST)
+						.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
+				}
+			}
+		}
+
+		// Validate points if provided
+		if (points !== undefined && (typeof points !== DATA_TYPES.NUMBER || points < 1)) {
+			return res
+				.status(HTTP_STATUS.BAD_REQUEST)
+				.json({ error: 'Points must be a positive number' });
+		}
+
+		const survey = await Survey.findById(id);
+		if (!survey) {
+			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+		}
+
+		const qIndex = parseInt(questionIndex, 10);
+		if (qIndex < 0 || qIndex >= survey.questions.length) {
+			return res
+				.status(HTTP_STATUS.BAD_REQUEST)
+				.json({ error: 'Invalid question index' });
+		}
+
+		// Determine question type and normalize correctAnswer format (same logic as add question)
+		let questionType, normalizedCorrectAnswer;
+		
+		if (Array.isArray(correctAnswer) && correctAnswer.length > 1) {
+			questionType = 'multiple_choice';
+			normalizedCorrectAnswer = correctAnswer;
+		} else if (Array.isArray(correctAnswer) && correctAnswer.length === 1) {
+			questionType = 'single_choice';
+			normalizedCorrectAnswer = correctAnswer[0];
+		} else {
+			questionType = 'single_choice';
+			normalizedCorrectAnswer = correctAnswer;
+		}
+
+		// Update the question
+		survey.questions[qIndex].text = text;
+		survey.questions[qIndex].options = options;
+		survey.questions[qIndex].type = questionType;
+		
+		if (correctAnswer !== undefined) {
+			survey.questions[qIndex].correctAnswer = normalizedCorrectAnswer;
+		}
+		if (points !== undefined) {
+			survey.questions[qIndex].points = points;
+		}
+
+		await survey.save();
+		res.json(survey);
+	})
+);
+
+// Delete a question from an existing survey
+router.delete(
+	'/surveys/:id/questions/:questionIndex',
+	asyncHandler(async (req, res) => {
+		if (!req.session.admin) {
+			return res
+				.status(HTTP_STATUS.UNAUTHORIZED)
+				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
+		}
+		const { id, questionIndex } = req.params;
+
+		const survey = await Survey.findById(id);
+		if (!survey) {
+			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+		}
+
+		const qIndex = parseInt(questionIndex, 10);
+		if (qIndex < 0 || qIndex >= survey.questions.length) {
+			return res
+				.status(HTTP_STATUS.BAD_REQUEST)
+				.json({ error: 'Invalid question index' });
+		}
+
+		survey.questions.splice(qIndex, 1);
 		await survey.save();
 		res.json(survey);
 	})

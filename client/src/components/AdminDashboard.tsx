@@ -42,13 +42,6 @@ const AdminDashboard: React.FC = () => {
 				<EditSurveyModal />
 				<ScoringModal />
 				
-				{/* Debug info */}
-				<div className="fixed bottom-4 right-4 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
-					<div>Refactored Admin Dashboard</div>
-					<div>Tab: {tab}</div>
-					<div>Selected Survey: {selectedSurvey?._id || 'None'}</div>
-					<div>Selected QB: {selectedQuestionBankDetail?._id || 'None'}</div>
-				</div>
 			</div>
 		</div>
 	);

@@ -17,7 +17,8 @@
       "Bash(cp:*)",
       "Bash(find:*)",
       "Bash(rm:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(brew services:*)"
     ],
     "deny": []
   }
