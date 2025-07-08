@@ -9,6 +9,8 @@ import QuestionBankDetailView from './questionBanks/QuestionBankDetailView';
 import CreateSurveyModal from './modals/CreateSurveyModal';
 import EditSurveyModal from './modals/EditSurveyModal';
 import ScoringModal from './modals/ScoringModal';
+import CreateQuestionBankModal from './modals/CreateQuestionBankModal';
+import EditQuestionBankModal from './modals/EditQuestionBankModal';
 
 
 const AdminDashboard: React.FC = () => {
@@ -41,6 +43,8 @@ const AdminDashboard: React.FC = () => {
 				<CreateSurveyModal />
 				<EditSurveyModal />
 				<ScoringModal />
+				<CreateQuestionBankModal />
+				<EditQuestionBankModal />
 				
 			</div>
 		</div>

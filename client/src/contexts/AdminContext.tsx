@@ -41,6 +41,8 @@ interface AdminContextType {
 	setEditForm: React.Dispatch<React.SetStateAction<NewSurveyForm>>;
 	questionBankForm: QuestionBankForm;
 	setQuestionBankForm: React.Dispatch<React.SetStateAction<QuestionBankForm>>;
+	editQuestionBankForm: QuestionBankForm;
+	setEditQuestionBankForm: React.Dispatch<React.SetStateAction<QuestionBankForm>>;
 	
 	// Question forms
 	questionForms: Record<string, QuestionForm>;
@@ -71,6 +73,8 @@ interface AdminContextType {
 	setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>;
 	showQuestionBankModal: boolean;
 	setShowQuestionBankModal: React.Dispatch<React.SetStateAction<boolean>>;
+	showEditQuestionBankModal: boolean;
+	setShowEditQuestionBankModal: React.Dispatch<React.SetStateAction<boolean>>;
 	showScoringModal: boolean;
 	setShowScoringModal: React.Dispatch<React.SetStateAction<boolean>>;
 	showQR: Record<string, boolean>;
@@ -184,6 +188,11 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		description: '',
 	});
 	
+	const [editQuestionBankForm, setEditQuestionBankForm] = useState<QuestionBankForm>({
+		name: '',
+		description: '',
+	});
+	
 	// Question forms
 	const [questionForms, setQuestionForms] = useState<Record<string, QuestionForm>>({});
 	const [questionBankQuestionForms, setQuestionBankQuestionForms] = useState<Record<string, QuestionForm>>({});
@@ -202,6 +211,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 	const [showCreateModal, setShowCreateModal] = useState(false);
 	const [showEditModal, setShowEditModal] = useState(false);
 	const [showQuestionBankModal, setShowQuestionBankModal] = useState(false);
+	const [showEditQuestionBankModal, setShowEditQuestionBankModal] = useState(false);
 	const [showScoringModal, setShowScoringModal] = useState(false);
 	const [showQR, setShowQR] = useState<Record<string, boolean>>({});
 	
@@ -292,6 +302,8 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		setEditForm,
 		questionBankForm,
 		setQuestionBankForm,
+		editQuestionBankForm,
+		setEditQuestionBankForm,
 		
 		// Question forms
 		questionForms,
@@ -322,6 +334,8 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		setShowEditModal,
 		showQuestionBankModal,
 		setShowQuestionBankModal,
+		showEditQuestionBankModal,
+		setShowEditQuestionBankModal,
 		showScoringModal,
 		setShowScoringModal,
 		showQR,

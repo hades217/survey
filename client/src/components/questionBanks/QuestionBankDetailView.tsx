@@ -19,7 +19,8 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 		loading,
 		setLoading,
 		error,
-		setError
+		setError,
+		setShowEditQuestionBankModal
 	} = useAdmin();
   
 	const { addQuestionBankQuestion, deleteQuestionBankQuestion, updateQuestionBankQuestion } = useQuestionBanks();
@@ -296,6 +297,14 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 							<span>Questions: {qb.questions?.length || 0}</span>
 							<span>Created: {new Date(qb.createdAt).toLocaleDateString()}</span>
 						</div>
+					</div>
+					<div className="flex gap-2">
+						<button
+							className="btn-secondary text-sm"
+							onClick={() => setShowEditQuestionBankModal(true)}
+						>
+							Edit Info
+						</button>
 					</div>
 				</div>
 
