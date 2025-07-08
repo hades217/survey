@@ -14,7 +14,10 @@
       "Bash(sed:*)",
       "Bash(npm start)",
       "Bash(rg:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(find:*)",
+      "Bash(rm:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": []
   }

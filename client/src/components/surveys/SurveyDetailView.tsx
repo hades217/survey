@@ -55,7 +55,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
       slug: survey.slug,
       type: survey.type,
       questions: survey.questions || [],
-      isActive: survey.isActive || true,
+      status: survey.status || 'draft',
       timeLimit: survey.timeLimit,
       maxAttempts: survey.maxAttempts || 1,
       instructions: survey.instructions || '',
@@ -328,9 +328,13 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
                       : 'Survey'}
               </span>
               <span
-                className={`px-2 py-1 text-xs font-medium rounded-full ${s.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                className={`px-2 py-1 text-xs font-medium rounded-full ${
+                  s.status === 'active' ? 'bg-green-100 text-green-800' : 
+                  s.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+                }`}
               >
-                {s.isActive ? 'Active' : 'Inactive'}
+                {s.status === 'active' ? 'Active' : 
+                 s.status === 'draft' ? 'Draft' : 'Closed'}
               </span>
             </div>
             {s.description && <p className="text-gray-600 mb-3">{s.description}</p>}
@@ -469,9 +473,9 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
         <div className="flex gap-2">
           <button
             className="btn-secondary text-sm"
-            onClick={() => toggleSurveyStatus(s._id, s.isActive)}
+            onClick={() => toggleSurveyStatus(s._id)}
           >
-            {s.isActive ? 'Deactivate' : 'Activate'}
+            {s.status === 'active' ? 'Deactivate' : 'Activate'}
           </button>
           <button
             className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"

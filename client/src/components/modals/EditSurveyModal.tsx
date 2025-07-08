@@ -60,7 +60,8 @@ const EditSurveyModal: React.FC = () => {
     try {
       const surveyData = {
         ...editForm,
-        isActive: editForm.isActive,
+        // Ensure isActive matches status for backward compatibility
+        isActive: editForm.status === 'active',
         timeLimit: editForm.timeLimit ? Number(editForm.timeLimit) : undefined,
         maxAttempts: editForm.maxAttempts || 1,
       };
@@ -134,11 +135,12 @@ const EditSurveyModal: React.FC = () => {
             </label>
             <select
               className="input-field"
-              value={editForm.isActive ? 'active' : 'draft'}
-              onChange={e => setEditForm({ ...editForm, isActive: e.target.value === 'active' })}
+              value={editForm.status}
+              onChange={e => setEditForm({ ...editForm, status: e.target.value as 'draft' | 'active' | 'closed' })}
             >
               <option value="draft">Draft</option>
               <option value="active">Active</option>
+              <option value="closed">Closed</option>
             </select>
           </div>
         </div>

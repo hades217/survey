@@ -12,6 +12,7 @@ export interface Survey {
 	}[];
 	createdAt: string;
 	isActive: boolean;
+	status: 'draft' | 'active' | 'closed';
 	timeLimit?: number;
 	maxAttempts?: number;
 	instructions?: string;
@@ -111,7 +112,7 @@ export interface NewSurveyForm {
 		correctAnswer?: number | number[];
 		points?: number;
 	}[];
-	isActive: boolean;
+	status: 'draft' | 'active' | 'closed';
 	timeLimit?: number;
 	maxAttempts?: number;
 	instructions?: string;
