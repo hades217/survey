@@ -149,37 +149,66 @@ router.put(
 	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { id } = req.params;
-		const { text, options, correctAnswer, points } = req.body;
-		if (
-			typeof text !== DATA_TYPES.STRING ||
-			!Array.isArray(options) ||
-			!options.every(o => typeof o === DATA_TYPES.STRING)
-		) {
-			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: ERROR_MESSAGES.INVALID_DATA });
+		const { text, options, correctAnswer, points, type } = req.body;
+		
+		// Debug: Log the received data
+		console.log('Add question request body:', req.body);
+		console.log('Question type:', type);
+		console.log('Options:', options);
+		console.log('Text:', text);
+		
+		// Basic validation
+		if (typeof text !== DATA_TYPES.STRING) {
+			console.log('Validation failed: text is not string, type:', typeof text);
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Question text must be a string' });
+		}
+		
+		// Validate question type
+		if (type && !['single_choice', 'multiple_choice', 'short_text'].includes(type)) {
+			console.log('Validation failed: invalid type:', type);
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Invalid question type' });
+		}
+		
+		// For choice questions, validate options
+		if (type !== 'short_text') {
+			if (!options || !Array.isArray(options) || !options.every(o => typeof o === DATA_TYPES.STRING)) {
+				console.log('Validation failed: options validation failed for choice question');
+				console.log('Options:', options);
+				return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Choice questions require valid options array' });
+			}
 		}
 
 		// Validate correctAnswer if provided
 		if (correctAnswer !== undefined && correctAnswer !== null) {
-			// Support both single answer (number) and multiple answers (array)
-			if (Array.isArray(correctAnswer)) {
-				// Multiple choice: validate array of indices
-				if (!correctAnswer.every(idx => 
-					typeof idx === DATA_TYPES.NUMBER && 
-					idx >= 0 && 
-					idx < options.length
-				)) {
+			if (type === 'short_text') {
+				// For short text, correctAnswer should be a string
+				if (typeof correctAnswer !== DATA_TYPES.STRING) {
 					return res
 						.status(HTTP_STATUS.BAD_REQUEST)
 						.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
 				}
 			} else {
-				// Single choice: validate single index
-				if (typeof correctAnswer !== DATA_TYPES.NUMBER ||
-					correctAnswer < 0 ||
-					correctAnswer >= options.length) {
-					return res
-						.status(HTTP_STATUS.BAD_REQUEST)
-						.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
+				// For choice questions: Support both single answer (number) and multiple answers (array)
+				if (Array.isArray(correctAnswer)) {
+					// Multiple choice: validate array of indices
+					if (!correctAnswer.every(idx => 
+						typeof idx === DATA_TYPES.NUMBER && 
+						idx >= 0 && 
+						idx < options.length
+					)) {
+						return res
+							.status(HTTP_STATUS.BAD_REQUEST)
+							.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
+					}
+				} else {
+					// Single choice: validate single index
+					if (typeof correctAnswer !== DATA_TYPES.NUMBER ||
+						correctAnswer < 0 ||
+						correctAnswer >= options.length) {
+						return res
+							.status(HTTP_STATUS.BAD_REQUEST)
+							.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
+					}
 				}
 			}
 		}
@@ -196,28 +225,40 @@ router.put(
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
 
-		// Determine question type and normalize correctAnswer format
-		let questionType, normalizedCorrectAnswer;
+		// Use provided type or determine from correctAnswer format
+		let questionType = type || 'single_choice';
+		let normalizedCorrectAnswer = correctAnswer;
 		
-		if (Array.isArray(correctAnswer) && correctAnswer.length > 1) {
-			// Multiple correct answers = multiple choice
-			questionType = 'multiple_choice';
-			normalizedCorrectAnswer = correctAnswer;
-		} else if (Array.isArray(correctAnswer) && correctAnswer.length === 1) {
-			// Single answer in array format = single choice
-			questionType = 'single_choice';
-			normalizedCorrectAnswer = correctAnswer[0];
-		} else {
-			// Single answer in number format = single choice
-			questionType = 'single_choice';
-			normalizedCorrectAnswer = correctAnswer;
+		// If type is not provided, determine from correctAnswer format (backward compatibility)
+		if (!type && correctAnswer !== undefined) {
+			if (Array.isArray(correctAnswer) && correctAnswer.length > 1) {
+				// Multiple correct answers = multiple choice
+				questionType = 'multiple_choice';
+				normalizedCorrectAnswer = correctAnswer;
+			} else if (Array.isArray(correctAnswer) && correctAnswer.length === 1) {
+				// Single answer in array format = single choice
+				questionType = 'single_choice';
+				normalizedCorrectAnswer = correctAnswer[0];
+			} else if (typeof correctAnswer === 'number') {
+				// Single answer in number format = single choice
+				questionType = 'single_choice';
+				normalizedCorrectAnswer = correctAnswer;
+			} else if (typeof correctAnswer === 'string') {
+				// String answer = short text
+				questionType = 'short_text';
+				normalizedCorrectAnswer = correctAnswer;
+			}
 		}
 
 		const question = { 
 			text, 
-			options,
 			type: questionType
 		};
+		
+		// Only add options for non-short_text questions
+		if (questionType !== 'short_text') {
+			question.options = options;
+		}
 		
 		if (correctAnswer !== undefined) {
 			question.correctAnswer = normalizedCorrectAnswer;

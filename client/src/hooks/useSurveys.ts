@@ -262,10 +262,16 @@ export const useSurveys = () => {
 		}
 	};
 
-	const addQuestion = async (surveyId: string) => {
-		const form = questionForms[surveyId];
-		if (!form || !form.text || form.options.filter(opt => opt.trim()).length < 2) {
-			setError('Please fill in all required fields');
+	const addQuestion = async (surveyId: string, questionData?: any) => {
+		const form = questionData || questionForms[surveyId];
+		if (!form || !form.text) {
+			setError('Please fill in question text');
+			return;
+		}
+		
+		// For choice questions, require at least 2 options
+		if (form.type !== 'short_text' && (!form.options || form.options.filter(opt => opt.trim()).length < 2)) {
+			setError('Please provide at least 2 options for choice questions');
 			return;
 		}
 

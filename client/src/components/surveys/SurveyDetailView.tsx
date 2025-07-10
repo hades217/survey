@@ -3,6 +3,7 @@ import { useAdmin } from '../../contexts/AdminContext';
 import { useSurveys } from '../../hooks/useSurveys';
 import { Survey, Question, QuestionForm, EnhancedStats } from '../../types/admin';
 import QRCodeComponent from '../QRCode';
+import AddSurveyQuestionModal from '../modals/AddSurveyQuestionModal';
 
 interface SurveyDetailViewProps {
   survey: Survey;
@@ -38,9 +39,11 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
   
 	// Local state for question editing
 	const [questionEditForms, setQuestionEditForms] = useState<Record<string, QuestionForm>>({});
+	// Local state for add question modal
+	const [showAddQuestionModal, setShowAddQuestionModal] = useState(false);
 
 	const s = survey;
-	const currentForm = questionForms[s._id] || { text: '', options: [] };
+	const currentForm = questionForms[s._id] || { text: '', options: ['', ''], type: 'single_choice' as const };
 
 	const handleBackToList = () => {
 		setSelectedSurvey(null);
@@ -92,18 +95,33 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 
 	// Question management functions
 	const handleQuestionChange = (surveyId: string, field: string, value: any) => {
-		setQuestionForms(prev => ({
-			...prev,
-			[surveyId]: {
+		setQuestionForms(prev => {
+			const currentForm = prev[surveyId] || {
 				text: '',
 				options: [],
-				type: 'single_choice',
+				type: 'single_choice' as const,
 				correctAnswer: undefined,
-				points: undefined,
-				...prev[surveyId],
-				[field]: value
+				points: undefined
+			};
+			
+			let updatedForm = { ...currentForm, [field]: value };
+			
+			// When changing type to short_text, clear options and correctAnswer
+			if (field === 'type' && value === 'short_text') {
+				updatedForm.options = [];
+				updatedForm.correctAnswer = undefined;
 			}
-		}));
+			// When changing from short_text to choice types, initialize options
+			else if (field === 'type' && (value === 'single_choice' || value === 'multiple_choice')) {
+				updatedForm.options = ['', ''];
+				updatedForm.correctAnswer = undefined;
+			}
+			
+			return {
+				...prev,
+				[surveyId]: updatedForm
+			};
+		});
 	};
 
 	const addOption = (surveyId: string) => {
@@ -145,6 +163,56 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				}
 			};
 		});
+	};
+
+	// Add question modal handler
+	const addQuestionModalHandler = async (form: any) => {
+		try {
+			setLoading(true);
+			
+			// Prepare form data - don't send options for short_text
+			const formData: any = {
+				text: form.text,
+				type: form.type
+			};
+			
+			// Only add options for choice questions
+			if (form.type !== 'short_text' && form.options) {
+				formData.options = form.options;
+			}
+			
+			// Add correctAnswer if provided
+			if (form.correctAnswer !== undefined) {
+				formData.correctAnswer = form.correctAnswer;
+			}
+			
+			// Add points if provided
+			if (form.points !== undefined) {
+				formData.points = form.points;
+			}
+			
+			await addQuestion(s._id, formData);
+			
+			// Reset form and close modal
+			setQuestionForms(prev => ({
+				...prev,
+				[s._id]: { 
+					text: '', 
+					options: ['', ''], 
+					type: 'single_choice' as const,
+					correctAnswer: undefined,
+					points: undefined
+				}
+			}));
+			setShowAddQuestionModal(false);
+			
+			setLoading(false);
+		} catch (err: any) {
+			console.error('Add question error:', err);
+			console.error('Form data sent:', formData);
+			setError(err.response?.data?.error || 'Failed to add question. Please try again.');
+			setLoading(false);
+		}
 	};
 
 	// Question editing functions
@@ -498,36 +566,12 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				{/* Survey URLs */}
 				<div className="bg-gray-50 rounded-lg p-4 mb-4">
 					<div className="space-y-3">
-						<div className="flex items-center justify-between">
-							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-1">
-                  经典版 Survey URL
-								</label>
-								<div className="text-sm text-gray-600 font-mono">
-									{getSurveyUrl(s.slug)}
-								</div>
-							</div>
-							<div className="flex gap-2">
-								<button
-									className="btn-secondary text-sm"
-									onClick={() => copyToClipboard(getSurveyUrl(s.slug))}
-								>
-                  Copy URL
-								</button>
-								<button
-									className="btn-primary text-sm"
-									onClick={() => toggleQR(s._id)}
-								>
-									{showQR[s._id] ? 'Hide QR' : 'Show QR'}
-								</button>
-							</div>
-						</div>
-
-						{['quiz', 'assessment', 'iq'].includes(s.type) && (
-							<div className="flex items-center justify-between pt-3 border-t border-gray-200">
+						{s.type === 'assessment' ? (
+							// Assessment type: only show enhanced URL
+							<div className="flex items-center justify-between">
 								<div>
 									<label className="block text-sm font-medium text-gray-700 mb-1">
-                    增强版测评 URL
+										增强版测评 URL
 									</label>
 									<div className="text-sm text-gray-600 font-mono">
 										{getSurveyUrl(s.slug).replace('/survey/', '/assessment/')}
@@ -545,15 +589,81 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 											)
 										}
 									>
-                    Copy Enhanced URL
+										Copy URL
+									</button>
+									<button
+										className="btn-primary text-sm"
+										onClick={() => toggleQR(s._id)}
+									>
+										{showQR[s._id] ? 'Hide QR' : 'Show QR'}
 									</button>
 								</div>
 							</div>
+						) : (
+							// Non-assessment types: show classic URL and optionally enhanced URL
+							<>
+								<div className="flex items-center justify-between">
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-1">
+											经典版 Survey URL
+										</label>
+										<div className="text-sm text-gray-600 font-mono">
+											{getSurveyUrl(s.slug)}
+										</div>
+									</div>
+									<div className="flex gap-2">
+										<button
+											className="btn-secondary text-sm"
+											onClick={() => copyToClipboard(getSurveyUrl(s.slug))}
+										>
+											Copy URL
+										</button>
+										<button
+											className="btn-primary text-sm"
+											onClick={() => toggleQR(s._id)}
+										>
+											{showQR[s._id] ? 'Hide QR' : 'Show QR'}
+										</button>
+									</div>
+								</div>
+
+								{['quiz', 'iq'].includes(s.type) && (
+									<div className="flex items-center justify-between pt-3 border-t border-gray-200">
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-1">
+												增强版测评 URL
+											</label>
+											<div className="text-sm text-gray-600 font-mono">
+												{getSurveyUrl(s.slug).replace('/survey/', '/assessment/')}
+											</div>
+										</div>
+										<div className="flex gap-2">
+											<button
+												className="btn-secondary text-sm"
+												onClick={() =>
+													copyToClipboard(
+														getSurveyUrl(s.slug).replace(
+															'/survey/',
+															'/assessment/'
+														)
+													)
+												}
+											>
+												Copy Enhanced URL
+											</button>
+										</div>
+									</div>
+								)}
+							</>
 						)}
 					</div>
 					{showQR[s._id] && (
 						<div className="border-t border-gray-200 pt-4">
-							<QRCodeComponent url={getSurveyUrl(s.slug)} />
+							<QRCodeComponent url={
+								s.type === 'assessment' 
+									? getSurveyUrl(s.slug).replace('/survey/', '/assessment/')
+									: getSurveyUrl(s.slug)
+							} />
 						</div>
 					)}
 				</div>
@@ -562,9 +672,18 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				{s.sourceType === 'manual' ? (
 				// Manual Question Management
 					<div className="mb-4">
-						<h4 className="font-semibold text-gray-800 mb-3">
-              Questions ({s.questions?.length || 0})
-						</h4>
+						<div className="flex justify-between items-center mb-3">
+							<h4 className="font-semibold text-gray-800">
+								Questions ({s.questions?.length || 0})
+							</h4>
+							<button
+								className="btn-primary text-sm"
+								onClick={() => setShowAddQuestionModal(true)}
+								type="button"
+							>
+								+ Add Question
+							</button>
+						</div>
 						{s.questions && s.questions.length > 0 ? (
 							<div className="space-y-2">
 								{s.questions.map((q, idx) => {
@@ -786,17 +905,19 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 															type="button"
 															disabled={
 																!editForm?.text ||
-                                !editForm?.options ||
-                                editForm.options.filter(opt =>
-                                	opt.trim()
-                                ).length === 0 ||
-                                ([
-                                	'assessment',
-                                	'quiz',
-                                	'iq',
-                                ].includes(s.type) &&
-                                  editForm.correctAnswer ===
-                                    undefined)
+																(editForm.type !== 'short_text' && (
+																	!editForm?.options ||
+																	editForm.options.filter(opt =>
+																		opt.trim()
+																	).length === 0
+																)) ||
+																([
+																	'assessment',
+																	'quiz',
+																	'iq',
+																].includes(s.type) &&
+																editForm.type !== 'short_text' &&
+																editForm.correctAnswer === undefined)
 															}
 														>
                               Save
@@ -816,8 +937,23 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 											// Display mode
 												<div>
 													<div className="flex justify-between items-start mb-1">
-														<div className="font-medium text-gray-800">
-															{idx + 1}. {q.text}
+														<div className="flex-1">
+															<div className="flex items-center gap-2 mb-1">
+																<span className="font-medium text-gray-800">
+																	{idx + 1}. {q.text}
+																</span>
+																<span className={`text-xs px-2 py-1 rounded ${
+																	q.type === 'multiple_choice' ? 'bg-purple-100 text-purple-800' :
+																	q.type === 'single_choice' ? 'bg-green-100 text-green-800' :
+																	q.type === 'short_text' ? 'bg-orange-100 text-orange-800' :
+																	'bg-gray-100 text-gray-800'
+																}`}>
+																	{q.type === 'multiple_choice' ? 'Multiple Choice' :
+																	 q.type === 'single_choice' ? 'Single Choice' :
+																	 q.type === 'short_text' ? 'Short Text' :
+																	 q.type || 'Single Choice'}
+																</span>
+															</div>
 														</div>
 														<div className="flex items-center gap-2">
 															{['assessment', 'quiz', 'iq'].includes(
@@ -845,47 +981,62 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 															</button>
 														</div>
 													</div>
-													<div className="text-sm text-gray-600 mb-1">
-                            Options:{' '}
-														{q.options.map((opt, optIdx) => {
-															const isCorrect = Array.isArray(
-																q.correctAnswer
-															)
-																? q.correctAnswer.includes(optIdx)
-																: q.correctAnswer === optIdx;
-															return (
-																<span
-																	key={optIdx}
-																	className={`${['assessment', 'quiz', 'iq'].includes(s.type) && isCorrect ? 'font-semibold text-green-600' : ''}`}
-																>
-																	{opt}
-																	{optIdx < q.options.length - 1
-																		? ', '
-																		: ''}
-																</span>
-															);
-														})}
-													</div>
-													{['assessment', 'quiz', 'iq'].includes(
-														s.type
-													) &&
-                            q.correctAnswer !== undefined && (
-														<div className="text-xs text-green-600 font-medium">
-                              ✓ Correct Answer
-															{Array.isArray(q.correctAnswer) &&
-                                q.correctAnswer.length > 1
-																? 's'
-																: ''}
-                              :{' '}
-															{Array.isArray(q.correctAnswer)
-																? q.correctAnswer
-																	.map(
-																		idx =>
-																			q.options[idx]
-																	)
-																	.join(', ')
-																: q.options[q.correctAnswer]}
+													{q.type === 'short_text' ? (
+														<div className="text-sm text-gray-600 mb-1">
+															<div className="font-medium">Type: Text Response</div>
+															{['assessment', 'quiz', 'iq'].includes(s.type) && 
+															 q.correctAnswer && typeof q.correctAnswer === 'string' && (
+																<div className="text-xs text-green-600 font-medium mt-1">
+																	✓ Expected Answer: {q.correctAnswer}
+																</div>
+															)}
 														</div>
+													) : (
+														<>
+															<div className="text-sm text-gray-600 mb-1">
+																Options:{' '}
+																{q.options && q.options.map((opt, optIdx) => {
+																	const isCorrect = Array.isArray(
+																		q.correctAnswer
+																	)
+																		? q.correctAnswer.includes(optIdx)
+																		: q.correctAnswer === optIdx;
+																	return (
+																		<span
+																			key={optIdx}
+																			className={`${['assessment', 'quiz', 'iq'].includes(s.type) && isCorrect ? 'font-semibold text-green-600' : ''}`}
+																		>
+																			{opt}
+																			{optIdx < (q.options?.length || 0) - 1
+																				? ', '
+																				: ''}
+																		</span>
+																	);
+																})}
+															</div>
+															{['assessment', 'quiz', 'iq'].includes(
+																s.type
+															) &&
+															q.correctAnswer !== undefined &&
+															q.type !== 'short_text' && (
+																<div className="text-xs text-green-600 font-medium">
+																	✓ Correct Answer
+																	{Array.isArray(q.correctAnswer) &&
+																	q.correctAnswer.length > 1
+																		? 's'
+																		: ''}
+																	:{' '}
+																	{Array.isArray(q.correctAnswer)
+																		? q.correctAnswer
+																			.map(
+																				idx =>
+																					q.options?.[idx]
+																			)
+																			.join(', ')
+																		: q.options?.[q.correctAnswer]}
+																</div>
+															)}
+														</>
 													)}
 												</div>
 											)}
@@ -897,224 +1048,6 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 							<p className="text-gray-500 text-sm">No questions added yet.</p>
 						)}
 
-						{/* Add Question Form for Manual Surveys */}
-						<div className="border-t border-gray-200 pt-4 mt-4">
-							<h4 className="font-semibold text-gray-800 mb-3">Add Question</h4>
-							<div className="space-y-4">
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-2">
-                    Question Text
-									</label>
-									<input
-										className="input-field w-full"
-										placeholder="Enter question text"
-										value={currentForm.text}
-										onChange={e =>
-											handleQuestionChange(s._id, 'text', e.target.value)
-										}
-									/>
-								</div>
-								<div>
-									<div className="flex items-center justify-between mb-2">
-										<label className="block text-sm font-medium text-gray-700">
-                      Options
-										</label>
-										<button
-											className="btn-secondary text-sm"
-											onClick={() => addOption(s._id)}
-											type="button"
-										>
-                      + Add Option
-										</button>
-									</div>
-									{currentForm.options && currentForm.options.length > 0 ? (
-										<div className="space-y-2">
-											{currentForm.options.map((option, index) => (
-												<div
-													key={index}
-													className="flex items-center gap-2"
-												>
-													<input
-														className="input-field flex-1"
-														placeholder={`Option ${index + 1}`}
-														value={option}
-														onChange={e =>
-															handleOptionChange(
-																s._id,
-																index,
-																e.target.value
-															)
-														}
-													/>
-													<button
-														className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
-														onClick={() => removeOption(s._id, index)}
-														type="button"
-													>
-                            Remove
-													</button>
-												</div>
-											))}
-										</div>
-									) : (
-										<div className="text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                      No options added yet. Click "Add Option" to start.
-										</div>
-									)}
-								</div>
-								{['assessment', 'quiz', 'iq'].includes(s.type) &&
-                  currentForm.options && currentForm.options.length > 0 && (
-									<div className="space-y-4">
-										<div>
-											<label className="block text-sm font-medium text-gray-700 mb-2">
-                        Select Correct Answer(s)
-											</label>
-											<div className="space-y-2">
-												{currentForm.options.map((opt, idx) => {
-													const isCorrect = Array.isArray(
-														currentForm.correctAnswer
-													)
-														? currentForm.correctAnswer.includes(
-															idx
-														)
-														: currentForm.correctAnswer === idx;
-													return (
-														<div
-															key={idx}
-															className="flex items-center gap-2"
-														>
-															<button
-																type="button"
-																onClick={() => {
-																	const newCorrectAnswer =
-                                    isCorrect
-                                    	? Array.isArray(
-                                    		currentForm.correctAnswer
-                                    	)
-                                    		? currentForm.correctAnswer.filter(
-                                    			i =>
-                                    				i !==
-                                            idx
-                                    		)
-                                    		: undefined
-                                    	: Array.isArray(
-                                    		currentForm.correctAnswer
-                                    	)
-                                    		? [
-                                    			...currentForm.correctAnswer,
-                                    			idx,
-                                    		].sort(
-                                    			(
-                                    				a,
-                                    				b
-                                    			) =>
-                                    				a -
-                                              b
-                                    		)
-                                    		: currentForm.correctAnswer !==
-                                          undefined
-                                    			? [
-                                    				currentForm.correctAnswer,
-                                    				idx,
-                                    			].sort(
-                                    				(
-                                    					a,
-                                    					b
-                                    				) =>
-                                    					a -
-                                                b
-                                    			)
-                                    			: idx;
-																	handleQuestionChange(
-																		s._id,
-																		'correctAnswer',
-																		newCorrectAnswer
-																	);
-																}}
-																className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-																	isCorrect
-																		? 'bg-green-500 border-green-500 text-white'
-																		: 'border-gray-300 hover:border-green-400'
-																}`}
-															>
-																{isCorrect && (
-																	<svg
-																		className="w-3 h-3"
-																		fill="currentColor"
-																		viewBox="0 0 20 20"
-																	>
-																		<path
-																			fillRule="evenodd"
-																			d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-																			clipRule="evenodd"
-																		/>
-																	</svg>
-																)}
-															</button>
-															<span className="text-sm text-gray-700">
-																{opt || `Option ${idx + 1}`}
-															</span>
-														</div>
-													);
-												})}
-											</div>
-											<div className="text-xs text-gray-500 mt-1">
-                        Click the checkboxes to select multiple correct
-                        answers
-											</div>
-										</div>
-										{s.scoringSettings?.customScoringRules
-											?.useCustomPoints && (
-											<div>
-												<label className="block text-sm font-medium text-gray-700 mb-2">
-                          Question Points
-												</label>
-												<input
-													type="number"
-													className="input-field w-full"
-													placeholder={`Default points: ${s.scoringSettings.customScoringRules.defaultQuestionPoints}`}
-													value={currentForm.points || ''}
-													onChange={e =>
-														handleQuestionChange(
-															s._id,
-															'points',
-															e.target.value
-																? parseInt(e.target.value)
-																: undefined
-														)
-													}
-													min="1"
-													max="100"
-												/>
-												<div className="text-xs text-gray-500 mt-1">
-                          Leave empty to use default points (
-													{
-														s.scoringSettings.customScoringRules
-															.defaultQuestionPoints
-													}{' '}
-                          points)
-												</div>
-											</div>
-										)}
-									</div>
-								)}
-								<button
-									className="btn-primary text-sm"
-									onClick={() => addQuestion(s._id)}
-									type="button"
-									disabled={
-										!currentForm.text ||
-                    !currentForm.options ||
-                    currentForm.options.filter(opt => opt.trim()).length ===
-                      0 ||
-                    (['assessment', 'quiz', 'iq'].includes(s.type) &&
-                      currentForm.correctAnswer === undefined)
-									}
-								>
-                  Add Question
-								</button>
-							</div>
-						</div>
 					</div>
 				) : (
 				// Question Bank Survey Information
@@ -1317,6 +1250,22 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 					)}
 				</div>
 			</div>
+
+			{/* Add Question Modal */}
+			<AddSurveyQuestionModal
+				isOpen={showAddQuestionModal}
+				onClose={() => setShowAddQuestionModal(false)}
+				onSubmit={addQuestionModalHandler}
+				form={currentForm}
+				onChange={(field, value) => handleQuestionChange(s._id, field, value)}
+				onOptionChange={(index, value) => handleOptionChange(s._id, index, value)}
+				onAddOption={() => addOption(s._id)}
+				onRemoveOption={(index) => removeOption(s._id, index)}
+				loading={loading}
+				surveyType={s.type}
+				isCustomScoringEnabled={s.scoringSettings?.customScoringRules?.useCustomPoints}
+				defaultQuestionPoints={s.scoringSettings?.customScoringRules?.defaultQuestionPoints || 1}
+			/>
 		</div>
 	);
 };

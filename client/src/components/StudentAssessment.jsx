@@ -468,7 +468,16 @@ const StudentAssessment = () => {
 							</h3>
 
 							<div className="space-y-3">
-								{currentQuestion.type === 'single_choice'
+								{currentQuestion.type === 'short_text'
+									? // Short text input
+										<textarea
+											className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-colors"
+											placeholder="Enter your answer here..."
+											rows={4}
+											value={form.answers[currentQuestion._id] || ''}
+											onChange={(e) => handleSingleChoiceChange(currentQuestion._id, e.target.value)}
+										/>
+									: currentQuestion.type === 'single_choice'
 									? // Single choice options
 										currentQuestion.options.map((option, index) => (
 											<label

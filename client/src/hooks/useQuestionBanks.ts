@@ -146,15 +146,61 @@ export const useQuestionBanks = () => {
 		navigate('/admin/question-banks');
 	};
 
-	const addQuestionBankQuestion = async (questionBankId: string) => {
-		const currentForm = questionBankQuestionForms[questionBankId];
-		if (!currentForm || !currentForm.text.trim() || currentForm.options.length < 2) {
-			setError('Please fill in all required fields');
-			return;
+	const addQuestionBankQuestion = async (questionBankId: string, formData?: any) => {
+		const currentForm = formData || questionBankQuestionForms[questionBankId];
+		
+		if (!currentForm || !currentForm.text.trim()) {
+			setError('Question text is required');
+			throw new Error('Question text is required');
+		}
+
+		// For choice-based questions, validate options and correct answer
+		if (currentForm.type !== 'short_text') {
+			if (!currentForm.options || currentForm.options.length < 2) {
+				setError('At least 2 options are required for choice questions');
+				throw new Error('At least 2 options are required for choice questions');
+			}
+
+			// Filter out empty options
+			const filteredOptions = currentForm.options.filter((opt: string) => opt.trim());
+			
+			// Additional validation
+			if (filteredOptions.length < 2) {
+				setError('At least 2 valid options are required');
+				throw new Error('At least 2 valid options are required');
+			}
+			
+			if (currentForm.correctAnswer === undefined || currentForm.correctAnswer === null) {
+				setError('Please select a correct answer');
+				throw new Error('Please select a correct answer');
+			}
+		}
+		
+		let questionData: any = {
+			text: currentForm.text,
+			type: currentForm.type,
+			points: currentForm.points,
+			explanation: currentForm.explanation,
+			tags: currentForm.tags,
+			difficulty: currentForm.difficulty
+		};
+		
+		// For choice questions, add options and correctAnswer
+		if (currentForm.type !== 'short_text') {
+			if (currentForm.options) {
+				const filteredOptions = currentForm.options.filter((opt: string) => opt.trim());
+				questionData.options = filteredOptions;
+			}
+			questionData.correctAnswer = currentForm.correctAnswer;
+		} else {
+			// For short_text, only add correctAnswer if it's provided and not empty
+			if (currentForm.correctAnswer && typeof currentForm.correctAnswer === 'string' && currentForm.correctAnswer.trim()) {
+				questionData.correctAnswer = currentForm.correctAnswer.trim();
+			}
 		}
 
 		try {
-			const response = await api.post(`/admin/question-banks/${questionBankId}/questions`, currentForm);
+			const response = await api.post(`/admin/question-banks/${questionBankId}/questions`, questionData);
 			const updatedQuestionBank = response.data;
 			
 			setQuestionBanks(prev => 
@@ -170,8 +216,8 @@ export const useQuestionBanks = () => {
 				[questionBankId]: { text: '', options: [], type: 'single_choice' as const },
 			}));
 		} catch (err: any) {
-			console.error('Error adding question to question bank:', err);
 			setError(err.response?.data?.error || 'Failed to add question');
+			throw err;
 		}
 	};
 

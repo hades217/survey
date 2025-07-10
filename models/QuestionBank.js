@@ -19,25 +19,39 @@ const questionBankSchema = new mongoose.Schema({
 			},
 			type: {
 				type: String,
-				enum: [QUESTION_TYPE.SINGLE_CHOICE, QUESTION_TYPE.MULTIPLE_CHOICE],
+				enum: [QUESTION_TYPE.SINGLE_CHOICE, QUESTION_TYPE.MULTIPLE_CHOICE, QUESTION_TYPE.SHORT_TEXT],
 				default: QUESTION_TYPE.SINGLE_CHOICE,
 			},
 			options: {
 				type: [String],
-				required: true,
+				required: function() {
+					return this.type !== QUESTION_TYPE.SHORT_TEXT;
+				},
 				validate: {
 					validator: function (options) {
+						// For short_text questions, options are not required
+						if (this.type === QUESTION_TYPE.SHORT_TEXT) {
+							return true;
+						}
 						return options && options.length >= 2;
 					},
-					message: 'At least 2 options are required',
+					message: 'At least 2 options are required for choice questions',
 				},
 			},
 			// Correct answer(s) for scoring
 			correctAnswer: {
-				type: mongoose.Schema.Types.Mixed, // Can be Number or [Number]
-				required: true,
+				type: mongoose.Schema.Types.Mixed, // Can be Number, [Number], or String
+				required: function() {
+					return this.type !== QUESTION_TYPE.SHORT_TEXT;
+				},
 				validate: {
 					validator: function (value) {
+						if (this.type === QUESTION_TYPE.SHORT_TEXT) {
+							// For short_text questions, correct answer is optional
+							// but should be a string if provided
+							return value === null || value === undefined || typeof value === 'string';
+						}
+
 						if (this.type === QUESTION_TYPE.SINGLE_CHOICE) {
 							return (
 								typeof value === 'number' &&

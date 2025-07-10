@@ -476,26 +476,39 @@ const TakeSurvey: React.FC = () => {
 											<label className="block mb-4 font-semibold text-gray-800 text-lg">
 												{index + 1}. {q.text}
 											</label>
-											<div className="space-y-3">
-												{q.options.map(opt => (
-													<label
-														key={opt}
-														className="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-primary-300 cursor-pointer transition-colors"
-													>
-														<input
-															type="radio"
-															name={q._id}
-															className="mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
-															value={opt}
-															onChange={() =>
-																handleAnswerChange(q._id, opt)
-															}
-															required
-														/>
-														<span className="text-gray-700">{opt}</span>
-													</label>
-												))}
-											</div>
+											{q.type === 'short_text' ? (
+												<div className="space-y-3">
+													<textarea
+														className="w-full p-3 bg-white rounded-lg border border-gray-200 focus:border-primary-300 focus:ring-2 focus:ring-primary-100 transition-colors"
+														placeholder="Enter your answer here..."
+														rows={4}
+														value={answers[q._id] || ''}
+														onChange={(e) => handleAnswerChange(q._id, e.target.value)}
+														required
+													/>
+												</div>
+											) : (
+												<div className="space-y-3">
+													{q.options && q.options.map(opt => (
+														<label
+															key={opt}
+															className="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-primary-300 cursor-pointer transition-colors"
+														>
+															<input
+																type="radio"
+																name={q._id}
+																className="mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+																value={opt}
+																onChange={() =>
+																	handleAnswerChange(q._id, opt)
+																}
+																required
+															/>
+															<span className="text-gray-700">{opt}</span>
+														</label>
+													))}
+												</div>
+											)}
 										</div>
 									))}
 								</div>

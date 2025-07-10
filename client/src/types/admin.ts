@@ -6,8 +6,9 @@ export interface Survey {
 	type: 'survey' | 'assessment' | 'quiz' | 'iq';
 	questions: {
 		text: string;
-		options: string[];
-		correctAnswer?: number | number[];
+		type?: 'single_choice' | 'multiple_choice' | 'short_text';
+		options?: string[];
+		correctAnswer?: number | number[] | string;
 		points?: number;
 	}[];
 	createdAt: string;
@@ -48,9 +49,9 @@ export interface QuestionBank {
 export interface Question {
 	_id: string;
 	text: string;
-	type: 'single_choice' | 'multiple_choice';
-	options: string[];
-	correctAnswer: number | number[];
+	type: 'single_choice' | 'multiple_choice' | 'short_text';
+	options?: string[];
+	correctAnswer?: number | number[] | string;
 	explanation?: string;
 	points?: number;
 	tags?: string[];
@@ -87,9 +88,9 @@ export type StatsViewType = 'aggregated' | 'individual';
 
 export interface QuestionForm {
 	text: string;
-	options: string[];
-	type: 'single_choice' | 'multiple_choice';
-	correctAnswer?: number | number[];
+	options?: string[];
+	type: 'single_choice' | 'multiple_choice' | 'short_text';
+	correctAnswer?: number | number[] | string;
 	points?: number;
 	explanation?: string;
 	tags?: string[];
@@ -108,8 +109,9 @@ export interface NewSurveyForm {
 	type: 'survey' | 'assessment' | 'quiz' | 'iq';
 	questions: {
 		text: string;
-		options: string[];
-		correctAnswer?: number | number[];
+		type?: 'single_choice' | 'multiple_choice' | 'short_text';
+		options?: string[];
+		correctAnswer?: number | number[] | string;
 		points?: number;
 	}[];
 	status: 'draft' | 'active' | 'closed';

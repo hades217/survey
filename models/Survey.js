@@ -66,24 +66,31 @@ const surveySchema = new mongoose.Schema({
 			},
 			type: {
 				type: String,
-				enum: [QUESTION_TYPE.SINGLE_CHOICE, QUESTION_TYPE.MULTIPLE_CHOICE],
+				enum: [QUESTION_TYPE.SINGLE_CHOICE, QUESTION_TYPE.MULTIPLE_CHOICE, QUESTION_TYPE.SHORT_TEXT],
 				default: QUESTION_TYPE.SINGLE_CHOICE,
 			},
 			options: {
 				type: [String],
-				required: true,
+				required: function() {
+					return this.type !== QUESTION_TYPE.SHORT_TEXT;
+				},
 				validate: {
 					validator: function (options) {
+						// For short_text questions, options are not required
+						if (this.type === QUESTION_TYPE.SHORT_TEXT) {
+							return true;
+						}
 						return options && options.length >= 2;
 					},
-					message: 'At least 2 options are required',
+					message: 'At least 2 options are required for choice questions',
 				},
 			},
 			// For quiz/assessment/iq questions: correct answer(s)
 			// For single choice: number (index of correct option)
 			// For multiple choice: array of numbers (indices of correct options)
+			// For short_text: string (expected answer - optional for surveys)
 			correctAnswer: {
-				type: mongoose.Schema.Types.Mixed, // Can be Number or [Number]
+				type: mongoose.Schema.Types.Mixed, // Can be Number, [Number], or String
 				default: null,
 				validate: {
 					validator: function (value) {
@@ -92,6 +99,12 @@ const surveySchema = new mongoose.Schema({
 
 						if (!requiresAnswer) {
 							return true; // Survey questions don't need correct answers
+						}
+
+						if (this.type === QUESTION_TYPE.SHORT_TEXT) {
+							// For short_text questions, correct answer is optional for surveys
+							// but should be a string if provided
+							return value === null || value === undefined || typeof value === 'string';
 						}
 
 						if (value === null || value === undefined) {

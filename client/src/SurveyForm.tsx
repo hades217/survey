@@ -64,12 +64,21 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
 			{questions.map(q => (
 				<div key={q.id}>
 					<label className="block mb-1 font-semibold">{q.text}</label>
-					{q.options.map(opt => (
-						<label key={opt} className="block">
-							<input type="radio" value={opt} {...register(q.id)} className="mr-2" />
-							{opt}
-						</label>
-					))}
+					{q.type === 'short_text' ? (
+						<textarea
+							className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-colors"
+							placeholder="Enter your answer here..."
+							rows={4}
+							{...register(q.id)}
+						/>
+					) : (
+						q.options.map(opt => (
+							<label key={opt} className="block">
+								<input type="radio" value={opt} {...register(q.id)} className="mr-2" />
+								{opt}
+							</label>
+						))
+					)}
 					{errors[q.id] && (
 						<p className="text-red-500 text-sm">{(errors as any)[q.id]?.message}</p>
 					)}

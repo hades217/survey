@@ -129,16 +129,20 @@ exports.addQuestion = async (req, res) => {
 			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Question text is required' });
 		}
 
-		if (!options || !Array.isArray(options) || options.length < 2) {
-			return res
-				.status(HTTP_STATUS.BAD_REQUEST)
-				.json({ error: 'At least 2 options are required' });
-		}
+		// For choice-based questions, options are required
+		const questionType = type || 'single_choice';
+		if (questionType !== 'short_text') {
+			if (!options || !Array.isArray(options) || options.length < 2) {
+				return res
+					.status(HTTP_STATUS.BAD_REQUEST)
+					.json({ error: 'At least 2 options are required for choice questions' });
+			}
 
-		if (correctAnswer === undefined || correctAnswer === null) {
-			return res
-				.status(HTTP_STATUS.BAD_REQUEST)
-				.json({ error: 'Correct answer is required' });
+			if (correctAnswer === undefined || correctAnswer === null) {
+				return res
+					.status(HTTP_STATUS.BAD_REQUEST)
+					.json({ error: 'Correct answer is required for choice questions' });
+			}
 		}
 
 		const questionBank = await QuestionBank.findById(req.params.id);
@@ -149,14 +153,21 @@ exports.addQuestion = async (req, res) => {
 
 		const newQuestion = {
 			text: text.trim(),
-			type: type || 'single_choice',
-			options: options.map(opt => opt.trim()).filter(opt => opt.length > 0),
-			correctAnswer,
+			type: questionType,
 			explanation: explanation?.trim(),
 			points: points || 1,
 			tags: tags || [],
 			difficulty: difficulty || 'medium',
 		};
+
+		// Add options and correctAnswer only for choice-based questions
+		if (questionType !== 'short_text') {
+			newQuestion.options = options.map(opt => opt.trim()).filter(opt => opt.length > 0);
+			newQuestion.correctAnswer = correctAnswer;
+		} else if (correctAnswer && typeof correctAnswer === 'string') {
+			// For short_text, correctAnswer is optional but if provided should be a string
+			newQuestion.correctAnswer = correctAnswer.trim();
+		}
 
 		questionBank.questions.push(newQuestion);
 		await questionBank.save();
