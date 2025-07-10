@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const jwt = require('jsonwebtoken');
 const { readJson } = require('../utils/file');
 const Survey = require('../models/Survey');
 const Response = require('../models/Response');
@@ -8,6 +9,7 @@ const User = require('../models/User');
 const asyncHandler = require('../middlewares/asyncHandler');
 const AppError = require('../utils/AppError');
 const { ERROR_MESSAGES, DATA_TYPES, HTTP_STATUS } = require('../shared/constants');
+const { JWT_SECRET, jwtAuth } = require('../middlewares/jwtAuth');
 
 const router = express.Router();
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
@@ -15,18 +17,56 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'password';
 const RESPONSES_FILE = path.join(__dirname, '..', 'responses.json');
 
 router.get('/check-auth', (req, res) => {
-	if (req.session.admin) {
-		res.json({ success: true, authenticated: true });
-	} else {
-		res.status(HTTP_STATUS.UNAUTHORIZED).json({ success: false, authenticated: false });
+	// This endpoint is now handled by JWT middleware
+	// For backward compatibility, we'll keep it but it should be called with JWT
+	const authHeader = req.headers.authorization;
+	
+	if (!authHeader || !authHeader.startsWith('Bearer ')) {
+		return res.status(HTTP_STATUS.UNAUTHORIZED).json({ 
+			success: false, 
+			authenticated: false 
+		});
+	}
+	
+	const token = authHeader.split(' ')[1];
+	
+	try {
+		const payload = jwt.verify(token, JWT_SECRET);
+		res.json({ 
+			success: true, 
+			authenticated: true,
+			user: payload
+		});
+	} catch (error) {
+		res.status(HTTP_STATUS.UNAUTHORIZED).json({ 
+			success: false, 
+			authenticated: false 
+		});
 	}
 });
 
 router.post('/login', (req, res) => {
 	const { username, password } = req.body;
 	if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-		req.session.admin = true;
-		res.json({ success: true });
+		// Generate JWT token instead of using session
+		const token = jwt.sign(
+			{ 
+				id: 'admin', // Admin user ID
+				username: username,
+				role: 'admin'
+			}, 
+			JWT_SECRET, 
+			{ expiresIn: '7d' }
+		);
+		res.json({ 
+			success: true, 
+			token,
+			user: {
+				id: 'admin',
+				username: username,
+				role: 'admin'
+			}
+		});
 	} else {
 		res.status(HTTP_STATUS.UNAUTHORIZED).json({ success: false });
 	}
@@ -35,12 +75,8 @@ router.post('/login', (req, res) => {
 // Create a new survey
 router.post(
 	'/surveys',
+	jwtAuth,
 	asyncHandler(async (req, res) => {
-		if (!req.session.admin) {
-			return res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
-		}
 
 		// Generate slug after validating the request data
 		const surveyData = { ...req.body };
@@ -64,12 +100,8 @@ router.post(
 // List all surveys
 router.get(
 	'/surveys',
+	jwtAuth,
 	asyncHandler(async (req, res) => {
-		if (!req.session.admin) {
-			return res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
-		}
 		const surveys = await Survey.find().lean();
 		res.json(surveys);
 	})
@@ -78,12 +110,8 @@ router.get(
 // Update a survey
 router.put(
 	'/surveys/:id',
+	jwtAuth,
 	asyncHandler(async (req, res) => {
-		if (!req.session.admin) {
-			return res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
-		}
 		// Ensure isActive and status are in sync
 		const updateData = { ...req.body };
 		if (updateData.status) {
@@ -103,12 +131,8 @@ router.put(
 // Delete a survey
 router.delete(
 	'/surveys/:id',
+	jwtAuth,
 	asyncHandler(async (req, res) => {
-		if (!req.session.admin) {
-			return res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
-		}
 		const survey = await Survey.findByIdAndDelete(req.params.id);
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
@@ -122,12 +146,8 @@ router.delete(
 // Add a question to an existing survey
 router.put(
 	'/surveys/:id/questions',
+	jwtAuth,
 	asyncHandler(async (req, res) => {
-		if (!req.session.admin) {
-			return res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
-		}
 		const { id } = req.params;
 		const { text, options, correctAnswer, points } = req.body;
 		if (
@@ -139,7 +159,7 @@ router.put(
 		}
 
 		// Validate correctAnswer if provided
-		if (correctAnswer !== undefined) {
+		if (correctAnswer !== undefined && correctAnswer !== null) {
 			// Support both single answer (number) and multiple answers (array)
 			if (Array.isArray(correctAnswer)) {
 				// Multiple choice: validate array of indices
@@ -215,12 +235,8 @@ router.put(
 // Update a question in an existing survey
 router.put(
 	'/surveys/:id/questions/:questionIndex',
+	jwtAuth,
 	asyncHandler(async (req, res) => {
-		if (!req.session.admin) {
-			return res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
-		}
 		const { id, questionIndex } = req.params;
 		const { text, options, correctAnswer, points } = req.body;
 		
@@ -234,7 +250,7 @@ router.put(
 		}
 
 		// Validate correctAnswer if provided (same logic as add question)
-		if (correctAnswer !== undefined) {
+		if (correctAnswer !== undefined && correctAnswer !== null) {
 			if (Array.isArray(correctAnswer)) {
 				if (!correctAnswer.every(idx => 
 					typeof idx === DATA_TYPES.NUMBER && 
@@ -275,6 +291,33 @@ router.put(
 				.json({ error: 'Invalid question index' });
 		}
 
+		const requiresAnswer = ['quiz', 'assessment', 'iq'].includes(survey.type);
+
+		if (requiresAnswer) {
+			if (correctAnswer === undefined || correctAnswer === null) {
+				return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
+			}
+			if (Array.isArray(correctAnswer)) {
+				if (!correctAnswer.every(idx =>
+					typeof idx === DATA_TYPES.NUMBER &&
+					idx >= 0 &&
+					idx < options.length
+				)) {
+					return res
+						.status(HTTP_STATUS.BAD_REQUEST)
+						.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
+				}
+			} else {
+				if (typeof correctAnswer !== DATA_TYPES.NUMBER ||
+					correctAnswer < 0 ||
+					correctAnswer >= options.length) {
+					return res
+						.status(HTTP_STATUS.BAD_REQUEST)
+						.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
+				}
+			}
+		}
+
 		// Determine question type and normalize correctAnswer format (same logic as add question)
 		let questionType, normalizedCorrectAnswer;
 		
@@ -293,10 +336,7 @@ router.put(
 		survey.questions[qIndex].text = text;
 		survey.questions[qIndex].options = options;
 		survey.questions[qIndex].type = questionType;
-		
-		if (correctAnswer !== undefined) {
-			survey.questions[qIndex].correctAnswer = normalizedCorrectAnswer;
-		}
+		survey.questions[qIndex].correctAnswer = normalizedCorrectAnswer;
 		if (points !== undefined) {
 			survey.questions[qIndex].points = points;
 		}
@@ -309,12 +349,8 @@ router.put(
 // Delete a question from an existing survey
 router.delete(
 	'/surveys/:id/questions/:questionIndex',
+	jwtAuth,
 	asyncHandler(async (req, res) => {
-		if (!req.session.admin) {
-			return res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
-		}
 		const { id, questionIndex } = req.params;
 
 		const survey = await Survey.findById(id);
@@ -338,12 +374,8 @@ router.delete(
 // Update scoring settings for a survey
 router.put(
 	'/surveys/:id/scoring',
+	jwtAuth,
 	asyncHandler(async (req, res) => {
-		if (!req.session.admin) {
-			return res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
-		}
 
 		const { id } = req.params;
 		const {
@@ -409,12 +441,8 @@ router.put(
 
 router.get(
 	'/responses',
+	jwtAuth,
 	asyncHandler(async (req, res) => {
-		if (!req.session.admin) {
-			return res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
-		}
 		const fileResponses = readJson(RESPONSES_FILE);
 		const dbResponses = await Response.find().lean();
 		res.json([...fileResponses, ...dbResponses]);
@@ -424,12 +452,8 @@ router.get(
 // Get statistics for a specific survey
 router.get(
 	'/surveys/:surveyId/statistics',
+	jwtAuth,
 	asyncHandler(async (req, res) => {
-		if (!req.session.admin) {
-			return res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
-		}
 		const { surveyId } = req.params;
 		const survey = await Survey.findById(surveyId).lean();
 		if (!survey) {
@@ -609,12 +633,8 @@ router.get(
 // Publish survey with distribution settings (admin only)
 router.post(
 	'/surveys/:id/publish',
+	jwtAuth,
 	asyncHandler(async (req, res) => {
-		if (!req.session.admin) {
-			return res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
-		}
 
 		const {
 			distributionMode,
@@ -634,7 +654,7 @@ router.post(
 		survey.status = 'active';
 		survey.publishingSettings = {
 			publishedAt: new Date(),
-			publishedBy: req.session.adminId || null,
+			publishedBy: req.user.id || null,
 		};
 
 		// Update distribution settings if provided
@@ -656,7 +676,7 @@ router.post(
 				targetEmails: targetEmails || [],
 				maxResponses,
 				expiresAt: expiresAt ? new Date(expiresAt) : null,
-				createdBy: req.session.adminId || null,
+				createdBy: req.user.id || null,
 			});
 
 			await invitation.populate('surveyId', 'title description');
@@ -675,12 +695,8 @@ router.post(
 // Get survey invitations (admin only)
 router.get(
 	'/surveys/:id/invitations',
+	jwtAuth,
 	asyncHandler(async (req, res) => {
-		if (!req.session.admin) {
-			return res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
-		}
 
 		const invitations = await Invitation.find({ surveyId: req.params.id })
 			.populate('targetUsers', 'name email studentId')
@@ -693,12 +709,8 @@ router.get(
 // Create invitation for survey (admin only)
 router.post(
 	'/surveys/:id/invitations',
+	jwtAuth,
 	asyncHandler(async (req, res) => {
-		if (!req.session.admin) {
-			return res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
-		}
 
 		const { distributionMode, targetUsers, targetEmails, maxResponses, expiresAt } = req.body;
 
@@ -728,7 +740,7 @@ router.post(
 			targetEmails: targetEmails || [],
 			maxResponses,
 			expiresAt: expiresAt ? new Date(expiresAt) : null,
-			createdBy: req.session.adminId || null,
+			createdBy: req.user.id || null,
 		});
 
 		await invitation.populate('surveyId', 'title description');
@@ -741,12 +753,8 @@ router.post(
 // Get dashboard statistics (admin only)
 router.get(
 	'/dashboard/statistics',
+	jwtAuth,
 	asyncHandler(async (req, res) => {
-		if (!req.session.admin) {
-			return res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
-		}
 
 		const [
 			totalSurveys,
@@ -832,12 +840,8 @@ router.get(
 // Toggle survey active status
 router.put(
 	'/surveys/:id/toggle-status',
+	jwtAuth,
 	asyncHandler(async (req, res) => {
-		if (!req.session.admin) {
-			return res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json({ error: ERROR_MESSAGES.UNAUTHORIZED });
-		}
 		
 		const survey = await Survey.findById(req.params.id);
 		if (!survey) {

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/axiosConfig';
 import { useAdmin } from '../contexts/AdminContext';
 import { Survey, EnhancedStats } from '../types/admin';
 
@@ -68,7 +68,7 @@ export const useSurveys = () => {
 
 	const loadSurveys = async () => {
 		try {
-			const response = await axios.get('/api/admin/surveys');
+			const response = await api.get('/admin/surveys');
 			setSurveys(response.data);
 		} catch (err) {
 			console.error('Error loading surveys:', err);
@@ -88,7 +88,7 @@ export const useSurveys = () => {
 				isActive: newSurvey.status === 'active'
 			};
 			
-			const response = await axios.post('/api/admin/surveys', surveyData);
+			const response = await api.post('/admin/surveys', surveyData);
 			setSurveys([...surveys, response.data]);
 			setNewSurvey({
 				title: '',
@@ -134,7 +134,7 @@ export const useSurveys = () => {
 				isActive: surveyData.status === 'active'
 			};
 			
-			const response = await axios.put(`/api/admin/surveys/${surveyId}`, dataToSend);
+			const response = await api.put(`/admin/surveys/${surveyId}`, dataToSend);
 			const updatedSurvey = response.data;
 			setSurveys(surveys.map(s => s._id === surveyId ? updatedSurvey : s));
 			if (selectedSurvey?._id === surveyId) {
@@ -151,7 +151,7 @@ export const useSurveys = () => {
 		if (!window.confirm('Are you sure you want to delete this survey?')) return;
 		
 		try {
-			await axios.delete(`/api/admin/surveys/${surveyId}`);
+			await api.delete(`/admin/surveys/${surveyId}`);
 			setSurveys(surveys.filter(s => s._id !== surveyId));
 			if (selectedSurvey?._id === surveyId) {
 				setSelectedSurvey(null);
@@ -165,7 +165,7 @@ export const useSurveys = () => {
 
 	const toggleSurveyStatus = async (surveyId: string) => {
 		try {
-			const response = await axios.put(`/api/admin/surveys/${surveyId}/toggle-status`);
+			const response = await api.put(`/admin/surveys/${surveyId}/toggle-status`);
 			const updatedSurvey = response.data;
 			setSurveys(surveys.map(s => s._id === surveyId ? updatedSurvey : s));
 			if (selectedSurvey?._id === surveyId) {
@@ -252,7 +252,7 @@ export const useSurveys = () => {
 
 	const loadStats = async (surveyId: string) => {
 		try {
-			const response = await axios.get(`/api/admin/surveys/${surveyId}/statistics`);
+			const response = await api.get(`/admin/surveys/${surveyId}/statistics`);
 			setStats(prev => ({
 				...prev,
 				[surveyId]: response.data
@@ -270,7 +270,7 @@ export const useSurveys = () => {
 		}
 
 		try {
-			const response = await axios.put(`/api/admin/surveys/${surveyId}/questions`, form);
+			const response = await api.put(`/admin/surveys/${surveyId}/questions`, form);
 			const updatedSurvey = response.data;
 			setSurveys(surveys.map(s => s._id === surveyId ? updatedSurvey : s));
 			if (selectedSurvey?._id === surveyId) {
@@ -295,7 +295,7 @@ export const useSurveys = () => {
 
 	const updateQuestion = async (surveyId: string, questionIndex: number, questionData: any) => {
 		try {
-			const response = await axios.put(`/api/admin/surveys/${surveyId}/questions/${questionIndex}`, questionData);
+			const response = await api.put(`/admin/surveys/${surveyId}/questions/${questionIndex}`, questionData);
 			const updatedSurvey = response.data;
 			setSurveys(surveys.map(s => s._id === surveyId ? updatedSurvey : s));
 			if (selectedSurvey?._id === surveyId) {
@@ -312,7 +312,7 @@ export const useSurveys = () => {
 		if (!window.confirm('Are you sure you want to delete this question?')) return;
 		
 		try {
-			const response = await axios.delete(`/api/admin/surveys/${surveyId}/questions/${questionIndex}`);
+			const response = await api.delete(`/admin/surveys/${surveyId}/questions/${questionIndex}`);
 			const updatedSurvey = response.data;
 			setSurveys(surveys.map(s => s._id === surveyId ? updatedSurvey : s));
 			if (selectedSurvey?._id === surveyId) {

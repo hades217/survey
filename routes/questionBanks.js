@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const questionBankController = require('../controllers/questionBankController');
-const { requireAuth } = require('../middlewares/auth');
+const { jwtAuth } = require('../middlewares/jwtAuth');
 
-// Apply authentication middleware to all routes
-router.use(requireAuth);
+// Apply JWT authentication middleware to all routes
+router.use(jwtAuth);
 
 // Question Bank routes
 router.get('/', questionBankController.getAllQuestionBanks);

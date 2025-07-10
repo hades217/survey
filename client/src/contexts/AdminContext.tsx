@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/axiosConfig';
 import { 
 	Survey, 
 	QuestionBank, 
@@ -41,6 +41,8 @@ interface AdminContextType {
 	setEditForm: React.Dispatch<React.SetStateAction<NewSurveyForm>>;
 	questionBankForm: QuestionBankForm;
 	setQuestionBankForm: React.Dispatch<React.SetStateAction<QuestionBankForm>>;
+	editQuestionBankForm: QuestionBankForm;
+	setEditQuestionBankForm: React.Dispatch<React.SetStateAction<QuestionBankForm>>;
 	
 	// Question forms
 	questionForms: Record<string, QuestionForm>;
@@ -71,6 +73,8 @@ interface AdminContextType {
 	setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>;
 	showQuestionBankModal: boolean;
 	setShowQuestionBankModal: React.Dispatch<React.SetStateAction<boolean>>;
+	showEditQuestionBankModal: boolean;
+	setShowEditQuestionBankModal: React.Dispatch<React.SetStateAction<boolean>>;
 	showScoringModal: boolean;
 	setShowScoringModal: React.Dispatch<React.SetStateAction<boolean>>;
 	showQR: Record<string, boolean>;
@@ -184,6 +188,11 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		description: '',
 	});
 	
+	const [editQuestionBankForm, setEditQuestionBankForm] = useState<QuestionBankForm>({
+		name: '',
+		description: '',
+	});
+	
 	// Question forms
 	const [questionForms, setQuestionForms] = useState<Record<string, QuestionForm>>({});
 	const [questionBankQuestionForms, setQuestionBankQuestionForms] = useState<Record<string, QuestionForm>>({});
@@ -202,6 +211,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 	const [showCreateModal, setShowCreateModal] = useState(false);
 	const [showEditModal, setShowEditModal] = useState(false);
 	const [showQuestionBankModal, setShowQuestionBankModal] = useState(false);
+	const [showEditQuestionBankModal, setShowEditQuestionBankModal] = useState(false);
 	const [showScoringModal, setShowScoringModal] = useState(false);
 	const [showQR, setShowQR] = useState<Record<string, boolean>>({});
 	
@@ -216,12 +226,20 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 	useEffect(() => {
 		const checkAuth = async () => {
 			try {
-				const response = await axios.get('/api/admin/check-auth');
+				const token = localStorage.getItem('adminToken');
+				if (!token) {
+					setLoggedIn(false);
+					return;
+				}
+				
+				const response = await api.get('/admin/check-auth');
 				console.log('Auth check response:', response);
 				setLoggedIn(true);
 			} catch (err) {
 				console.log('Auth check failed:', err);
 				setLoggedIn(false);
+				// Remove invalid token
+				localStorage.removeItem('adminToken');
 			}
 		};
 		checkAuth();
@@ -233,8 +251,10 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		setLoading(true);
 		setError('');
 		try {
-			const response = await axios.post('/api/admin/login', loginForm);
+			const response = await api.post('/admin/login', loginForm);
 			if (response.data.success) {
+				// Save JWT token to localStorage
+				localStorage.setItem('adminToken', response.data.token);
 				setLoggedIn(true);
 				setLoginForm({ username: '', password: '' });
 			} else {
@@ -249,7 +269,8 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 	
 	const logout = async () => {
 		try {
-			await axios.get('/api/admin/logout');
+			// Remove JWT token from localStorage
+			localStorage.removeItem('adminToken');
 			setLoggedIn(false);
 			setSelectedSurvey(null);
 			setSelectedQuestionBankDetail(null);
@@ -292,6 +313,8 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		setEditForm,
 		questionBankForm,
 		setQuestionBankForm,
+		editQuestionBankForm,
+		setEditQuestionBankForm,
 		
 		// Question forms
 		questionForms,
@@ -322,6 +345,8 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		setShowEditModal,
 		showQuestionBankModal,
 		setShowQuestionBankModal,
+		showEditQuestionBankModal,
+		setShowEditQuestionBankModal,
 		showScoringModal,
 		setShowScoringModal,
 		showQR,

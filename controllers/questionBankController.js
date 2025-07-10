@@ -52,7 +52,7 @@ exports.createQuestionBank = async (req, res) => {
 		const questionBank = new QuestionBank({
 			name: name.trim(),
 			description: description?.trim(),
-			createdBy: req.session.user?.id, // Assuming user ID is stored in session
+			createdBy: req.user.id, // Get user ID from JWT payload
 			questions: [],
 		});
 

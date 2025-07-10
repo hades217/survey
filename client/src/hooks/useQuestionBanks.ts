@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/axiosConfig';
 import { useAdmin } from '../contexts/AdminContext';
 import { QuestionBank, Question } from '../types/admin';
 
@@ -71,7 +71,7 @@ export const useQuestionBanks = () => {
 
 	const loadQuestionBanks = async () => {
 		try {
-			const response = await axios.get('/api/admin/question-banks');
+			const response = await api.get('/admin/question-banks');
 			setQuestionBanks(response.data);
 		} catch (err) {
 			console.error('Error loading question banks:', err);
@@ -84,7 +84,7 @@ export const useQuestionBanks = () => {
 		setLoading(true);
 		setError('');
 		try {
-			const response = await axios.post('/api/admin/question-banks', questionBankForm);
+			const response = await api.post('/admin/question-banks', questionBankForm);
 			setQuestionBanks([...questionBanks, response.data]);
 			setQuestionBankForm({ name: '', description: '' });
 			setShowQuestionBankModal(false);
@@ -95,11 +95,33 @@ export const useQuestionBanks = () => {
 		}
 	};
 
+	const updateQuestionBank = async (questionBankId: string, formData: { name: string; description: string }) => {
+		setLoading(true);
+		setError('');
+		try {
+			const response = await api.put(`/admin/question-banks/${questionBankId}`, formData);
+			const updatedQuestionBank = response.data;
+			
+			setQuestionBanks(prev => 
+				prev.map(qb => qb._id === questionBankId ? updatedQuestionBank : qb)
+			);
+			
+			if (selectedQuestionBankDetail?._id === questionBankId) {
+				setSelectedQuestionBankDetail(updatedQuestionBank);
+			}
+		} catch (err: any) {
+			setError(err.response?.data?.error || 'Failed to update question bank');
+			throw err;
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	const deleteQuestionBank = async (questionBankId: string) => {
 		if (!window.confirm('Are you sure you want to delete this question bank?')) return;
 		
 		try {
-			await axios.delete(`/api/admin/question-banks/${questionBankId}`);
+			await api.delete(`/admin/question-banks/${questionBankId}`);
 			setQuestionBanks(questionBanks.filter(qb => qb._id !== questionBankId));
 			if (selectedQuestionBankDetail?._id === questionBankId) {
 				setSelectedQuestionBankDetail(null);
@@ -132,7 +154,7 @@ export const useQuestionBanks = () => {
 		}
 
 		try {
-			const response = await axios.post(`/api/admin/question-banks/${questionBankId}/questions`, currentForm);
+			const response = await api.post(`/admin/question-banks/${questionBankId}/questions`, currentForm);
 			const updatedQuestionBank = response.data;
 			
 			setQuestionBanks(prev => 
@@ -159,7 +181,7 @@ export const useQuestionBanks = () => {
 		if (!currentForm) return;
 
 		try {
-			const response = await axios.put(`/api/admin/question-banks/${questionBankId}/questions/${questionId}`, currentForm);
+			const response = await api.put(`/admin/question-banks/${questionBankId}/questions/${questionId}`, currentForm);
 			const updatedQuestionBank = response.data;
 			
 			setQuestionBanks(prev => 
@@ -184,7 +206,7 @@ export const useQuestionBanks = () => {
 		if (!window.confirm('Are you sure you want to delete this question?')) return;
 		
 		try {
-			const response = await axios.delete(`/api/admin/question-banks/${questionBankId}/questions/${questionId}`);
+			const response = await api.delete(`/admin/question-banks/${questionBankId}/questions/${questionId}`);
 			const updatedQuestionBank = response.data;
 			
 			setQuestionBanks(prev => 
@@ -266,6 +288,7 @@ export const useQuestionBanks = () => {
 		setError,
 		// Functions
 		createQuestionBank,
+		updateQuestionBank,
 		deleteQuestionBank,
 		handleQuestionBankClick,
 		handleQuestionBankBackToList,

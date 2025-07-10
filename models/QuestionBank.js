@@ -91,8 +91,7 @@ const questionBankSchema = new mongoose.Schema({
 	],
 	// Creator information
 	createdBy: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'User',
+		type: String,
 		required: true,
 	},
 	// Timestamps

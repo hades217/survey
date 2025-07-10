@@ -16,6 +16,10 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 		setQuestionBankQuestionForms,
 		editingQuestionBankQuestions,
 		setEditingQuestionBankQuestions,
+		showEditQuestionBankModal,
+		setShowEditQuestionBankModal,
+		editQuestionBankForm,
+		setEditQuestionBankForm,
 		loading,
 		setLoading,
 		error,
@@ -296,6 +300,20 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 							<span>Questions: {qb.questions?.length || 0}</span>
 							<span>Created: {new Date(qb.createdAt).toLocaleDateString()}</span>
 						</div>
+					</div>
+					<div className="flex items-center gap-2">
+						<button
+							className="btn-primary text-sm px-3 py-1"
+							onClick={() => {
+								setEditQuestionBankForm({
+									name: qb.name,
+									description: qb.description || ''
+								});
+								setShowEditQuestionBankModal(true);
+							}}
+						>
+							Edit Question Bank
+						</button>
 					</div>
 				</div>
 
