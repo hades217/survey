@@ -34,7 +34,7 @@ const AdminDashboard: React.FC = () => {
 
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-8">
-			<div className="w-full max-w-3xl mx-auto px-4">
+			<div className="w-full mx-auto px-4" style={{ maxWidth: '1440px' }}>
 				<AdminHeader />
 				<NavigationTabs />
 				{renderContent()}

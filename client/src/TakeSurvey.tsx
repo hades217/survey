@@ -35,8 +35,9 @@ interface Survey {
 interface Question {
 	_id: string;
 	text: string;
-	options: string[];
-	correctAnswer?: number;
+	type: 'single_choice' | 'multiple_choice' | 'short_text';
+	options?: string[];
+	correctAnswer?: number | string;
 	points?: number;
 }
 
@@ -482,16 +483,16 @@ const TakeSurvey: React.FC = () => {
 														className="w-full p-3 bg-white rounded-lg border border-gray-200 focus:border-primary-300 focus:ring-2 focus:ring-primary-100 transition-colors"
 														placeholder="Enter your answer here..."
 														rows={4}
-														value={answers[q._id] || ''}
+														value={form.answers[q._id] || ''}
 														onChange={(e) => handleAnswerChange(q._id, e.target.value)}
 														required
 													/>
 												</div>
 											) : (
 												<div className="space-y-3">
-													{q.options && q.options.map(opt => (
+													{q.options && q.options.map((opt, optIndex) => (
 														<label
-															key={opt}
+															key={`${q._id}-${optIndex}-${opt}`}
 															className="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-primary-300 cursor-pointer transition-colors"
 														>
 															<input
@@ -499,6 +500,7 @@ const TakeSurvey: React.FC = () => {
 																name={q._id}
 																className="mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
 																value={opt}
+																checked={form.answers[q._id] === opt}
 																onChange={() =>
 																	handleAnswerChange(q._id, opt)
 																}

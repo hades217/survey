@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+const isInvitationCode = (str) => /^[a-f0-9]{32}$/i.test(str);
+
 const StudentAssessment = () => {
 	const { slug } = useParams();
 	const navigate = useNavigate();
@@ -17,21 +19,48 @@ const StudentAssessment = () => {
 	const [error, setError] = useState('');
 	const [assessmentResults, setAssessmentResults] = useState([]);
 	const [startTime, setStartTime] = useState(null);
+	const [invitationInfo, setInvitationInfo] = useState(null);
 
 	const timerRef = useRef(null);
 	const autoSubmitRef = useRef(false);
 
-	// Load survey data
+	// Load survey data (支持邀请码和 slug)
 	useEffect(() => {
-		if (slug) {
-			setLoading(true);
+		if (!slug) return;
+		setLoading(true);
+		setError('');
+		setInvitationInfo(null);
+		if (isInvitationCode(slug)) {
+			// 通过邀请码获取 survey
+			axios
+				.get(`/api/invitations/access/${slug}`)
+				.then(res => {
+					setSurvey(res.data.survey);
+					setInvitationInfo(res.data.invitation);
+					if (res.data.survey.timeLimit) {
+						setTimer({
+							timeLeft: res.data.survey.timeLimit * 60,
+							isActive: false,
+							isExpired: false,
+						});
+					}
+				})
+				.catch(err => {
+					setError(
+						err.response?.data?.error || '邀请码无效或已过期'
+					);
+					console.error('Error fetching invitation:', err);
+				})
+				.finally(() => setLoading(false));
+		} else {
+			// 兼容原有 slug 逻辑
 			axios
 				.get(`/api/survey/${slug}`)
 				.then(res => {
 					setSurvey(res.data);
 					if (res.data.timeLimit) {
 						setTimer({
-							timeLeft: res.data.timeLimit * 60, // Convert minutes to seconds
+							timeLeft: res.data.timeLimit * 60,
 							isActive: false,
 							isExpired: false,
 						});
@@ -139,18 +168,15 @@ const StudentAssessment = () => {
 		}
 	}, [survey, submitted, form]);
 
-	// Submit assessment
+	// Submit assessment (支持邀请码)
 	const handleSubmit = async (isAutoSubmit = false) => {
 		if (!survey || submitted) return;
-
 		setLoading(true);
 		setTimer(prev => ({ ...prev, isActive: false }));
-
 		try {
 			const timeSpent = startTime
 				? Math.round((new Date().getTime() - startTime.getTime()) / 1000)
 				: 0;
-
 			const payload = {
 				name: form.name,
 				email: form.email,
@@ -159,16 +185,22 @@ const StudentAssessment = () => {
 				timeSpent,
 				isAutoSubmit,
 			};
-
+			if (isInvitationCode(slug)) {
+				payload.invitationCode = slug;
+			}
 			await axios.post(`/api/surveys/${survey._id}/responses`, payload);
-
+			if (isInvitationCode(slug)) {
+				await axios.post(`/api/invitations/complete/${slug}`, {
+					userId: null,
+					email: form.email || null,
+				});
+			}
 			// Calculate results for quiz/assessment/iq
-			if (['quiz', 'assessment', 'iq'].includes(survey.type)) {
+			if (["quiz", "assessment", "iq"].includes(survey.type)) {
 				const results = survey.questions.map(q => {
 					const userAnswer = form.answers[q._id];
 					let correctAnswer = '';
 					let isCorrect = false;
-
 					if (q.type === 'single_choice' && typeof q.correctAnswer === 'number') {
 						correctAnswer = q.options[q.correctAnswer];
 						isCorrect = userAnswer === correctAnswer;
@@ -179,7 +211,6 @@ const StudentAssessment = () => {
 							correctAnswer.length === userAnswerArray.length &&
 							correctAnswer.every(ans => userAnswerArray.includes(ans));
 					}
-
 					return {
 						questionId: q._id,
 						questionText: q.text,
@@ -190,10 +221,8 @@ const StudentAssessment = () => {
 						points: q.points || 1,
 					};
 				});
-
 				setAssessmentResults(results);
 			}
-
 			setSubmitted(true);
 			setCurrentStep('results');
 		} catch (err) {
@@ -222,7 +251,7 @@ const StudentAssessment = () => {
 			<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
 				<div className="bg-white rounded-lg shadow-lg p-8 max-w-md mx-auto text-center">
 					<div className="text-red-500 text-6xl mb-4">⚠️</div>
-					<h2 className="text-2xl font-bold text-gray-800 mb-2">Assessment Not Found</h2>
+					<h2 className="text-2xl font-bold text-gray-800 mb-2">{isInvitationCode(slug) ? '邀请码无效或已过期' : 'Assessment Not Found'}</h2>
 					<p className="text-gray-600 mb-6">{error}</p>
 					<button
 						onClick={() => navigate('/')}

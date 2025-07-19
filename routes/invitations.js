@@ -5,6 +5,7 @@ const User = require('../models/User');
 const asyncHandler = require('../middlewares/asyncHandler');
 const AppError = require('../utils/AppError');
 const { ERROR_MESSAGES, HTTP_STATUS } = require('../shared/constants');
+const { sendMail } = require('../utils/mailer');
 
 const router = express.Router();
 
@@ -60,27 +61,42 @@ router.post(
 			});
 		}
 
-		// Optional: Check for duplicate invitations if preventDuplicates is true
-		if (preventDuplicates && distributionMode === 'targeted') {
-			const existingInvitation = await Invitation.findOne({
-				surveyId,
-				distributionMode: 'targeted',
-				isActive: true,
-				$or: [
-					{ targetUsers: { $in: targetUsers || [] } },
-					{ targetEmails: { $in: targetEmails || [] } },
-				],
-			});
+		// 批量邮箱邀请逻辑
+		if (distributionMode === 'targeted' && Array.isArray(targetEmails) && targetEmails.length > 0) {
+			const results = [];
+			for (const email of targetEmails) {
+				try {
+					const invitation = await Invitation.create({
+						surveyId,
+						distributionMode: 'targeted',
+						targetEmails: [email],
+						maxResponses: 1,
+						expiresAt: expiresAt ? new Date(expiresAt) : null,
+						createdBy: req.session.adminId || null,
+					});
 
-			if (existingInvitation) {
-				return res.status(HTTP_STATUS.BAD_REQUEST).json({
-					error: 'Some users have already been invited to this survey',
-					existingInvitation: existingInvitation._id,
-				});
+					// 生成 assessment 专属链接
+					const link = `${process.env.BASE_URL || 'http://localhost:5173'}/assessment/${invitation.invitationCode}`;
+					const expireText = expiresAt ? `此链接将在 ${new Date(expiresAt).toLocaleDateString()} 过期。` : '';
+					const subject = `[Assessment Invitation] 你被邀请参与一次测评`;
+					const html = `
+						<p>Hi ${email},</p>
+						<p>您被邀请参与我们的在线测评：<b>${survey.title}</b>。</p>
+						<p>请点击下方按钮开始答题：</p>
+						<p><a href="${link}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;">👉 开始测评</a></p>
+						<p>${expireText}</p>
+						<p>—— 测评系统</p>
+					`;
+					await sendMail({ to: email, subject, html });
+					results.push({ email, status: 'success' });
+				} catch (err) {
+					results.push({ email, status: 'fail', error: err.message });
+				}
 			}
+			return res.json({ success: true, results });
 		}
 
-		// Create invitation
+		// 兼容原有 invitation 创建逻辑
 		const invitation = await Invitation.create({
 			surveyId,
 			distributionMode,
@@ -282,7 +298,6 @@ router.get(
 			userId: userId || null,
 			email: email || null,
 			accessedAt: new Date(),
-			ipAddress: req.ip || req.connection.remoteAddress,
 		});
 
 		await invitation.save();
@@ -297,6 +312,34 @@ router.get(
 				expiresAt: invitation.expiresAt,
 			},
 		});
+	})
+);
+
+// 标记 invitation 已完成（作答后调用）
+router.post(
+	'/complete/:invitationCode',
+	asyncHandler(async (req, res) => {
+		const { invitationCode } = req.params;
+		const { userId, email } = req.body;
+
+		const invitation = await Invitation.findOne({ invitationCode });
+		if (!invitation) {
+			return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Invitation not found' });
+		}
+
+		// 增加 currentResponses
+		invitation.currentResponses = (invitation.currentResponses || 0) + 1;
+		invitation.completedBy.push({
+			userId: userId || null,
+			email: email || null,
+			completedAt: new Date(),
+		});
+		// 如果只允许一次，自动失效
+		if (invitation.maxResponses === 1) {
+			invitation.isActive = false;
+		}
+		await invitation.save();
+		res.json({ success: true });
 	})
 );
 

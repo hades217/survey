@@ -176,7 +176,7 @@ export const useQuestionBanks = () => {
 			}
 		}
 		
-		let questionData: any = {
+		const questionData: any = {
 			text: currentForm.text,
 			type: currentForm.type,
 			points: currentForm.points,
