@@ -23,11 +23,34 @@ pipeline {
             }
         }
 
+        stage('Install Docker Compose') {
+            steps {
+                echo 'Installing Docker Compose...'
+                sh '''
+                    # Check if Docker Compose is already installed
+                    if command -v docker-compose &> /dev/null; then
+                        echo "Docker Compose is already installed"
+                        docker-compose --version
+                    else
+                        echo "Installing Docker Compose..."
+
+                        # Install Docker Compose
+                        curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+                        chmod +x /usr/local/bin/docker-compose
+
+                        # Verify installation
+                        docker-compose --version
+
+                        echo "Docker Compose installed successfully"
+                    fi
+                '''
+            }
+        }
+
         stage('Stop Old Containers') {
             steps {
                 echo 'Stopping old survey containers...'
                 sh '''
-                    # Change to the survey directory
                     pwd
                     ls -la
 
@@ -47,12 +70,9 @@ pipeline {
             steps {
                 echo 'Building and deploying survey application...'
                 sh '''
-                    # Change to the survey directory
-                    pwd
-
                     # Verify docker-compose.yml exists
                     if [ ! -f "docker-compose.yml" ]; then
-                        echo "Error: docker-compose.yml not found in ${WORKSPACE}/survey"
+                        echo "Error: docker-compose.yml not found in current directory"
                         exit 1
                     fi
 
