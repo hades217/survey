@@ -98,7 +98,7 @@ pipeline {
 
                     // Test backend API
                     sh '''
-                        curl -f http://localhost:${BACKEND_PORT}/api/surveys || exit 1
+                        curl -f http://localhost:${BACKEND_PORT} || exit 1
                         echo "Backend API is healthy"
                     '''
 
@@ -126,9 +126,9 @@ pipeline {
         success {
             echo 'Deployment successful!'
             echo 'Access your application at:'
-            echo "  Backend API: http://localhost:${BACKEND_PORT}/api"
-            echo "  Frontend: http://localhost:${FRONTEND_PORT}"
-            echo "  Admin Dashboard: http://localhost:${FRONTEND_PORT}/admin"
+            echo "  Backend API: http://survey.jiangren.com.au:${BACKEND_PORT}"
+            echo "  Frontend: http://survey.jiangren.com.au:${FRONTEND_PORT}"
+            echo "  Admin Dashboard: http://survey.jiangren.com.au:${FRONTEND_PORT}/admin"
             // You can add notifications here (Slack, email, etc.)
         }
         failure {
