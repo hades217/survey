@@ -9,8 +9,6 @@ pipeline {
         BACKEND_PORT = '5050'
         FRONTEND_PORT = '5173'
 
-        // Environment variables
-        MONGODB_URI = 'mongodb+srv://admin:cbfdfee5a2a211a9653b69d1c941529e@jobpin-ai-uat.xjmjwoh.mongodb.net/jobpin?retryWrites=true&w=majority&appName=jobpin-ai-uat'
         ADMIN_USERNAME = 'admin'
         ADMIN_PASSWORD = 'password'
     }
@@ -69,23 +67,47 @@ pipeline {
         stage('Build and Deploy') {
             steps {
                 echo 'Building and deploying survey application...'
-                sh '''
-                    # Verify docker-compose.yml exists
-                    if [ ! -f "docker-compose.yml" ]; then
-                        echo "Error: docker-compose.yml not found in current directory"
-                        exit 1
-                    fi
+                withVault([configuration: [ vaultUrl: 'https://vault.jiangren.com.au', vaultCredentialId: 'Vault Credential', timeout: 120],
+                    vaultSecrets: [[path: 'jenkins_jr_academy/uat',
+                        secretValues: [
+                            [vaultKey: 'MONGO_URI']
+                        ]
+                    ]]
+                ]) {
+                    script {
+                        def envVars = [
+                            "MONGO_URI": "${MONGO_URI}"
+                        ]
 
-                    # Build and start services using existing docker-compose.yml
-                    docker-compose up --build -d
+                        // Create environment string for docker-compose
+                        def envString = ""
+                        envVars.each { key, value ->
+                            envString += " -e ${key}=\"${value}\""
+                        }
+                        envString = envString.trim()
 
-                    # Wait for services to be ready
-                    echo "Waiting for services to be ready..."
-                    sleep 30
+                        echo "Environment variables loaded from Vault"
+                        echo "MONGO_URI: ${MONGO_URI}"
 
-                    # Check service status
-                    docker-compose ps
-                '''
+                        sh '''
+                            # Verify docker-compose.yml exists
+                            if [ ! -f "docker-compose.yml" ]; then
+                                echo "Error: docker-compose.yml not found in current directory"
+                                exit 1
+                            fi
+
+							# Build and start services using existing docker-compose.yml
+							docker-compose up --build -d
+
+							# Wait for services to be ready
+							echo "Waiting for services to be ready..."
+							sleep 30
+
+                            # Check service status
+                            docker-compose ps
+                        '''
+                    }
+                }
             }
         }
 
@@ -126,9 +148,10 @@ pipeline {
         success {
             echo 'Deployment successful!'
             echo 'Access your application at:'
-            echo "  Backend API: http://survey.jiangren.com.au:${BACKEND_PORT}"
-            echo "  Frontend: http://survey.jiangren.com.au:${FRONTEND_PORT}"
-            echo "  Admin Dashboard: http://survey.jiangren.com.au:${FRONTEND_PORT}/admin"
+            echo "  Frontend: http://survey.jiangren.com.au"
+            echo "  Admin Dashboard: http://survey.jiangren.com.au/admin"
+            echo "  API: http://survey.jiangren.com.au/api"
+            echo "  Health Check: http://survey.jiangren.com.au/health"
             // You can add notifications here (Slack, email, etc.)
         }
         failure {
