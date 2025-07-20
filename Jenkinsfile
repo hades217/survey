@@ -53,7 +53,7 @@ pipeline {
                     ls -la
 
                     # Stop and remove existing survey containers (ignore .env file missing)
-                    docker-compose down --remove-orphans || true
+                    docker-compose down  || true
 
                     # Remove only survey-related images
                     docker images | grep survey | awk '{print $3}' | xargs -r docker rmi -f || true
