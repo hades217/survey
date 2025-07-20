@@ -116,7 +116,7 @@ EOF
 
                             # Check service status
                             docker-compose ps
-                        '''
+                        """
                     }
                 }
             }
