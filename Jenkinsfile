@@ -88,7 +88,7 @@ pipeline {
                             # Create .env file with actual environment variable values
                             cat > .env << EOF
 # Database Configuration
-MONGO_URI=${MONGO_URI}
+MONGODB_URI=${MONGO_URI}
 
 # Application Configuration
 BACKEND_PORT=${BACKEND_PORT}
