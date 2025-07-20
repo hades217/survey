@@ -28,7 +28,6 @@ pipeline {
                 echo 'Stopping old survey containers...'
                 sh '''
                     # Change to the survey directory
-                    cd ${WORKSPACE}/survey
                     pwd
                     ls -la
 
