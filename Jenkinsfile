@@ -45,15 +45,15 @@ pipeline {
             }
         }
 
-        stage('Stop Old Containers') {
+                stage('Stop Old Containers') {
             steps {
                 echo 'Stopping old survey containers...'
                 sh '''
                     pwd
                     ls -la
 
-                    # Stop and remove existing survey containers
-                    docker-compose down || true
+                    # Stop and remove existing survey containers (ignore .env file missing)
+                    docker-compose down --remove-orphans || true
 
                     # Remove only survey-related images
                     docker images | grep survey | awk '{print $3}' | xargs -r docker rmi -f || true
