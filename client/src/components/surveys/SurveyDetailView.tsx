@@ -6,17 +6,28 @@ import QRCodeComponent from '../QRCode';
 import AddSurveyQuestionModal from '../modals/AddSurveyQuestionModal';
 import InviteAssessmentModal from '../modals/InviteAssessmentModal';
 import api from '../../utils/axiosConfig';
+import {
+	SURVEY_TYPE,
+	SURVEY_STATUS,
+	QUESTION_TYPE,
+	TAB_TYPES,
+	STATS_VIEW,
+	SOURCE_TYPE,
+	NAVIGATION_MODE,
+	SCORING_MODE,
+	TYPES_REQUIRING_ANSWERS,
+} from '../../constants';
 
 interface SurveyDetailViewProps {
-  survey: Survey;
+	survey: Survey;
 }
 
 const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
-	const { 
-		setSelectedSurvey, 
-		setTab, 
-		navigate, 
-		showQR, 
+	const {
+		setSelectedSurvey,
+		setTab,
+		navigate,
+		showQR,
 		setShowQR,
 		copyToClipboard,
 		questionForms,
@@ -33,18 +44,24 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		loading,
 		setLoading,
 		error,
-		setError
+		setError,
 	} = useAdmin();
 
-  
-	const { deleteSurvey, toggleSurveyStatus, addQuestion, updateQuestion, deleteQuestion, loadStats } = useSurveys();
-  
+	const {
+		deleteSurvey,
+		toggleSurveyStatus,
+		addQuestion,
+		updateQuestion,
+		deleteQuestion,
+		loadStats,
+	} = useSurveys();
+
 	// Local state for question editing
 	const [questionEditForms, setQuestionEditForms] = useState<Record<string, QuestionForm>>({});
 	// Local state for add question modal
 	const [showAddQuestionModal, setShowAddQuestionModal] = useState(false);
 	const [showInviteModal, setShowInviteModal] = useState(false);
-	const [tabLocal, setTabLocal] = useState<'detail' | 'invitations'>('detail');
+	const [tabLocal, setTabLocal] = useState<'detail' | 'invitations'>(TAB_TYPES.DETAIL);
 	const [invitations, setInvitations] = useState<any[]>([]);
 	const [loadingInvitations, setLoadingInvitations] = useState(false);
 	const [page, setPage] = useState(1);
@@ -65,7 +82,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	};
 
 	useEffect(() => {
-		if (tabLocal === 'invitations') {
+		if (tabLocal === TAB_TYPES.INVITATIONS) {
 			loadInvitations();
 		}
 	}, [tabLocal, survey._id]);
@@ -77,8 +94,10 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	};
 
 	// 过滤和分页
-	const filtered = invitations.filter(inv =>
-		!search || (inv.targetEmails && inv.targetEmails.some((e: string) => e.includes(search)))
+	const filtered = invitations.filter(
+		inv =>
+			!search ||
+			(inv.targetEmails && inv.targetEmails.some((e: string) => e.includes(search)))
 	);
 	const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
 	const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -86,20 +105,27 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	// 状态判断
 	const getStatus = (inv: any) => {
 		const now = new Date();
-		if (inv.completedBy && inv.completedBy.length > 0) return { label: '已完成', color: 'green' };
-		if (inv.expiresAt && new Date(inv.expiresAt) < now) return { label: '已过期', color: 'red' };
+		if (inv.completedBy && inv.completedBy.length > 0)
+			return { label: '已完成', color: 'green' };
+		if (inv.expiresAt && new Date(inv.expiresAt) < now)
+			return { label: '已过期', color: 'red' };
 		return { label: '未填写', color: 'gray' };
 	};
 
 	// token 显示
-	const maskToken = (token: string) => token ? token.slice(0, 6) + '****' + token.slice(-4) : '';
+	const maskToken = (token: string) =>
+		token ? token.slice(0, 6) + '****' + token.slice(-4) : '';
 
 	const s = survey;
-	const currentForm = questionForms[s._id] || { text: '', options: [], type: 'single_choice' as const };
+	const currentForm = questionForms[s._id] || {
+		text: '',
+		options: [],
+		type: QUESTION_TYPE.SINGLE_CHOICE,
+	};
 
 	const handleBackToList = () => {
 		setSelectedSurvey(null);
-		setTab('list');
+		setTab(TAB_TYPES.LIST);
 		navigate('/admin');
 	};
 
@@ -110,16 +136,16 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			slug: survey.slug,
 			type: survey.type,
 			questions: survey.questions || [],
-			status: survey.status || 'draft',
+			status: survey.status || SURVEY_STATUS.DRAFT,
 			timeLimit: survey.timeLimit,
 			maxAttempts: survey.maxAttempts || 1,
 			instructions: survey.instructions || '',
-			navigationMode: survey.navigationMode || 'step-by-step',
-			sourceType: survey.sourceType || 'manual',
+			navigationMode: survey.navigationMode || NAVIGATION_MODE.STEP_BY_STEP,
+			sourceType: survey.sourceType || SOURCE_TYPE.MANUAL,
 			questionBankId: survey.questionBankId,
 			questionCount: survey.questionCount,
 			scoringSettings: survey.scoringSettings || {
-				scoringMode: 'percentage',
+				scoringMode: SCORING_MODE.PERCENTAGE,
 				totalPoints: 0,
 				passingThreshold: 70,
 				showScore: true,
@@ -141,7 +167,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	const toggleQR = (surveyId: string) => {
 		setShowQR(prev => ({
 			...prev,
-			[surveyId]: !prev[surveyId]
+			[surveyId]: !prev[surveyId],
 		}));
 	};
 
@@ -151,68 +177,89 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			const currentForm = prev[surveyId] || {
 				text: '',
 				options: [],
-				type: 'single_choice' as const,
+				type: QUESTION_TYPE.SINGLE_CHOICE,
 				correctAnswer: undefined,
-				points: undefined
+				points: undefined,
 			};
-			
+
 			const updatedForm = { ...currentForm, [field]: value };
-			
+
 			// When changing type to short_text, clear options and correctAnswer
-			if (field === 'type' && value === 'short_text') {
+			if (field === 'type' && value === QUESTION_TYPE.SHORT_TEXT) {
 				updatedForm.options = [];
 				updatedForm.correctAnswer = undefined;
 			}
 			// When changing from short_text to choice types, initialize options
-			else if (field === 'type' && (value === 'single_choice' || value === 'multiple_choice')) {
+			else if (
+				field === 'type' &&
+				(value === QUESTION_TYPE.SINGLE_CHOICE || value === QUESTION_TYPE.MULTIPLE_CHOICE)
+			) {
 				updatedForm.options = ['', ''];
 				updatedForm.correctAnswer = undefined;
 			}
-			
+
 			return {
 				...prev,
-				[surveyId]: updatedForm
+				[surveyId]: updatedForm,
 			};
 		});
 	};
 
 	const addOption = (surveyId: string) => {
 		setQuestionForms(prev => {
-			const currentForm = prev[surveyId] || { text: '', options: [], type: 'single_choice', correctAnswer: undefined, points: undefined };
+			const currentForm = prev[surveyId] || {
+				text: '',
+				options: [],
+				type: QUESTION_TYPE.SINGLE_CHOICE,
+				correctAnswer: undefined,
+				points: undefined,
+			};
 			return {
 				...prev,
 				[surveyId]: {
 					...currentForm,
-					options: [...(currentForm.options || []), '']
-				}
+					options: [...(currentForm.options || []), ''],
+				},
 			};
 		});
 	};
 
 	const removeOption = (surveyId: string, index: number) => {
 		setQuestionForms(prev => {
-			const currentForm = prev[surveyId] || { text: '', options: [], type: 'single_choice', correctAnswer: undefined, points: undefined };
+			const currentForm = prev[surveyId] || {
+				text: '',
+				options: [],
+				type: QUESTION_TYPE.SINGLE_CHOICE,
+				correctAnswer: undefined,
+				points: undefined,
+			};
 			return {
 				...prev,
 				[surveyId]: {
 					...currentForm,
-					options: (currentForm.options || []).filter((_, i) => i !== index)
-				}
+					options: (currentForm.options || []).filter((_, i) => i !== index),
+				},
 			};
 		});
 	};
 
 	const handleOptionChange = (surveyId: string, index: number, value: string) => {
 		setQuestionForms(prev => {
-			const currentForm = prev[surveyId] || { text: '', options: [], type: 'single_choice', correctAnswer: undefined, points: undefined };
+			const currentForm = prev[surveyId] || {
+				text: '',
+				options: [],
+				type: QUESTION_TYPE.SINGLE_CHOICE,
+				correctAnswer: undefined,
+				points: undefined,
+			};
 			const newOptions = [...(currentForm.options || [])];
 			newOptions[index] = value;
 			return {
 				...prev,
 				[surveyId]: {
 					...currentForm,
-					options: newOptions
-				}
+					options: newOptions,
+				},
 			};
 		});
 	};
@@ -221,43 +268,43 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	const addQuestionModalHandler = async (form: any) => {
 		try {
 			setLoading(true);
-			
+
 			// Prepare form data - don't send options for short_text
 			const formData: any = {
 				text: form.text,
-				type: form.type
+				type: form.type,
 			};
-			
+
 			// Only add options for choice questions
-			if (form.type !== 'short_text' && form.options) {
+			if (form.type !== QUESTION_TYPE.SHORT_TEXT && form.options) {
 				formData.options = form.options;
 			}
-			
+
 			// Add correctAnswer if provided
 			if (form.correctAnswer !== undefined) {
 				formData.correctAnswer = form.correctAnswer;
 			}
-			
+
 			// Add points if provided
 			if (form.points !== undefined) {
 				formData.points = form.points;
 			}
-			
+
 			await addQuestion(s._id, formData);
-			
+
 			// Reset form and close modal
 			setQuestionForms(prev => ({
 				...prev,
-				[s._id]: { 
-					text: '', 
-					options: ['', ''], 
-					type: 'single_choice' as const,
+				[s._id]: {
+					text: '',
+					options: ['', ''],
+					type: QUESTION_TYPE.SINGLE_CHOICE,
 					correctAnswer: undefined,
-					points: undefined
-				}
+					points: undefined,
+				},
 			}));
 			setShowAddQuestionModal(false);
-			
+
 			setLoading(false);
 		} catch (err: any) {
 			console.error('Add question error:', err);
@@ -270,43 +317,53 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	const startEditQuestion = (surveyId: string, questionIndex: number) => {
 		const question = s.questions[questionIndex];
 		const formKey = `${surveyId}-${questionIndex}`;
-    
+
 		setQuestionEditForms(prev => ({
 			...prev,
 			[formKey]: {
 				text: question.text,
-				type: question.type || 'single_choice',
+				type: question.type || QUESTION_TYPE.SINGLE_CHOICE,
 				options: [...(question.options || [])],
 				correctAnswer: question.correctAnswer,
-				points: question.points
-			}
+				points: question.points,
+			},
 		}));
-    
+
 		setEditingQuestions(prev => ({
 			...prev,
-			[surveyId]: questionIndex
+			[surveyId]: questionIndex,
 		}));
 	};
 
 	const cancelEditQuestion = (surveyId: string) => {
 		setEditingQuestions(prev => ({
 			...prev,
-			[surveyId]: undefined
+			[surveyId]: undefined,
 		}));
 	};
 
-	const handleQuestionEditChange = (surveyId: string, questionIndex: number, field: string, value: any) => {
+	const handleQuestionEditChange = (
+		surveyId: string,
+		questionIndex: number,
+		field: string,
+		value: any
+	) => {
 		const formKey = `${surveyId}-${questionIndex}`;
 		setQuestionEditForms(prev => ({
 			...prev,
 			[formKey]: {
 				...prev[formKey],
-				[field]: value
-			}
+				[field]: value,
+			},
 		}));
 	};
 
-	const handleQuestionEditOptionChange = (surveyId: string, questionIndex: number, optionIndex: number, value: string) => {
+	const handleQuestionEditOptionChange = (
+		surveyId: string,
+		questionIndex: number,
+		optionIndex: number,
+		value: string
+	) => {
 		const formKey = `${surveyId}-${questionIndex}`;
 		const currentForm = questionEditForms[formKey];
 		if (currentForm) {
@@ -316,8 +373,8 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				...prev,
 				[formKey]: {
 					...currentForm,
-					options: newOptions
-				}
+					options: newOptions,
+				},
 			}));
 		}
 	};
@@ -330,13 +387,17 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				...prev,
 				[formKey]: {
 					...currentForm,
-					options: [...(currentForm.options || []), '']
-				}
+					options: [...(currentForm.options || []), ''],
+				},
 			}));
 		}
 	};
 
-	const removeQuestionEditOption = (surveyId: string, questionIndex: number, optionIndex: number) => {
+	const removeQuestionEditOption = (
+		surveyId: string,
+		questionIndex: number,
+		optionIndex: number
+	) => {
 		const formKey = `${surveyId}-${questionIndex}`;
 		const currentForm = questionEditForms[formKey];
 		if (currentForm) {
@@ -344,8 +405,8 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				...prev,
 				[formKey]: {
 					...currentForm,
-					options: (currentForm.options || []).filter((_, i) => i !== optionIndex)
-				}
+					options: (currentForm.options || []).filter((_, i) => i !== optionIndex),
+				},
 			}));
 		}
 	};
@@ -370,9 +431,13 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			} else {
 				// Add to correct answers
 				if (Array.isArray(currentForm.correctAnswer)) {
-					newCorrectAnswer = [...currentForm.correctAnswer, optionIndex].sort((a, b) => a - b);
+					newCorrectAnswer = [...currentForm.correctAnswer, optionIndex].sort(
+						(a, b) => a - b
+					);
 				} else if (currentForm.correctAnswer !== undefined) {
-					newCorrectAnswer = [currentForm.correctAnswer, optionIndex].sort((a, b) => a - b);
+					newCorrectAnswer = [currentForm.correctAnswer, optionIndex].sort(
+						(a, b) => a - b
+					);
 				} else {
 					newCorrectAnswer = optionIndex;
 				}
@@ -382,8 +447,8 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				...prev,
 				[formKey]: {
 					...currentForm,
-					correctAnswer: newCorrectAnswer
-				}
+					correctAnswer: newCorrectAnswer,
+				},
 			}));
 		}
 	};
@@ -391,28 +456,27 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	const saveQuestionEdit = async (surveyId: string, questionIndex: number) => {
 		const formKey = `${surveyId}-${questionIndex}`;
 		const editForm = questionEditForms[formKey];
-    
+
 		if (!editForm) return;
 
 		try {
 			setLoading(true);
-      
+
 			// Update the question via API
 			await updateQuestion(surveyId, questionIndex, editForm);
-      
+
 			// Clear editing state
 			setEditingQuestions(prev => ({
 				...prev,
-				[surveyId]: undefined
+				[surveyId]: undefined,
 			}));
-			
+
 			// Clear edit form
 			setQuestionEditForms(prev => {
 				const updated = { ...prev };
 				delete updated[formKey];
 				return updated;
 			});
-      
 		} catch (err) {
 			setError('Failed to save question. Please try again.');
 		} finally {
@@ -422,17 +486,17 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 
 	return (
 		<>
-			<div className="space-y-4">
-				<div className="flex items-center gap-4">
-					<button onClick={handleBackToList} className="btn-secondary">
-          ← Back to List
+			<div className='space-y-4'>
+				<div className='flex items-center gap-4'>
+					<button onClick={handleBackToList} className='btn-secondary'>
+						← Back to List
 					</button>
-					<h2 className="text-xl font-semibold text-gray-800">
-          Survey Detail: {s.title}
+					<h2 className='text-xl font-semibold text-gray-800'>
+						Survey Detail: {s.title}
 					</h2>
-					{s.type === 'assessment' && (
+					{s.type === SURVEY_TYPE.ASSESSMENT && (
 						<button
-							className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-4"
+							className='bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-4'
 							onClick={() => setShowInviteModal(true)}
 						>
 							📧 邀请用户测评
@@ -440,67 +504,77 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 					)}
 				</div>
 				{/* Tab 切换 */}
-				<div className="flex gap-4 border-b mb-4">
+				<div className='flex gap-4 border-b mb-4'>
 					<button
-						className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tabLocal === 'detail' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
-						onClick={() => setTabLocal('detail')}
+						className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tabLocal === TAB_TYPES.DETAIL ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
+						onClick={() => setTabLocal(TAB_TYPES.DETAIL)}
 					>
 						测评详情
 					</button>
-					{s.type === 'assessment' && (
+					{s.type === SURVEY_TYPE.ASSESSMENT && (
 						<button
-							className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tabLocal === 'invitations' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
-							onClick={() => setTabLocal('invitations')}
+							className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tabLocal === TAB_TYPES.INVITATIONS ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
+							onClick={() => setTabLocal(TAB_TYPES.INVITATIONS)}
 						>
 							已邀请用户
 						</button>
 					)}
 				</div>
 				{/* Tab 内容 */}
-				{tabLocal === 'detail' && (
+				{tabLocal === TAB_TYPES.DETAIL && (
 					<>
-						<div className="card">
-							<div className="flex justify-between items-start mb-4">
-								<div className="flex-1">
-									<div className="flex items-center gap-3 mb-2">
-										<h3 className="text-xl font-bold text-gray-800">{s.title}</h3>
+						<div className='card'>
+							<div className='flex justify-between items-start mb-4'>
+								<div className='flex-1'>
+									<div className='flex items-center gap-3 mb-2'>
+										<h3 className='text-xl font-bold text-gray-800'>
+											{s.title}
+										</h3>
 										<span
 											className={`px-2 py-1 text-xs font-medium rounded-full ${
-												s.type === 'assessment'
+												s.type === SURVEY_TYPE.ASSESSMENT
 													? 'bg-blue-100 text-blue-800'
-													: s.type === 'quiz'
+													: s.type === SURVEY_TYPE.QUIZ
 														? 'bg-green-100 text-green-800'
-														: s.type === 'iq'
+														: s.type === SURVEY_TYPE.IQ
 															? 'bg-purple-100 text-purple-800'
 															: 'bg-gray-100 text-gray-800'
 											}`}
 										>
-											{s.type === 'assessment'
+											{s.type === SURVEY_TYPE.ASSESSMENT
 												? 'Assessment'
-												: s.type === 'quiz'
+												: s.type === SURVEY_TYPE.QUIZ
 													? 'Quiz'
-													: s.type === 'iq'
+													: s.type === SURVEY_TYPE.IQ
 														? 'IQ Test'
 														: 'Survey'}
 										</span>
 										<span
 											className={`px-2 py-1 text-xs font-medium rounded-full ${
-												s.status === 'active' ? 'bg-green-100 text-green-800' : 
-													s.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+												s.status === SURVEY_STATUS.ACTIVE
+													? 'bg-green-100 text-green-800'
+													: s.status === SURVEY_STATUS.DRAFT
+														? 'bg-yellow-100 text-yellow-800'
+														: 'bg-red-100 text-red-800'
 											}`}
 										>
-											{s.status === 'active' ? 'Active' : 
-												s.status === 'draft' ? 'Draft' : 'Closed'}
+											{s.status === SURVEY_STATUS.ACTIVE
+												? 'Active'
+												: s.status === SURVEY_STATUS.DRAFT
+													? 'Draft'
+													: 'Closed'}
 										</span>
 									</div>
-									{s.description && <p className="text-gray-600 mb-3">{s.description}</p>}
+									{s.description && (
+										<p className='text-gray-600 mb-3'>{s.description}</p>
+									)}
 								</div>
-								<div className="flex items-center gap-2">
+								<div className='flex items-center gap-2'>
 									<button
-										className="btn-secondary text-sm px-3 py-1"
+										className='btn-secondary text-sm px-3 py-1'
 										onClick={() => openEditModal(s)}
 									>
-                  编辑
+										编辑
 									</button>
 								</div>
 							</div>
@@ -509,33 +583,38 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 							{(s.timeLimit ||
 								s.maxAttempts !== 1 ||
 								s.instructions ||
-								s.navigationMode !== 'step-by-step') && (
-								<div className="bg-blue-50 rounded-lg p-3 mb-3">
-									<h5 className="font-medium text-gray-800 mb-2">Assessment Configuration</h5>
-									<div className="grid grid-cols-2 gap-2 text-sm">
+								s.navigationMode !== NAVIGATION_MODE.STEP_BY_STEP) && (
+								<div className='bg-blue-50 rounded-lg p-3 mb-3'>
+									<h5 className='font-medium text-gray-800 mb-2'>
+										Assessment Configuration
+									</h5>
+									<div className='grid grid-cols-2 gap-2 text-sm'>
 										{s.timeLimit && (
-											<div className="flex justify-between">
-												<span className="text-gray-600">Time Limit:</span>
-												<span className="font-medium text-blue-600">
+											<div className='flex justify-between'>
+												<span className='text-gray-600'>Time Limit:</span>
+												<span className='font-medium text-blue-600'>
 													{s.timeLimit} minutes
 												</span>
 											</div>
 										)}
 										{s.maxAttempts !== 1 && (
-											<div className="flex justify-between">
-												<span className="text-gray-600">Max Attempts:</span>
-												<span className="font-medium text-blue-600">
+											<div className='flex justify-between'>
+												<span className='text-gray-600'>Max Attempts:</span>
+												<span className='font-medium text-blue-600'>
 													{s.maxAttempts} times
 												</span>
 											</div>
 										)}
-										{s.navigationMode !== 'step-by-step' && (
-											<div className="flex justify-between">
-												<span className="text-gray-600">Navigation Mode:</span>
-												<span className="font-medium text-blue-600">
-													{s.navigationMode === 'paginated'
+										{s.navigationMode !== NAVIGATION_MODE.STEP_BY_STEP && (
+											<div className='flex justify-between'>
+												<span className='text-gray-600'>
+													Navigation Mode:
+												</span>
+												<span className='font-medium text-blue-600'>
+													{s.navigationMode === NAVIGATION_MODE.PAGINATED
 														? 'Paginated'
-														: s.navigationMode === 'all-in-one'
+														: s.navigationMode ===
+															  NAVIGATION_MODE.ALL_IN_ONE
 															? 'All-in-one'
 															: 'Step-by-step'}
 												</span>
@@ -543,56 +622,68 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 										)}
 									</div>
 									{s.instructions && (
-										<div className="mt-2 pt-2 border-t border-blue-200">
-											<div className="text-xs text-gray-600 mb-1">
-                      Special Instructions:
+										<div className='mt-2 pt-2 border-t border-blue-200'>
+											<div className='text-xs text-gray-600 mb-1'>
+												Special Instructions:
 											</div>
-											<div className="text-sm text-gray-700">{s.instructions}</div>
+											<div className='text-sm text-gray-700'>
+												{s.instructions}
+											</div>
 										</div>
 									)}
 								</div>
 							)}
 
 							{/* Scoring Settings Display */}
-							{['quiz', 'assessment', 'iq'].includes(s.type) && s.scoringSettings && (
-								<div className="bg-green-50 rounded-lg p-3 mb-3">
-									<div className="flex items-center justify-between mb-2">
-										<h5 className="font-medium text-gray-800">Scoring Rules</h5>
+							{TYPES_REQUIRING_ANSWERS.includes(s.type as any) &&
+								s.scoringSettings && (
+								<div className='bg-green-50 rounded-lg p-3 mb-3'>
+									<div className='flex items-center justify-between mb-2'>
+										<h5 className='font-medium text-gray-800'>
+												Scoring Rules
+										</h5>
 										<button
-											className="text-sm text-blue-600 hover:text-blue-800"
+											className='text-sm text-blue-600 hover:text-blue-800'
 											onClick={() => setShowScoringModal(true)}
 										>
-                      Edit Scoring Rules
+												Edit Scoring Rules
 										</button>
 									</div>
-									<div className="grid grid-cols-2 gap-2 text-sm">
-										<div className="flex justify-between">
-											<span className="text-gray-600">Scoring Mode:</span>
-											<span className="font-medium text-green-600">
-												{s.scoringSettings.scoringMode === 'percentage'
+									<div className='grid grid-cols-2 gap-2 text-sm'>
+										<div className='flex justify-between'>
+											<span className='text-gray-600'>Scoring Mode:</span>
+											<span className='font-medium text-green-600'>
+												{s.scoringSettings.scoringMode ===
+													SCORING_MODE.PERCENTAGE
 													? 'Percentage'
 													: 'Accumulated'}
 											</span>
 										</div>
-										<div className="flex justify-between">
-											<span className="text-gray-600">Passing Threshold:</span>
-											<span className="font-medium text-green-600">
+										<div className='flex justify-between'>
+											<span className='text-gray-600'>
+													Passing Threshold:
+											</span>
+											<span className='font-medium text-green-600'>
 												{s.scoringSettings.passingThreshold} points
 											</span>
 										</div>
-										<div className="flex justify-between">
-											<span className="text-gray-600">Total Score:</span>
-											<span className="font-medium text-green-600">
-												{s.scoringSettings.scoringMode === 'percentage'
+										<div className='flex justify-between'>
+											<span className='text-gray-600'>Total Score:</span>
+											<span className='font-medium text-green-600'>
+												{s.scoringSettings.scoringMode ===
+													SCORING_MODE.PERCENTAGE
 													? '100'
 													: s.scoringSettings.totalPoints}{' '}
-                      points
+													points
 											</span>
 										</div>
-										<div className="flex justify-between">
-											<span className="text-gray-600">Custom Points:</span>
-											<span className="font-medium text-green-600">
-												{s.scoringSettings.customScoringRules?.useCustomPoints
+										<div className='flex justify-between'>
+											<span className='text-gray-600'>
+													Custom Points:
+											</span>
+											<span className='font-medium text-green-600'>
+												{s.scoringSettings.customScoringRules
+													?.useCustomPoints
 													? 'Yes'
 													: 'No'}
 											</span>
@@ -602,19 +693,23 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 							)}
 
 							{/* Question Source Display */}
-							{s.sourceType === 'question_bank' && (
-								<div className="bg-purple-50 rounded-lg p-3 mb-3">
-									<h5 className="font-medium text-gray-800 mb-2">
-                Question Bank Configuration
+							{s.sourceType === SOURCE_TYPE.QUESTION_BANK && (
+								<div className='bg-purple-50 rounded-lg p-3 mb-3'>
+									<h5 className='font-medium text-gray-800 mb-2'>
+										Question Bank Configuration
 									</h5>
-									<div className="grid grid-cols-2 gap-2 text-sm">
-										<div className="flex justify-between">
-											<span className="text-gray-600">Source:</span>
-											<span className="font-medium text-purple-600">Question Bank</span>
+									<div className='grid grid-cols-2 gap-2 text-sm'>
+										<div className='flex justify-between'>
+											<span className='text-gray-600'>Source:</span>
+											<span className='font-medium text-purple-600'>
+												Question Bank
+											</span>
 										</div>
-										<div className="flex justify-between">
-											<span className="text-gray-600">Questions to Select:</span>
-											<span className="font-medium text-purple-600">
+										<div className='flex justify-between'>
+											<span className='text-gray-600'>
+												Questions to Select:
+											</span>
+											<span className='font-medium text-purple-600'>
 												{s.questionCount} random
 											</span>
 										</div>
@@ -622,42 +717,45 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 								</div>
 							)}
 
-							<div className="text-sm text-gray-500">
-              Created: {new Date(s.createdAt).toLocaleDateString()}
+							<div className='text-sm text-gray-500'>
+								Created: {new Date(s.createdAt).toLocaleDateString()}
 							</div>
 
-							<div className="flex gap-2">
+							<div className='flex gap-2'>
 								<button
-									className="btn-secondary text-sm"
+									className='btn-secondary text-sm'
 									onClick={() => toggleSurveyStatus(s._id)}
 								>
-									{s.status === 'active' ? 'Deactivate' : 'Activate'}
+									{s.status === SURVEY_STATUS.ACTIVE ? 'Deactivate' : 'Activate'}
 								</button>
 								<button
-									className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+									className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
 									onClick={() => deleteSurvey(s._id)}
 								>
-                Delete
+									Delete
 								</button>
 							</div>
 
 							{/* Survey URLs */}
-							<div className="bg-gray-50 rounded-lg p-4 mb-4">
-								<div className="space-y-3">
-									{s.type === 'assessment' ? (
+							<div className='bg-gray-50 rounded-lg p-4 mb-4'>
+								<div className='space-y-3'>
+									{s.type === SURVEY_TYPE.ASSESSMENT ? (
 										// Assessment type: only show enhanced URL
-										<div className="flex items-center justify-between">
+										<div className='flex items-center justify-between'>
 											<div>
-												<label className="block text-sm font-medium text-gray-700 mb-1">
+												<label className='block text-sm font-medium text-gray-700 mb-1'>
 													增强版测评 URL
 												</label>
-												<div className="text-sm text-gray-600 font-mono">
-													{getSurveyUrl(s.slug).replace('/survey/', '/assessment/')}
+												<div className='text-sm text-gray-600 font-mono'>
+													{getSurveyUrl(s.slug).replace(
+														'/survey/',
+														'/assessment/'
+													)}
 												</div>
 											</div>
-											<div className="flex gap-2">
+											<div className='flex gap-2'>
 												<button
-													className="btn-secondary text-sm"
+													className='btn-secondary text-sm'
 													onClick={() =>
 														copyToClipboard(
 															getSurveyUrl(s.slug).replace(
@@ -670,7 +768,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 													Copy URL
 												</button>
 												<button
-													className="btn-primary text-sm"
+													className='btn-primary text-sm'
 													onClick={() => toggleQR(s._id)}
 												>
 													{showQR[s._id] ? 'Hide QR' : 'Show QR'}
@@ -680,24 +778,26 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 									) : (
 										// Non-assessment types: show classic URL and optionally enhanced URL
 										<>
-											<div className="flex items-center justify-between">
+											<div className='flex items-center justify-between'>
 												<div>
-													<label className="block text-sm font-medium text-gray-700 mb-1">
-													经典版 Survey URL
+													<label className='block text-sm font-medium text-gray-700 mb-1'>
+														经典版 Survey URL
 													</label>
-													<div className="text-sm text-gray-600 font-mono">
+													<div className='text-sm text-gray-600 font-mono'>
 														{getSurveyUrl(s.slug)}
 													</div>
 												</div>
-												<div className="flex gap-2">
+												<div className='flex gap-2'>
 													<button
-														className="btn-secondary text-sm"
-														onClick={() => copyToClipboard(getSurveyUrl(s.slug))}
+														className='btn-secondary text-sm'
+														onClick={() =>
+															copyToClipboard(getSurveyUrl(s.slug))
+														}
 													>
 														Copy URL
 													</button>
 													<button
-														className="btn-primary text-sm"
+														className='btn-primary text-sm'
 														onClick={() => toggleQR(s._id)}
 													>
 														{showQR[s._id] ? 'Hide QR' : 'Show QR'}
@@ -705,19 +805,24 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 												</div>
 											</div>
 
-											{['quiz', 'iq'].includes(s.type) && (
-												<div className="flex items-center justify-between pt-3 border-t border-gray-200">
+											{[SURVEY_TYPE.QUIZ, SURVEY_TYPE.IQ].includes(
+												s.type
+											) && (
+												<div className='flex items-center justify-between pt-3 border-t border-gray-200'>
 													<div>
-														<label className="block text-sm font-medium text-gray-700 mb-1">
+														<label className='block text-sm font-medium text-gray-700 mb-1'>
 															增强版测评 URL
 														</label>
-														<div className="text-sm text-gray-600 font-mono">
-															{getSurveyUrl(s.slug).replace('/survey/', '/assessment/')}
+														<div className='text-sm text-gray-600 font-mono'>
+															{getSurveyUrl(s.slug).replace(
+																'/survey/',
+																'/assessment/'
+															)}
 														</div>
 													</div>
-													<div className="flex gap-2">
+													<div className='flex gap-2'>
 														<button
-															className="btn-secondary text-sm"
+															className='btn-secondary text-sm'
 															onClick={() =>
 																copyToClipboard(
 																	getSurveyUrl(s.slug).replace(
@@ -736,51 +841,59 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 									)}
 								</div>
 								{showQR[s._id] && (
-									<div className="border-t border-gray-200 pt-4">
-										<QRCodeComponent url={
-											s.type === 'assessment' 
-												? getSurveyUrl(s.slug).replace('/survey/', '/assessment/')
-												: getSurveyUrl(s.slug)
-										} />
+									<div className='border-t border-gray-200 pt-4'>
+										<QRCodeComponent
+											url={
+												s.type === SURVEY_TYPE.ASSESSMENT
+													? getSurveyUrl(s.slug).replace(
+														'/survey/',
+														'/assessment/'
+													)
+													: getSurveyUrl(s.slug)
+											}
+										/>
 									</div>
 								)}
 							</div>
 
 							{/* Question Management */}
-							{s.sourceType === 'manual' ? (
-							// Manual Question Management
-								<div className="mb-4">
-									<div className="flex justify-between items-center mb-3">
-										<h4 className="font-semibold text-gray-800">
+							{s.sourceType === SOURCE_TYPE.MANUAL ? (
+								// Manual Question Management
+								<div className='mb-4'>
+									<div className='flex justify-between items-center mb-3'>
+										<h4 className='font-semibold text-gray-800'>
 											Questions ({s.questions?.length || 0})
 										</h4>
 										<button
-											className="btn-primary text-sm"
+											className='btn-primary text-sm'
 											onClick={() => setShowAddQuestionModal(true)}
-											type="button"
+											type='button'
 										>
 											+ Add Question
 										</button>
 									</div>
 									{s.questions && s.questions.length > 0 ? (
-										<div className="space-y-2">
+										<div className='space-y-2'>
 											{s.questions.map((q, idx) => {
 												const isEditing = editingQuestions[s._id] === idx;
 												const formKey = `${s._id}-${idx}`;
 												const editForm = questionEditForms[formKey];
 
 												return (
-													<div key={idx} className="bg-gray-50 rounded-lg p-3">
+													<div
+														key={idx}
+														className='bg-gray-50 rounded-lg p-3'
+													>
 														{isEditing ? (
-														// Edit mode
-															<div className="space-y-3">
+															// Edit mode
+															<div className='space-y-3'>
 																<div>
-																	<label className="block text-sm font-medium text-gray-700 mb-2">
-                              Question Text
+																	<label className='block text-sm font-medium text-gray-700 mb-2'>
+																		Question Text
 																	</label>
 																	<input
-																		className="input-field w-full"
-																		placeholder="Enter question text"
+																		className='input-field w-full'
+																		placeholder='Enter question text'
 																		value={editForm?.text || ''}
 																		onChange={e =>
 																			handleQuestionEditChange(
@@ -793,48 +906,56 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																	/>
 																</div>
 																<div>
-																	<div className="flex items-center justify-between mb-2">
-																		<label className="block text-sm font-medium text-gray-700">
-                                Options
+																	<div className='flex items-center justify-between mb-2'>
+																		<label className='block text-sm font-medium text-gray-700'>
+																			Options
 																		</label>
 																		<button
-																			className="btn-secondary text-sm"
+																			className='btn-secondary text-sm'
 																			onClick={() =>
 																				addQuestionEditOption(
 																					s._id,
 																					idx
 																				)
 																			}
-																			type="button"
+																			type='button'
 																		>
-                                + Add Option
+																			+ Add Option
 																		</button>
 																	</div>
 																	{editForm?.options &&
-                            editForm.options.length > 0 ? (
-																			<div className="space-y-2">
+																	editForm.options.length > 0 ? (
+																			<div className='space-y-2'>
 																				{editForm.options.map(
-																					(option, optionIndex) => (
+																					(
+																						option,
+																						optionIndex
+																					) => (
 																						<div
-																							key={optionIndex}
-																							className="flex items-center gap-2"
+																							key={
+																								optionIndex
+																							}
+																							className='flex items-center gap-2'
 																						>
 																							<input
-																								className="input-field flex-1"
+																								className='input-field flex-1'
 																								placeholder={`Option ${optionIndex + 1}`}
-																								value={option}
+																								value={
+																									option
+																								}
 																								onChange={e =>
 																									handleQuestionEditOptionChange(
 																										s._id,
 																										idx,
 																										optionIndex,
-																										e.target
+																										e
+																											.target
 																											.value
 																									)
 																								}
 																							/>
 																							<button
-																								className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+																								className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
 																								onClick={() =>
 																									removeQuestionEditOption(
 																										s._id,
@@ -842,50 +963,57 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																										optionIndex
 																									)
 																								}
-																								type="button"
+																								type='button'
 																							>
-                                        Remove
+																							Remove
 																							</button>
 																						</div>
 																					)
 																				)}
 																			</div>
 																		) : (
-																			<div className="text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                                No options added yet. Click "Add
-                                Option" to start.
+																			<div className='text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center'>
+																			No options added yet.
+																			Click "Add Option" to
+																			start.
 																			</div>
 																		)}
 																</div>
-																{['assessment', 'quiz', 'iq'].includes(
-																	s.type
+																{TYPES_REQUIRING_ANSWERS.includes(
+																	s.type as any
 																) &&
-                            editForm?.options &&
-                            editForm.options.length > 0 && (
-																	<div className="space-y-4">
+																	editForm?.options &&
+																	editForm.options.length > 0 && (
+																	<div className='space-y-4'>
 																		<div>
-																			<label className="block text-sm font-medium text-gray-700 mb-2">
-                                  Select Correct Answer(s)
+																			<label className='block text-sm font-medium text-gray-700 mb-2'>
+																					Select Correct
+																					Answer(s)
 																			</label>
-																			<div className="space-y-2">
+																			<div className='space-y-2'>
 																				{editForm.options.map(
-																					(opt, optIdx) => {
+																					(
+																						opt,
+																						optIdx
+																					) => {
 																						const isCorrect =
-                                        Array.isArray(
-                                        	editForm.correctAnswer
-                                        )
-                                        	? editForm.correctAnswer.includes(
-                                        		optIdx
-                                        	)
-                                        	: editForm.correctAnswer ===
-                                            optIdx;
+																								Array.isArray(
+																									editForm.correctAnswer
+																								)
+																									? editForm.correctAnswer.includes(
+																										optIdx
+																									)
+																									: editForm.correctAnswer ===
+																										optIdx;
 																						return (
 																							<div
-																								key={optIdx}
-																								className="flex items-center gap-2"
+																								key={
+																									optIdx
+																								}
+																								className='flex items-center gap-2'
 																							>
 																								<button
-																									type="button"
+																									type='button'
 																									onClick={() =>
 																										toggleCorrectAnswer(
 																											s._id,
@@ -901,54 +1029,58 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																								>
 																									{isCorrect && (
 																										<svg
-																											className="w-3 h-3"
-																											fill="currentColor"
-																											viewBox="0 0 20 20"
+																											className='w-3 h-3'
+																											fill='currentColor'
+																											viewBox='0 0 20 20'
 																										>
 																											<path
-																												fillRule="evenodd"
-																												d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-																												clipRule="evenodd"
+																												fillRule='evenodd'
+																												d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+																												clipRule='evenodd'
 																											/>
 																										</svg>
 																									)}
 																								</button>
-																								<span className="text-sm text-gray-700">
+																								<span className='text-sm text-gray-700'>
 																									{opt ||
-                                              `Option ${optIdx + 1}`}
+																											`Option ${optIdx + 1}`}
 																								</span>
 																							</div>
 																						);
 																					}
 																				)}
 																			</div>
-																			<div className="text-xs text-gray-500 mt-1">
-                                  Click the checkboxes to
-                                  select multiple correct
-                                  answers
+																			<div className='text-xs text-gray-500 mt-1'>
+																					Click the
+																					checkboxes to
+																					select multiple
+																					correct answers
 																			</div>
 																		</div>
 																		{s.scoringSettings
 																			?.customScoringRules
 																			?.useCustomPoints && (
 																			<div>
-																				<label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Question Points
+																				<label className='block text-sm font-medium text-gray-700 mb-2'>
+																						Question
+																						Points
 																				</label>
 																				<input
-																					type="number"
-																					className="input-field w-full"
+																					type='number'
+																					className='input-field w-full'
 																					placeholder={`Default points: ${s.scoringSettings.customScoringRules.defaultQuestionPoints}`}
 																					value={
 																						editForm.points ||
-                                        ''
+																							''
 																					}
 																					onChange={e =>
 																						handleQuestionEditChange(
 																							s._id,
 																							idx,
 																							'points',
-																							e.target.value
+																							e
+																								.target
+																								.value
 																								? parseInt(
 																									e
 																										.target
@@ -957,165 +1089,245 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																								: undefined
 																						)
 																					}
-																					min="1"
-																					max="100"
+																					min='1'
+																					max='100'
 																				/>
-																				<div className="text-xs text-gray-500 mt-1">
-                                    Leave empty to use
-                                    default points (
+																				<div className='text-xs text-gray-500 mt-1'>
+																						Leave empty
+																						to use
+																						default
+																						points (
 																					{
-																						s.scoringSettings
+																						s
+																							.scoringSettings
 																							.customScoringRules
 																							.defaultQuestionPoints
 																					}{' '}
-                                    points)
+																						points)
 																				</div>
 																			</div>
 																		)}
 																	</div>
 																)}
-																<div className="flex gap-2 pt-2">
+																<div className='flex gap-2 pt-2'>
 																	<button
-																		className="btn-primary text-sm"
+																		className='btn-primary text-sm'
 																		onClick={() =>
-																			saveQuestionEdit(s._id, idx)
+																			saveQuestionEdit(
+																				s._id,
+																				idx
+																			)
 																		}
-																		type="button"
+																		type='button'
 																		disabled={
 																			!editForm?.text ||
-																		(editForm.type !== 'short_text' && (
-																			!editForm?.options ||
-																			editForm.options.filter(opt =>
-																				opt.trim()
-																			).length === 0
-																		)) ||
-																		([
-																			'assessment',
-																			'quiz',
-																			'iq',
-																		].includes(s.type) &&
-																		editForm.type !== 'short_text' &&
-																		editForm.correctAnswer === undefined)
+																			(editForm.type !==
+																				QUESTION_TYPE.SHORT_TEXT &&
+																				(!editForm?.options ||
+																					editForm.options.filter(
+																						opt =>
+																							opt.trim()
+																					).length ===
+																						0)) ||
+																			([
+																				SURVEY_TYPE.ASSESSMENT,
+																				SURVEY_TYPE.QUIZ,
+																				SURVEY_TYPE.IQ,
+																			].includes(s.type) &&
+																				editForm.type !==
+																					QUESTION_TYPE.SHORT_TEXT &&
+																				editForm.correctAnswer ===
+																					undefined)
 																		}
 																	>
-                              Save
+																		Save
 																	</button>
 																	<button
-																		className="btn-secondary text-sm"
+																		className='btn-secondary text-sm'
 																		onClick={() =>
-																			cancelEditQuestion(s._id)
+																			cancelEditQuestion(
+																				s._id
+																			)
 																		}
-																		type="button"
+																		type='button'
 																	>
-                              Cancel
+																		Cancel
 																	</button>
 																</div>
 															</div>
 														) : (
-														// Display mode
+															// Display mode
 															<div>
-																<div className="flex justify-between items-start mb-1">
-																	<div className="flex-1">
-																		<div className="flex items-center gap-2 mb-1">
-																			<span className="font-medium text-gray-800">
+																<div className='flex justify-between items-start mb-1'>
+																	<div className='flex-1'>
+																		<div className='flex items-center gap-2 mb-1'>
+																			<span className='font-medium text-gray-800'>
 																				{idx + 1}. {q.text}
 																			</span>
-																			<span className={`text-xs px-2 py-1 rounded ${
-																				q.type === 'multiple_choice' ? 'bg-purple-100 text-purple-800' :
-																					q.type === 'single_choice' ? 'bg-green-100 text-green-800' :
-																						q.type === 'short_text' ? 'bg-orange-100 text-orange-800' :
-																							'bg-gray-100 text-gray-800'
-																			}`}>
-																				{q.type === 'multiple_choice' ? 'Multiple Choice' :
-																			 q.type === 'single_choice' ? 'Single Choice' :
-																			 q.type === 'short_text' ? 'Short Text' :
-																			 q.type || 'Single Choice'}
+																			<span
+																				className={`text-xs px-2 py-1 rounded ${
+																					q.type ===
+																					QUESTION_TYPE.MULTIPLE_CHOICE
+																						? 'bg-purple-100 text-purple-800'
+																						: q.type ===
+																							  QUESTION_TYPE.SINGLE_CHOICE
+																							? 'bg-green-100 text-green-800'
+																							: q.type ===
+																								  QUESTION_TYPE.SHORT_TEXT
+																								? 'bg-orange-100 text-orange-800'
+																								: 'bg-gray-100 text-gray-800'
+																				}`}
+																			>
+																				{q.type ===
+																				QUESTION_TYPE.MULTIPLE_CHOICE
+																					? 'Multiple Choice'
+																					: q.type ===
+																						  QUESTION_TYPE.SINGLE_CHOICE
+																						? 'Single Choice'
+																						: q.type ===
+																							  QUESTION_TYPE.SHORT_TEXT
+																							? 'Short Text'
+																							: q.type ||
+																								'Single Choice'}
 																			</span>
 																		</div>
 																	</div>
-																	<div className="flex items-center gap-2">
-																		{['assessment', 'quiz', 'iq'].includes(
+																	<div className='flex items-center gap-2'>
+																		{TYPES_REQUIRING_ANSWERS.includes(
 																			s.type
 																		) && (
-																			<div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+																			<div className='text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded'>
 																				{q.points || 1} pts
 																			</div>
 																		)}
 																		<button
-																			className="btn-secondary text-sm px-3 py-1"
+																			className='btn-secondary text-sm px-3 py-1'
 																			onClick={() =>
-																				startEditQuestion(s._id, idx)
+																				startEditQuestion(
+																					s._id,
+																					idx
+																				)
 																			}
 																		>
-                                Edit
+																			Edit
 																		</button>
 																		<button
-																			className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+																			className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
 																			onClick={() =>
-																				deleteQuestion(s._id, idx)
+																				deleteQuestion(
+																					s._id,
+																					idx
+																				)
 																			}
 																		>
-                                Delete
+																			Delete
 																		</button>
 																	</div>
 																</div>
-																{q.type === 'short_text' ? (
-																	<div className="text-sm text-gray-600 mb-1">
-																		<div className="font-medium">Type: Text Response</div>
-																		{['assessment', 'quiz', 'iq'].includes(s.type) && 
-																	 q.correctAnswer && typeof q.correctAnswer === 'string' && (
-																			<div className="text-xs text-green-600 font-medium mt-1">
-																			✓ Expected Answer: {q.correctAnswer}
+																{q.type ===
+																QUESTION_TYPE.SHORT_TEXT ? (
+																		<div className='text-sm text-gray-600 mb-1'>
+																			<div className='font-medium'>
+																			Type: Text Response
 																			</div>
-																		)}
-																	</div>
-																) : (
-																	<>
-																		<div className="text-sm text-gray-600 mb-1">
-																		Options:{' '}
-																			{q.options && q.options.map((opt, optIdx) => {
-																				const isCorrect = Array.isArray(
-																					q.correctAnswer
-																				)
-																					? q.correctAnswer.includes(optIdx)
-																					: q.correctAnswer === optIdx;
-																				return (
-																					<span
-																						key={optIdx}
-																						className={`${['assessment', 'quiz', 'iq'].includes(s.type) && isCorrect ? 'font-semibold text-green-600' : ''}`}
-																					>
-																						{opt}
-																						{optIdx < (q.options?.length || 0) - 1
-																							? ', '
-																							: ''}
-																					</span>
-																				);
-																			})}
+																			{TYPES_REQUIRING_ANSWERS.includes(
+																			s.type as any
+																			) &&
+																			q.correctAnswer &&
+																			typeof q.correctAnswer ===
+																				'string' && (
+																				<div className='text-xs text-green-600 font-medium mt-1'>
+																					✓ Expected
+																					Answer:{' '}
+																					{
+																						q.correctAnswer
+																					}
+																				</div>
+																			)}
 																		</div>
-																		{['assessment', 'quiz', 'iq'].includes(
-																			s.type
-																		) &&
-																	q.correctAnswer !== undefined &&
-																	q.type !== 'short_text' && (
-																			<div className="text-xs text-green-600 font-medium">
-																			✓ Correct Answer
-																				{Array.isArray(q.correctAnswer) &&
-																			q.correctAnswer.length > 1
-																					? 's'
-																					: ''}
-																			:{' '}
-																				{Array.isArray(q.correctAnswer)
-																					? q.correctAnswer
-																						.map(
-																							idx =>
-																								q.options?.[idx]
-																						)
-																						.join(', ')
-																					: q.options?.[q.correctAnswer]}
+																	) : (
+																		<>
+																			<div className='text-sm text-gray-600 mb-1'>
+																			Options:{' '}
+																				{q.options &&
+																				q.options.map(
+																					(
+																						opt,
+																						optIdx
+																					) => {
+																						const isCorrect =
+																							Array.isArray(
+																								q.correctAnswer
+																							)
+																								? q.correctAnswer.includes(
+																									optIdx
+																								)
+																								: q.correctAnswer ===
+																									optIdx;
+																						return (
+																							<span
+																								key={
+																									optIdx
+																								}
+																								className={`${TYPES_REQUIRING_ANSWERS.includes(s.type as any) && isCorrect ? 'font-semibold text-green-600' : ''}`}
+																							>
+																								{
+																									opt
+																								}
+																								{optIdx <
+																								(q
+																									.options
+																									?.length ||
+																									0) -
+																									1
+																									? ', '
+																									: ''}
+																							</span>
+																						);
+																					}
+																				)}
 																			</div>
-																		)}
-																	</>
-																)}
+																			{TYPES_REQUIRING_ANSWERS.includes(
+																				s.type
+																			) &&
+																			q.correctAnswer !==
+																				undefined &&
+																			q.type &&
+																			q.type !==
+																				QUESTION_TYPE.SHORT_TEXT && (
+																				<div className='text-xs text-green-600 font-medium'>
+																					✓ Correct Answer
+																					{Array.isArray(
+																						q.correctAnswer
+																					) &&
+																					q.correctAnswer
+																						.length > 1
+																						? 's'
+																						: ''}
+																					:{' '}
+																					{Array.isArray(
+																						q.correctAnswer
+																					)
+																						? q.correctAnswer
+																							.map(
+																								idx =>
+																									q
+																										.options?.[
+																											idx
+																										]
+																							)
+																							.join(
+																								', '
+																							)
+																						: q
+																							.options?.[
+																								q
+																									.correctAnswer
+																							]}
+																				</div>
+																			)}
+																		</>
+																	)}
 															</div>
 														)}
 													</div>
@@ -1123,146 +1335,167 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 											})}
 										</div>
 									) : (
-										<p className="text-gray-500 text-sm">No questions added yet.</p>
+										<p className='text-gray-500 text-sm'>
+											No questions added yet.
+										</p>
 									)}
-
 								</div>
 							) : (
-							// Question Bank Survey Information
-								<div className="mb-4">
-									<h4 className="font-semibold text-gray-800 mb-3">Question Bank Survey</h4>
-									<div className="bg-purple-50 rounded-lg p-4">
-										<div className="flex items-center justify-between mb-3">
+								// Question Bank Survey Information
+								<div className='mb-4'>
+									<h4 className='font-semibold text-gray-800 mb-3'>
+										Question Bank Survey
+									</h4>
+									<div className='bg-purple-50 rounded-lg p-4'>
+										<div className='flex items-center justify-between mb-3'>
 											<div>
-												<div className="font-medium text-gray-800">
-                    Random Question Selection
+												<div className='font-medium text-gray-800'>
+													Random Question Selection
 												</div>
-												<div className="text-sm text-gray-600">
-                    This survey will randomly select {s.questionCount} questions
-                    from the linked question bank for each student.
+												<div className='text-sm text-gray-600'>
+													This survey will randomly select{' '}
+													{s.questionCount} questions from the linked
+													question bank for each student.
 												</div>
 											</div>
-											<div className="text-lg font-bold text-purple-600">
+											<div className='text-lg font-bold text-purple-600'>
 												{s.questionCount} questions
 											</div>
 										</div>
-										<div className="text-xs text-gray-500">
-                💡 Questions are randomized per student to ensure assessment
-                fairness
+										<div className='text-xs text-gray-500'>
+											💡 Questions are randomized per student to ensure
+											assessment fairness
 										</div>
 									</div>
 								</div>
 							)}
 
 							{/* Statistics Section */}
-							<div className="border-t border-gray-200 pt-4">
-								<div className="flex justify-between items-center mb-3">
-									<h4 className="font-semibold text-gray-800">Statistics</h4>
+							<div className='border-t border-gray-200 pt-4'>
+								<div className='flex justify-between items-center mb-3'>
+									<h4 className='font-semibold text-gray-800'>Statistics</h4>
 									<button
-										className="btn-secondary text-sm"
+										className='btn-secondary text-sm'
 										onClick={() => loadStats(s._id)}
-										type="button"
+										type='button'
 									>
-                  View Statistics
+										View Statistics
 									</button>
 								</div>
 								{stats && stats[s._id] && (
-									<div className="space-y-4">
+									<div className='space-y-4'>
 										{/* Statistics Summary */}
-										<div className="bg-blue-50 rounded-lg p-4">
-											<h5 className="font-semibold text-gray-800 mb-2">Summary</h5>
-											<div className="grid grid-cols-3 gap-4 text-sm">
-												<div className="text-center">
-													<div className="font-bold text-blue-600 text-lg">
+										<div className='bg-blue-50 rounded-lg p-4'>
+											<h5 className='font-semibold text-gray-800 mb-2'>
+												Summary
+											</h5>
+											<div className='grid grid-cols-3 gap-4 text-sm'>
+												<div className='text-center'>
+													<div className='font-bold text-blue-600 text-lg'>
 														{stats[s._id]?.summary?.totalResponses || 0}
 													</div>
-													<div className="text-gray-600">Total Responses</div>
-												</div>
-												<div className="text-center">
-													<div className="font-bold text-green-600 text-lg">
-														{stats[s._id]?.summary?.completionRate || 0}%
+													<div className='text-gray-600'>
+														Total Responses
 													</div>
-													<div className="text-gray-600">Completion Rate</div>
 												</div>
-												<div className="text-center">
-													<div className="font-bold text-purple-600 text-lg">
+												<div className='text-center'>
+													<div className='font-bold text-green-600 text-lg'>
+														{stats[s._id]?.summary?.completionRate || 0}
+														%
+													</div>
+													<div className='text-gray-600'>
+														Completion Rate
+													</div>
+												</div>
+												<div className='text-center'>
+													<div className='font-bold text-purple-600 text-lg'>
 														{stats[s._id]?.summary?.totalQuestions || 0}
 													</div>
-													<div className="text-gray-600">Total Questions</div>
+													<div className='text-gray-600'>
+														Total Questions
+													</div>
 												</div>
 											</div>
 										</div>
 
 										{/* Statistics View Toggle */}
-										<div className="flex space-x-4 border-b border-gray-200 pb-2">
+										<div className='flex space-x-4 border-b border-gray-200 pb-2'>
 											<button
 												className={`py-2 px-4 font-medium text-sm transition-colors ${
-													statsView === 'aggregated'
+													statsView === STATS_VIEW.AGGREGATED
 														? 'text-blue-600 border-b-2 border-blue-600'
 														: 'text-gray-500 hover:text-blue-600'
 												}`}
-												onClick={() => setStatsView('aggregated')}
+												onClick={() => setStatsView(STATS_VIEW.AGGREGATED)}
 											>
-                      Aggregated Results
+												Aggregated Results
 											</button>
 											<button
 												className={`py-2 px-4 font-medium text-sm transition-colors ${
-													statsView === 'individual'
+													statsView === STATS_VIEW.INDIVIDUAL
 														? 'text-blue-600 border-b-2 border-blue-600'
 														: 'text-gray-500 hover:text-blue-600'
 												}`}
-												onClick={() => setStatsView('individual')}
+												onClick={() => setStatsView(STATS_VIEW.INDIVIDUAL)}
 											>
-                      Individual Responses ({stats[s._id]?.userResponses?.length || 0})
+												Individual Responses (
+												{stats[s._id]?.userResponses?.length || 0})
 											</button>
 										</div>
 
 										{/* Aggregated Statistics */}
-										{statsView === 'aggregated' && (
-											<div className="space-y-4">
+										{statsView === STATS_VIEW.AGGREGATED && (
+											<div className='space-y-4'>
 												{stats[s._id]?.aggregatedStats?.map((st, idx) => (
-													<div key={idx} className="bg-gray-50 rounded-lg p-4">
-														<div className="font-semibold text-gray-800 mb-2">
+													<div
+														key={idx}
+														className='bg-gray-50 rounded-lg p-4'
+													>
+														<div className='font-semibold text-gray-800 mb-2'>
 															{st.question}
 														</div>
-														<div className="space-y-2">
-															{Object.entries(st.options).map(([opt, count]) => {
-																const percentage =
-                            stats[s._id]?.summary?.totalResponses > 0
-                            	? (
-                            		(count /
-                                  stats[s._id].summary
-                                  	.totalResponses) *
-                                  100
-                            	).toFixed(1)
-                            	: 0;
-																return (
-																	<div
-																		key={opt}
-																		className="flex justify-between items-center"
-																	>
-																		<span className="text-gray-700">
-																			{opt}
-																		</span>
-																		<div className="flex items-center gap-2">
-																			<div className="w-20 bg-gray-200 rounded-full h-2">
-																				<div
-																					className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-																					style={{
-																						width: `${percentage}%`,
-																					}}
-																				></div>
+														<div className='space-y-2'>
+															{Object.entries(st.options).map(
+																([opt, count]) => {
+																	const percentage =
+																		stats[s._id]?.summary
+																			?.totalResponses > 0
+																			? (
+																				(count /
+																						stats[s._id]
+																							.summary
+																							.totalResponses) *
+																					100
+																			).toFixed(1)
+																			: 0;
+																	return (
+																		<div
+																			key={opt}
+																			className='flex justify-between items-center'
+																		>
+																			<span className='text-gray-700'>
+																				{opt}
+																			</span>
+																			<div className='flex items-center gap-2'>
+																				<div className='w-20 bg-gray-200 rounded-full h-2'>
+																					<div
+																						className='bg-blue-600 h-2 rounded-full transition-all duration-300'
+																						style={{
+																							width: `${percentage}%`,
+																						}}
+																					></div>
+																				</div>
+																				<span className='font-medium text-blue-600 text-sm w-12'>
+																					{count}
+																				</span>
+																				<span className='text-gray-500 text-xs w-12'>
+																					({percentage}%)
+																				</span>
 																			</div>
-																			<span className="font-medium text-blue-600 text-sm w-12">
-																				{count}
-																			</span>
-																			<span className="text-gray-500 text-xs w-12">
-                                  ({percentage}%)
-																			</span>
 																		</div>
-																	</div>
-																);
-															})}
+																	);
+																}
+															)}
 														</div>
 													</div>
 												))}
@@ -1270,40 +1503,42 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 										)}
 
 										{/* Individual User Responses */}
-										{statsView === 'individual' && (
-											<div className="space-y-4">
+										{statsView === STATS_VIEW.INDIVIDUAL && (
+											<div className='space-y-4'>
 												{stats[s._id]?.userResponses?.length > 0 ? (
-													stats[s._id].userResponses.map((response, idx) => (
-														<div
-															key={response._id}
-															className="bg-gray-50 rounded-lg p-4"
-														>
-															<div className="flex justify-between items-start mb-3">
-																<div>
-																	<div className="font-semibold text-gray-800">
-																		{response.name}
+													stats[s._id].userResponses.map(
+														(response, idx) => (
+															<div
+																key={response._id}
+																className='bg-gray-50 rounded-lg p-4'
+															>
+																<div className='flex justify-between items-start mb-3'>
+																	<div>
+																		<div className='font-semibold text-gray-800'>
+																			{response.name}
+																		</div>
+																		<div className='text-sm text-gray-500'>
+																			{response.email}
+																		</div>
 																	</div>
-																	<div className="text-sm text-gray-500">
-																		{response.email}
+																	<div className='text-xs text-gray-500'>
+																		{new Date(
+																			response.createdAt
+																		).toLocaleDateString()}{' '}
+																		{new Date(
+																			response.createdAt
+																		).toLocaleTimeString()}
 																	</div>
 																</div>
-																<div className="text-xs text-gray-500">
-																	{new Date(
-																		response.createdAt
-																	).toLocaleDateString()}{' '}
-																	{new Date(
-																		response.createdAt
-																	).toLocaleTimeString()}
-																</div>
-															</div>
-															<div className="space-y-2">
-																{Object.entries(response.answers).map(
-																	([question, answer]) => (
+																<div className='space-y-2'>
+																	{Object.entries(
+																		response.answers
+																	).map(([question, answer]) => (
 																		<div
 																			key={question}
-																			className="border-l-4 border-blue-200 pl-3"
+																			className='border-l-4 border-blue-200 pl-3'
 																		>
-																			<div className="font-medium text-gray-700 text-sm">
+																			<div className='font-medium text-gray-700 text-sm'>
 																				{question}
 																			</div>
 																			<div
@@ -1312,13 +1547,13 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																				{answer}
 																			</div>
 																		</div>
-																	)
-																)}
+																	))}
+																</div>
 															</div>
-														</div>
-													))
+														)
+													)
 												) : (
-													<div className="text-center py-8 text-gray-500">
+													<div className='text-center py-8 text-gray-500'>
 														<p>No responses yet for this survey.</p>
 													</div>
 												)}
@@ -1330,64 +1565,122 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 						</div>
 					</>
 				)}
-				{tabLocal === 'invitations' && (
-					<div className="mt-4">
-						<div className="flex justify-between items-center mb-2">
-							<div className="font-medium text-gray-800">已邀请用户列表</div>
+				{tabLocal === TAB_TYPES.INVITATIONS && (
+					<div className='mt-4'>
+						<div className='flex justify-between items-center mb-2'>
+							<div className='font-medium text-gray-800'>已邀请用户列表</div>
 							<input
-								className="border rounded px-2 py-1 text-sm"
-								placeholder="搜索邮箱"
+								className='border rounded px-2 py-1 text-sm'
+								placeholder='搜索邮箱'
 								value={search}
-								onChange={e => { setSearch(e.target.value); setPage(1); }}
+								onChange={e => {
+									setSearch(e.target.value);
+									setPage(1);
+								}}
 								style={{ width: 180 }}
 							/>
 						</div>
-						<div className="overflow-x-auto">
-							<table className="min-w-full text-sm border">
+						<div className='overflow-x-auto'>
+							<table className='min-w-full text-sm border'>
 								<thead>
-									<tr className="bg-gray-100">
-										<th className="px-2 py-1 border">Email</th>
-										<th className="px-2 py-1 border">Token</th>
-										<th className="px-2 py-1 border">邀请时间</th>
-										<th className="px-2 py-1 border">有效期</th>
-										<th className="px-2 py-1 border">状态</th>
-										<th className="px-2 py-1 border">操作</th>
+									<tr className='bg-gray-100'>
+										<th className='px-2 py-1 border'>Email</th>
+										<th className='px-2 py-1 border'>Token</th>
+										<th className='px-2 py-1 border'>邀请时间</th>
+										<th className='px-2 py-1 border'>有效期</th>
+										<th className='px-2 py-1 border'>状态</th>
+										<th className='px-2 py-1 border'>操作</th>
 									</tr>
 								</thead>
 								<tbody>
 									{loadingInvitations ? (
-										<tr><td colSpan={6} className="text-center py-4">加载中...</td></tr>
+										<tr>
+											<td colSpan={6} className='text-center py-4'>
+												加载中...
+											</td>
+										</tr>
 									) : paged.length === 0 ? (
-										<tr><td colSpan={6} className="text-center py-4">暂无邀请</td></tr>
-									) : paged.map(inv => {
-										const status = getStatus(inv);
-										return (
-											<tr key={inv._id}>
-												<td className="px-2 py-1 border">{inv.targetEmails?.[0]}</td>
-												<td className="px-2 py-1 border font-mono">{maskToken(inv.invitationCode)}</td>
-												<td className="px-2 py-1 border">{inv.createdAt ? new Date(inv.createdAt).toLocaleString() : ''}</td>
-												<td className="px-2 py-1 border">{inv.expiresAt ? new Date(inv.expiresAt).toLocaleDateString() : '永久'}</td>
-												<td className="px-2 py-1 border">
-													<span className={`px-2 py-1 rounded text-xs font-bold bg-${status.color}-100 text-${status.color}-700`}>
-														{status.label}
-													</span>
-												</td>
-												<td className="px-2 py-1 border space-x-2">
-													<button className="text-blue-600 hover:underline" onClick={() => handleCopy(inv.invitationCode)}>复制链接</button>
-													{/* 可扩展：重新发送/删除邀请 */}
-												</td>
-											</tr>
-										);
-									})}
+										<tr>
+											<td colSpan={6} className='text-center py-4'>
+												暂无邀请
+											</td>
+										</tr>
+									) : (
+										paged.map(inv => {
+											const status = getStatus(inv);
+											return (
+												<tr key={inv._id}>
+													<td className='px-2 py-1 border'>
+														{inv.targetEmails?.[0]}
+													</td>
+													<td className='px-2 py-1 border font-mono'>
+														{maskToken(inv.invitationCode)}
+													</td>
+													<td className='px-2 py-1 border'>
+														{inv.createdAt
+															? new Date(
+																inv.createdAt
+															).toLocaleString()
+															: ''}
+													</td>
+													<td className='px-2 py-1 border'>
+														{inv.expiresAt
+															? new Date(
+																inv.expiresAt
+															).toLocaleDateString()
+															: '永久'}
+													</td>
+													<td className='px-2 py-1 border'>
+														<span
+															className={`px-2 py-1 rounded text-xs font-bold ${
+																status.color === 'green'
+																	? 'bg-green-100 text-green-700'
+																	: status.color === 'red'
+																		? 'bg-red-100 text-red-700'
+																		: 'bg-gray-100 text-gray-700'
+															}`}
+														>
+															{status.label}
+														</span>
+													</td>
+													<td className='px-2 py-1 border space-x-2'>
+														<button
+															className='text-blue-600 hover:underline'
+															onClick={() =>
+																handleCopy(inv.invitationCode)
+															}
+														>
+															复制链接
+														</button>
+														{/* 可扩展：重新发送/删除邀请 */}
+													</td>
+												</tr>
+											);
+										})
+									)}
 								</tbody>
 							</table>
 						</div>
 						{/* 分页 */}
 						{totalPages > 1 && (
-							<div className="flex justify-center items-center gap-2 mt-2">
-								<button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-2 py-1 border rounded disabled:opacity-50">上一页</button>
-								<span>第 {page} / {totalPages} 页</span>
-								<button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-2 py-1 border rounded disabled:opacity-50">下一页</button>
+							<div className='flex justify-center items-center gap-2 mt-2'>
+								<button
+									disabled={page === 1}
+									onClick={() => setPage(page - 1)}
+									className='px-2 py-1 border rounded disabled:opacity-50'
+								>
+									上一页
+								</button>
+								<span>
+									第 {page} / {totalPages} 页
+								</span>
+								<button
+									disabled={page === totalPages}
+									onClick={() => setPage(page + 1)}
+									className='px-2 py-1 border rounded disabled:opacity-50'
+								>
+									下一页
+								</button>
 							</div>
 						)}
 					</div>
@@ -1408,11 +1701,13 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 					onChange={(field, value) => handleQuestionChange(s._id, field, value)}
 					onOptionChange={(index, value) => handleOptionChange(s._id, index, value)}
 					onAddOption={() => addOption(s._id)}
-					onRemoveOption={(index) => removeOption(s._id, index)}
+					onRemoveOption={index => removeOption(s._id, index)}
 					loading={loading}
 					surveyType={s.type}
 					isCustomScoringEnabled={s.scoringSettings?.customScoringRules?.useCustomPoints}
-					defaultQuestionPoints={s.scoringSettings?.customScoringRules?.defaultQuestionPoints || 1}
+					defaultQuestionPoints={
+						s.scoringSettings?.customScoringRules?.defaultQuestionPoints || 1
+					}
 				/>
 			</div>
 		</>

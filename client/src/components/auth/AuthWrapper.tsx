@@ -8,11 +8,11 @@ interface AuthWrapperProps {
 
 const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
 	const { loggedIn } = useAdmin();
-	
+
 	if (!loggedIn) {
 		return <LoginForm />;
 	}
-	
+
 	return <>{children}</>;
 };
 

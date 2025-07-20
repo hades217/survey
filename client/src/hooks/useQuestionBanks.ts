@@ -42,7 +42,7 @@ export const useQuestionBanks = () => {
 	// Handle URL routing for question banks
 	useEffect(() => {
 		if (!loggedIn || questionBanks.length === 0) return;
-		
+
 		const path = location.pathname;
 		if (path.startsWith('/admin/question-bank/')) {
 			const questionBankId = path.split('/').pop();
@@ -60,7 +60,7 @@ export const useQuestionBanks = () => {
 	// Set tab based on current path
 	useEffect(() => {
 		if (!loggedIn) return;
-		
+
 		const path = location.pathname;
 		if (path === '/admin/question-banks' || path.startsWith('/admin/question-bank/')) {
 			if (tab !== 'question-banks') {
@@ -95,17 +95,20 @@ export const useQuestionBanks = () => {
 		}
 	};
 
-	const updateQuestionBank = async (questionBankId: string, formData: { name: string; description: string }) => {
+	const updateQuestionBank = async (
+		questionBankId: string,
+		formData: { name: string; description: string }
+	) => {
 		setLoading(true);
 		setError('');
 		try {
 			const response = await api.put(`/admin/question-banks/${questionBankId}`, formData);
 			const updatedQuestionBank = response.data;
-			
-			setQuestionBanks(prev => 
-				prev.map(qb => qb._id === questionBankId ? updatedQuestionBank : qb)
+
+			setQuestionBanks(prev =>
+				prev.map(qb => (qb._id === questionBankId ? updatedQuestionBank : qb))
 			);
-			
+
 			if (selectedQuestionBankDetail?._id === questionBankId) {
 				setSelectedQuestionBankDetail(updatedQuestionBank);
 			}
@@ -119,7 +122,7 @@ export const useQuestionBanks = () => {
 
 	const deleteQuestionBank = async (questionBankId: string) => {
 		if (!window.confirm('Are you sure you want to delete this question bank?')) return;
-		
+
 		try {
 			await api.delete(`/admin/question-banks/${questionBankId}`);
 			setQuestionBanks(questionBanks.filter(qb => qb._id !== questionBankId));
@@ -148,7 +151,7 @@ export const useQuestionBanks = () => {
 
 	const addQuestionBankQuestion = async (questionBankId: string, formData?: any) => {
 		const currentForm = formData || questionBankQuestionForms[questionBankId];
-		
+
 		if (!currentForm || !currentForm.text.trim()) {
 			setError('Question text is required');
 			throw new Error('Question text is required');
@@ -163,28 +166,28 @@ export const useQuestionBanks = () => {
 
 			// Filter out empty options
 			const filteredOptions = currentForm.options.filter((opt: string) => opt.trim());
-			
+
 			// Additional validation
 			if (filteredOptions.length < 2) {
 				setError('At least 2 valid options are required');
 				throw new Error('At least 2 valid options are required');
 			}
-			
+
 			if (currentForm.correctAnswer === undefined || currentForm.correctAnswer === null) {
 				setError('Please select a correct answer');
 				throw new Error('Please select a correct answer');
 			}
 		}
-		
+
 		const questionData: any = {
 			text: currentForm.text,
 			type: currentForm.type,
 			points: currentForm.points,
 			explanation: currentForm.explanation,
 			tags: currentForm.tags,
-			difficulty: currentForm.difficulty
+			difficulty: currentForm.difficulty,
 		};
-		
+
 		// For choice questions, add options and correctAnswer
 		if (currentForm.type !== 'short_text') {
 			if (currentForm.options) {
@@ -194,23 +197,30 @@ export const useQuestionBanks = () => {
 			questionData.correctAnswer = currentForm.correctAnswer;
 		} else {
 			// For short_text, only add correctAnswer if it's provided and not empty
-			if (currentForm.correctAnswer && typeof currentForm.correctAnswer === 'string' && currentForm.correctAnswer.trim()) {
+			if (
+				currentForm.correctAnswer &&
+				typeof currentForm.correctAnswer === 'string' &&
+				currentForm.correctAnswer.trim()
+			) {
 				questionData.correctAnswer = currentForm.correctAnswer.trim();
 			}
 		}
 
 		try {
-			const response = await api.post(`/admin/question-banks/${questionBankId}/questions`, questionData);
-			const updatedQuestionBank = response.data;
-			
-			setQuestionBanks(prev => 
-				prev.map(qb => qb._id === questionBankId ? updatedQuestionBank : qb)
+			const response = await api.post(
+				`/admin/question-banks/${questionBankId}/questions`,
+				questionData
 			);
-			
+			const updatedQuestionBank = response.data;
+
+			setQuestionBanks(prev =>
+				prev.map(qb => (qb._id === questionBankId ? updatedQuestionBank : qb))
+			);
+
 			if (selectedQuestionBankDetail?._id === questionBankId) {
 				setSelectedQuestionBankDetail(updatedQuestionBank);
 			}
-			
+
 			setQuestionBankQuestionForms(prev => ({
 				...prev,
 				[questionBankId]: { text: '', options: [], type: 'single_choice' as const },
@@ -227,17 +237,20 @@ export const useQuestionBanks = () => {
 		if (!currentForm) return;
 
 		try {
-			const response = await api.put(`/admin/question-banks/${questionBankId}/questions/${questionId}`, currentForm);
-			const updatedQuestionBank = response.data;
-			
-			setQuestionBanks(prev => 
-				prev.map(qb => qb._id === questionBankId ? updatedQuestionBank : qb)
+			const response = await api.put(
+				`/admin/question-banks/${questionBankId}/questions/${questionId}`,
+				currentForm
 			);
-			
+			const updatedQuestionBank = response.data;
+
+			setQuestionBanks(prev =>
+				prev.map(qb => (qb._id === questionBankId ? updatedQuestionBank : qb))
+			);
+
 			if (selectedQuestionBankDetail?._id === questionBankId) {
 				setSelectedQuestionBankDetail(updatedQuestionBank);
 			}
-			
+
 			setEditingQuestionBankQuestions(prev => ({
 				...prev,
 				[formKey]: false,
@@ -250,15 +263,17 @@ export const useQuestionBanks = () => {
 
 	const deleteQuestionBankQuestion = async (questionBankId: string, questionId: string) => {
 		if (!window.confirm('Are you sure you want to delete this question?')) return;
-		
+
 		try {
-			const response = await api.delete(`/admin/question-banks/${questionBankId}/questions/${questionId}`);
-			const updatedQuestionBank = response.data;
-			
-			setQuestionBanks(prev => 
-				prev.map(qb => qb._id === questionBankId ? updatedQuestionBank : qb)
+			const response = await api.delete(
+				`/admin/question-banks/${questionBankId}/questions/${questionId}`
 			);
-			
+			const updatedQuestionBank = response.data;
+
+			setQuestionBanks(prev =>
+				prev.map(qb => (qb._id === questionBankId ? updatedQuestionBank : qb))
+			);
+
 			if (selectedQuestionBankDetail?._id === questionBankId) {
 				setSelectedQuestionBankDetail(updatedQuestionBank);
 			}
@@ -268,7 +283,11 @@ export const useQuestionBanks = () => {
 		}
 	};
 
-	const startEditQuestionBankQuestion = (questionBankId: string, questionIndex: number, question: Question) => {
+	const startEditQuestionBankQuestion = (
+		questionBankId: string,
+		questionIndex: number,
+		question: Question
+	) => {
 		const formKey = `${questionBankId}-${questionIndex}`;
 		setQuestionBankQuestionEditForms(prev => ({
 			...prev,

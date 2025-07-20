@@ -12,7 +12,6 @@ import ScoringModal from './modals/ScoringModal';
 import QuestionBankModal from './modals/QuestionBankModal';
 import EditQuestionBankModal from './modals/EditQuestionBankModal';
 
-
 const AdminDashboard: React.FC = () => {
 	const { tab, selectedSurvey, selectedQuestionBankDetail } = useAdmin();
 
@@ -20,32 +19,31 @@ const AdminDashboard: React.FC = () => {
 		if (tab === 'detail' && selectedSurvey) {
 			return <SurveyDetailView survey={selectedSurvey} />;
 		}
-		
+
 		if (tab === 'question-banks') {
 			if (selectedQuestionBankDetail) {
 				return <QuestionBankDetailView questionBank={selectedQuestionBankDetail} />;
 			}
 			return <QuestionBankListView />;
 		}
-		
+
 		// Default: survey list view
 		return <SurveyListView />;
 	};
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-8">
-			<div className="w-full mx-auto px-4" style={{ maxWidth: '1440px' }}>
+		<div className='min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-8'>
+			<div className='w-full mx-auto px-4' style={{ maxWidth: '1440px' }}>
 				<AdminHeader />
 				<NavigationTabs />
 				{renderContent()}
-				
+
 				{/* Modals */}
 				<CreateSurveyModal />
 				<EditSurveyModal />
 				<ScoringModal />
 				<QuestionBankModal />
 				<EditQuestionBankModal />
-				
 			</div>
 		</div>
 	);

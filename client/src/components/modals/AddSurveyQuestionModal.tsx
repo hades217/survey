@@ -1,26 +1,33 @@
 import React from 'react';
+import {
+	QUESTION_TYPE,
+	SURVEY_TYPE,
+	TYPES_REQUIRING_ANSWERS,
+	type QuestionType,
+	type SurveyType,
+} from '../../constants';
 
 interface SurveyQuestionForm {
-  text: string;
-  options?: string[];
-  type: 'single_choice' | 'multiple_choice' | 'short_text';
-  correctAnswer?: number | number[] | string;
-  points?: number;
+	text: string;
+	options?: string[];
+	type: QuestionType;
+	correctAnswer?: number | number[] | string;
+	points?: number;
 }
 
 interface AddSurveyQuestionModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (form: SurveyQuestionForm) => void;
-  form: SurveyQuestionForm;
-  onChange: (field: string, value: any) => void;
-  onOptionChange: (index: number, value: string) => void;
-  onAddOption: () => void;
-  onRemoveOption: (index: number) => void;
-  loading?: boolean;
-  surveyType: 'survey' | 'assessment' | 'quiz' | 'iq';
-  isCustomScoringEnabled?: boolean;
-  defaultQuestionPoints?: number;
+	isOpen: boolean;
+	onClose: () => void;
+	onSubmit: (form: SurveyQuestionForm) => void;
+	form: SurveyQuestionForm;
+	onChange: (field: string, value: any) => void;
+	onOptionChange: (index: number, value: string) => void;
+	onAddOption: () => void;
+	onRemoveOption: (index: number) => void;
+	loading?: boolean;
+	surveyType: SurveyType;
+	isCustomScoringEnabled?: boolean;
+	defaultQuestionPoints?: number;
 }
 
 const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
@@ -35,7 +42,7 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 	loading = false,
 	surveyType,
 	isCustomScoringEnabled = false,
-	defaultQuestionPoints = 1
+	defaultQuestionPoints = 1,
 }) => {
 	if (!isOpen) return null;
 
@@ -50,7 +57,7 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 			? form.correctAnswer.includes(optionIndex)
 			: form.correctAnswer === optionIndex;
 
-		if (form.type === 'single_choice') {
+		if (form.type === QUESTION_TYPE.SINGLE_CHOICE) {
 			// Single choice: only one correct answer
 			newCorrectAnswer = isCorrect ? undefined : optionIndex;
 		} else {
@@ -80,47 +87,47 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 
 	const isFormValid = () => {
 		if (!form.text.trim()) return false;
-    
-		if (form.type === 'short_text') {
+
+		if (form.type === QUESTION_TYPE.SHORT_TEXT) {
 			return true; // Short text questions only need question text
 		}
-    
+
 		// For choice questions, need options
 		if (!form.options || form.options.filter(opt => opt.trim()).length < 2) {
 			return false;
 		}
-    
+
 		// For assessment/quiz/iq types, need correct answer for choice questions
-		if (['assessment', 'quiz', 'iq'].includes(surveyType) && form.type !== 'short_text') {
+		if (
+			TYPES_REQUIRING_ANSWERS.includes(surveyType) &&
+			form.type !== QUESTION_TYPE.SHORT_TEXT
+		) {
 			return form.correctAnswer !== undefined;
 		}
-    
+
 		return true;
 	};
 
-	const isAssessmentType = ['assessment', 'quiz', 'iq'].includes(surveyType);
+	const isAssessmentType = TYPES_REQUIRING_ANSWERS.includes(surveyType);
 
 	return (
-		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-			<div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-				<div className="flex justify-between items-center p-6 border-b">
-					<h2 className="text-xl font-semibold text-gray-800">Add Question</h2>
-					<button
-						onClick={onClose}
-						className="text-gray-400 hover:text-gray-600 text-xl"
-					>
-            ×
+		<div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50'>
+			<div className='bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto'>
+				<div className='flex justify-between items-center p-6 border-b'>
+					<h2 className='text-xl font-semibold text-gray-800'>Add Question</h2>
+					<button onClick={onClose} className='text-gray-400 hover:text-gray-600 text-xl'>
+						×
 					</button>
 				</div>
 
-				<form onSubmit={handleSubmit} className="p-6 space-y-4">
+				<form onSubmit={handleSubmit} className='p-6 space-y-4'>
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-              Question Text *
+						<label className='block text-sm font-medium text-gray-700 mb-2'>
+							Question Text *
 						</label>
 						<textarea
-							className="input-field w-full"
-							placeholder="Enter question text"
+							className='input-field w-full'
+							placeholder='Enter question text'
 							value={form.text}
 							onChange={e => onChange('text', e.target.value)}
 							rows={3}
@@ -129,108 +136,113 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 					</div>
 
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-              Question Type *
+						<label className='block text-sm font-medium text-gray-700 mb-2'>
+							Question Type *
 						</label>
 						<select
-							className="input-field"
+							className='input-field'
 							value={form.type}
 							onChange={e => onChange('type', e.target.value)}
 						>
-							<option value="single_choice">Single Choice</option>
-							<option value="multiple_choice">Multiple Choice</option>
-							<option value="short_text">Short Text</option>
+							<option value='single_choice'>Single Choice</option>
+							<option value='multiple_choice'>Multiple Choice</option>
+							<option value='short_text'>Short Text</option>
 						</select>
-						<div className="text-xs text-gray-500 mt-1">
-							{form.type === 'single_choice' && 'Users can select only one answer'}
-							{form.type === 'multiple_choice' && 'Users can select multiple answers'}
-							{form.type === 'short_text' && 'Users can enter a text response'}
+						<div className='text-xs text-gray-500 mt-1'>
+							{form.type === QUESTION_TYPE.SINGLE_CHOICE &&
+								'Users can select only one answer'}
+							{form.type === QUESTION_TYPE.MULTIPLE_CHOICE &&
+								'Users can select multiple answers'}
+							{form.type === QUESTION_TYPE.SHORT_TEXT &&
+								'Users can enter a text response'}
 						</div>
 					</div>
 
-					{form.type !== 'short_text' && (
+					{form.type !== QUESTION_TYPE.SHORT_TEXT && (
 						<div>
-							<div className="flex items-center justify-between mb-2">
-								<label className="block text-sm font-medium text-gray-700">
-                  Options *
+							<div className='flex items-center justify-between mb-2'>
+								<label className='block text-sm font-medium text-gray-700'>
+									Options *
 								</label>
 								<button
-									className="btn-secondary text-sm"
+									className='btn-secondary text-sm'
 									onClick={onAddOption}
-									type="button"
+									type='button'
 								>
-                  + Add Option
+									+ Add Option
 								</button>
 							</div>
 							{form.options && form.options.length > 0 ? (
-								<div className="space-y-2">
+								<div className='space-y-2'>
 									{form.options.map((option, index) => (
-										<div
-											key={index}
-											className="flex items-center gap-2"
-										>
+										<div key={index} className='flex items-center gap-2'>
 											<input
-												className="input-field flex-1"
+												className='input-field flex-1'
 												placeholder={`Option ${index + 1}`}
 												value={option}
-												onChange={e => onOptionChange(index, e.target.value)}
+												onChange={e =>
+													onOptionChange(index, e.target.value)
+												}
 											/>
 											{form.options && form.options.length > 2 && (
 												<button
-													className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+													className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
 													onClick={() => onRemoveOption(index)}
-													type="button"
+													type='button'
 												>
-                          Remove
+													Remove
 												</button>
 											)}
 										</div>
 									))}
 								</div>
 							) : (
-								<div className="text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                  No options added yet. Click "Add Option" to start.
+								<div className='text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center'>
+									No options added yet. Click "Add Option" to start.
 								</div>
 							)}
 						</div>
 					)}
 
-					{form.type === 'short_text' && isAssessmentType && (
+					{form.type === QUESTION_TYPE.SHORT_TEXT && isAssessmentType && (
 						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-2">
-                Expected Answer (Optional)
+							<label className='block text-sm font-medium text-gray-700 mb-2'>
+								Expected Answer (Optional)
 							</label>
 							<input
-								type="text"
-								className="input-field w-full"
-								placeholder="Enter expected answer for scoring (optional)"
-								value={typeof form.correctAnswer === 'string' ? form.correctAnswer : ''}
+								type='text'
+								className='input-field w-full'
+								placeholder='Enter expected answer for scoring (optional)'
+								value={
+									typeof form.correctAnswer === 'string' ? form.correctAnswer : ''
+								}
 								onChange={e => onChange('correctAnswer', e.target.value)}
 							/>
-							<div className="text-xs text-gray-500 mt-1">
-                For assessment/quiz types, you can specify an expected answer for scoring
+							<div className='text-xs text-gray-500 mt-1'>
+								For assessment/quiz types, you can specify an expected answer for
+								scoring
 							</div>
 						</div>
 					)}
 
-					{form.type !== 'short_text' && isAssessmentType && form.options && form.options.filter(opt => opt.trim()).length >= 2 && (
+					{form.type !== QUESTION_TYPE.SHORT_TEXT &&
+						isAssessmentType &&
+						form.options &&
+						form.options.filter(opt => opt.trim()).length >= 2 && (
 						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Correct Answer(s) *
+							<label className='block text-sm font-medium text-gray-700 mb-2'>
+									Select Correct Answer(s) *
 							</label>
-							<div className="space-y-2">
+							<div className='space-y-2'>
 								{form.options.map((opt, idx) => {
 									if (!opt.trim()) return null;
 									const isCorrect = Array.isArray(form.correctAnswer)
 										? form.correctAnswer.includes(idx)
 										: form.correctAnswer === idx;
 									return (
-										<div
-											key={idx}
-											className="flex items-center gap-2"
-										>
+										<div key={idx} className='flex items-center gap-2'>
 											<button
-												type="button"
+												type='button'
 												onClick={() => toggleCorrectAnswer(idx)}
 												className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
 													isCorrect
@@ -240,27 +252,27 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 											>
 												{isCorrect && (
 													<svg
-														className="w-3 h-3"
-														fill="currentColor"
-														viewBox="0 0 20 20"
+														className='w-3 h-3'
+														fill='currentColor'
+														viewBox='0 0 20 20'
 													>
 														<path
-															fillRule="evenodd"
-															d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-															clipRule="evenodd"
+															fillRule='evenodd'
+															d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+															clipRule='evenodd'
 														/>
 													</svg>
 												)}
 											</button>
-											<span className="text-sm text-gray-700">
+											<span className='text-sm text-gray-700'>
 												{opt || `Option ${idx + 1}`}
 											</span>
 										</div>
 									);
 								})}
 							</div>
-							<div className="text-xs text-gray-500 mt-1">
-								{form.type === 'single_choice'
+							<div className='text-xs text-gray-500 mt-1'>
+								{form.type === QUESTION_TYPE.SINGLE_CHOICE
 									? 'Click to select the single correct answer'
 									: 'Click the checkboxes to select multiple correct answers'}
 							</div>
@@ -269,37 +281,36 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 
 					{isAssessmentType && isCustomScoringEnabled && (
 						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-2">
-                Question Points
+							<label className='block text-sm font-medium text-gray-700 mb-2'>
+								Question Points
 							</label>
 							<input
-								type="number"
-								className="input-field w-full"
+								type='number'
+								className='input-field w-full'
 								placeholder={`Default points: ${defaultQuestionPoints}`}
 								value={form.points || ''}
 								onChange={e =>
-									onChange('points', e.target.value ? parseInt(e.target.value) : undefined)
+									onChange(
+										'points',
+										e.target.value ? parseInt(e.target.value) : undefined
+									)
 								}
-								min="1"
-								max="100"
+								min='1'
+								max='100'
 							/>
-							<div className="text-xs text-gray-500 mt-1">
-                Leave empty to use default points ({defaultQuestionPoints} points)
+							<div className='text-xs text-gray-500 mt-1'>
+								Leave empty to use default points ({defaultQuestionPoints} points)
 							</div>
 						</div>
 					)}
 
-					<div className="flex justify-end gap-3 pt-4 border-t">
-						<button
-							type="button"
-							onClick={onClose}
-							className="btn-secondary"
-						>
-              Cancel
+					<div className='flex justify-end gap-3 pt-4 border-t'>
+						<button type='button' onClick={onClose} className='btn-secondary'>
+							Cancel
 						</button>
 						<button
-							type="submit"
-							className="btn-primary"
+							type='submit'
+							className='btn-primary'
 							disabled={!isFormValid() || loading}
 						>
 							{loading ? 'Adding...' : 'Add Question'}

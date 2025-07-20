@@ -32,4 +32,4 @@ function sendMail({ to, subject, html, text }) {
 	});
 }
 
-module.exports = { sendMail }; 
+module.exports = { sendMail };

@@ -2,33 +2,39 @@ const { z } = require('zod');
 const { SURVEY_TYPE, QUESTION_TYPE, TYPES_REQUIRING_ANSWERS } = require('../shared/constants');
 
 // Question schema
-const questionSchema = z.object({
-	text: z.string().min(1, 'Question text is required'),
-	type: z.enum([QUESTION_TYPE.SINGLE_CHOICE, QUESTION_TYPE.MULTIPLE_CHOICE, QUESTION_TYPE.SHORT_TEXT]),
-	options: z.array(z.string()).min(2, 'At least 2 options are required').optional(),
-	correctAnswer: z
-		.union([
-			z.number().int().min(0), // For single choice
-			z.array(z.number().int().min(0)), // For multiple choice
-			z.string(), // For short text
-			z.null(), // For survey questions
-		])
-		.optional(),
-	explanation: z.string().optional(),
-	points: z.number().positive().optional().default(1),
-}).refine(
-	(data) => {
-		// For choice-based questions, options are required
-		if (data.type !== QUESTION_TYPE.SHORT_TEXT) {
-			return data.options && Array.isArray(data.options) && data.options.length >= 2;
+const questionSchema = z
+	.object({
+		text: z.string().min(1, 'Question text is required'),
+		type: z.enum([
+			QUESTION_TYPE.SINGLE_CHOICE,
+			QUESTION_TYPE.MULTIPLE_CHOICE,
+			QUESTION_TYPE.SHORT_TEXT,
+		]),
+		options: z.array(z.string()).min(2, 'At least 2 options are required').optional(),
+		correctAnswer: z
+			.union([
+				z.number().int().min(0), // For single choice
+				z.array(z.number().int().min(0)), // For multiple choice
+				z.string(), // For short text
+				z.null(), // For survey questions
+			])
+			.optional(),
+		explanation: z.string().optional(),
+		points: z.number().positive().optional().default(1),
+	})
+	.refine(
+		data => {
+			// For choice-based questions, options are required
+			if (data.type !== QUESTION_TYPE.SHORT_TEXT) {
+				return data.options && Array.isArray(data.options) && data.options.length >= 2;
+			}
+			return true;
+		},
+		{
+			message: 'At least 2 options are required for choice questions',
+			path: ['options'],
 		}
-		return true;
-	},
-	{
-		message: 'At least 2 options are required for choice questions',
-		path: ['options'],
-	}
-);
+	);
 
 // Survey creation schema
 const surveyCreateSchema = z

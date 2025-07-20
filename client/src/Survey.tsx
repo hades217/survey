@@ -31,26 +31,26 @@ const Survey: React.FC = () => {
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-4 max-w-xl">
+		<form onSubmit={handleSubmit} className='space-y-4 max-w-xl'>
 			{questions.map(q => (
 				<div key={q.id}>
-					<label className="block mb-1 font-semibold">{q.text}</label>
+					<label className='block mb-1 font-semibold'>{q.text}</label>
 					{q.type === 'short_text' ? (
 						<textarea
-							className="w-full p-3 border border-gray-200 rounded-lg focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-colors"
-							placeholder="Enter your answer here..."
+							className='w-full p-3 border border-gray-200 rounded-lg focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-colors'
+							placeholder='Enter your answer here...'
 							rows={4}
 							value={answers[q.id] || ''}
-							onChange={(e) => handleChange(q.id, e.target.value)}
+							onChange={e => handleChange(q.id, e.target.value)}
 							required
 						/>
 					) : (
 						q.options.map(opt => (
-							<label key={opt} className="block">
+							<label key={opt} className='block'>
 								<input
-									type="radio"
+									type='radio'
 									name={q.id}
-									className="mr-2"
+									className='mr-2'
 									value={opt}
 									onChange={() => handleChange(q.id, opt)}
 									required
@@ -61,7 +61,7 @@ const Survey: React.FC = () => {
 					)}
 				</div>
 			))}
-			<button className="px-4 py-2 bg-blue-500 text-white rounded" type="submit">
+			<button className='px-4 py-2 bg-blue-500 text-white rounded' type='submit'>
 				Submit
 			</button>
 		</form>

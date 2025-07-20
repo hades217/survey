@@ -1,17 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../utils/axiosConfig';
-import { 
-	Survey, 
-	QuestionBank, 
-	Question, 
-	EnhancedStats, 
-	TabType, 
-	StatsViewType, 
-	QuestionForm, 
-	LoginForm, 
-	NewSurveyForm, 
-	QuestionBankForm 
+import {
+	Survey,
+	QuestionBank,
+	Question,
+	EnhancedStats,
+	TabType,
+	StatsViewType,
+	QuestionForm,
+	LoginForm,
+	NewSurveyForm,
+	QuestionBankForm,
 } from '../types/admin';
 
 interface AdminContextType {
@@ -21,19 +21,19 @@ interface AdminContextType {
 	setLoginForm: React.Dispatch<React.SetStateAction<LoginForm>>;
 	login: (e: React.FormEvent) => Promise<void>;
 	logout: () => void;
-	
+
 	// Data state
 	surveys: Survey[];
 	setSurveys: React.Dispatch<React.SetStateAction<Survey[]>>;
 	questionBanks: QuestionBank[];
 	setQuestionBanks: React.Dispatch<React.SetStateAction<QuestionBank[]>>;
-	
+
 	// Selected items
 	selectedSurvey: Survey | null;
 	setSelectedSurvey: React.Dispatch<React.SetStateAction<Survey | null>>;
 	selectedQuestionBankDetail: QuestionBank | null;
 	setSelectedQuestionBankDetail: React.Dispatch<React.SetStateAction<QuestionBank | null>>;
-	
+
 	// Form state
 	newSurvey: NewSurveyForm;
 	setNewSurvey: React.Dispatch<React.SetStateAction<NewSurveyForm>>;
@@ -43,21 +43,25 @@ interface AdminContextType {
 	setQuestionBankForm: React.Dispatch<React.SetStateAction<QuestionBankForm>>;
 	editQuestionBankForm: QuestionBankForm;
 	setEditQuestionBankForm: React.Dispatch<React.SetStateAction<QuestionBankForm>>;
-	
+
 	// Question forms
 	questionForms: Record<string, QuestionForm>;
 	setQuestionForms: React.Dispatch<React.SetStateAction<Record<string, QuestionForm>>>;
 	questionBankQuestionForms: Record<string, QuestionForm>;
-	setQuestionBankQuestionForms: React.Dispatch<React.SetStateAction<Record<string, QuestionForm>>>;
+	setQuestionBankQuestionForms: React.Dispatch<
+		React.SetStateAction<Record<string, QuestionForm>>
+	>;
 	questionBankQuestionEditForms: Record<string, QuestionForm>;
-	setQuestionBankQuestionEditForms: React.Dispatch<React.SetStateAction<Record<string, QuestionForm>>>;
-	
+	setQuestionBankQuestionEditForms: React.Dispatch<
+		React.SetStateAction<Record<string, QuestionForm>>
+	>;
+
 	// Editing state
 	editingQuestions: Record<string, boolean>;
 	setEditingQuestions: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 	editingQuestionBankQuestions: Record<string, boolean>;
 	setEditingQuestionBankQuestions: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
-	
+
 	// UI state
 	tab: TabType;
 	setTab: React.Dispatch<React.SetStateAction<TabType>>;
@@ -65,7 +69,7 @@ interface AdminContextType {
 	setQuestionBankDetailTab: React.Dispatch<React.SetStateAction<string>>;
 	statsView: StatsViewType;
 	setStatsView: React.Dispatch<React.SetStateAction<StatsViewType>>;
-	
+
 	// Modal state
 	showCreateModal: boolean;
 	setShowCreateModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -79,17 +83,17 @@ interface AdminContextType {
 	setShowScoringModal: React.Dispatch<React.SetStateAction<boolean>>;
 	showQR: Record<string, boolean>;
 	setShowQR: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
-	
+
 	// Loading and error state
 	loading: boolean;
 	setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 	error: string;
 	setError: React.Dispatch<React.SetStateAction<string>>;
-	
+
 	// Statistics
 	stats: Record<string, EnhancedStats>;
 	setStats: React.Dispatch<React.SetStateAction<Record<string, EnhancedStats>>>;
-	
+
 	// Utility functions
 	copyToClipboard: (text: string) => void;
 	navigate: (path: string) => void;
@@ -113,19 +117,20 @@ interface AdminProviderProps {
 export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 	const navigate = useNavigate();
 	const location = useLocation();
-	
+
 	// Authentication state
 	const [loggedIn, setLoggedIn] = useState(false);
 	const [loginForm, setLoginForm] = useState<LoginForm>({ username: '', password: '' });
-	
+
 	// Data state
 	const [surveys, setSurveys] = useState<Survey[]>([]);
 	const [questionBanks, setQuestionBanks] = useState<QuestionBank[]>([]);
-	
+
 	// Selected items
 	const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
-	const [selectedQuestionBankDetail, setSelectedQuestionBankDetail] = useState<QuestionBank | null>(null);
-	
+	const [selectedQuestionBankDetail, setSelectedQuestionBankDetail] =
+		useState<QuestionBank | null>(null);
+
 	// Form state
 	const [newSurvey, setNewSurvey] = useState<NewSurveyForm>({
 		title: '',
@@ -154,7 +159,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 			},
 		},
 	});
-	
+
 	const [editForm, setEditForm] = useState<NewSurveyForm>({
 		title: '',
 		description: '',
@@ -182,31 +187,37 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 			},
 		},
 	});
-	
+
 	const [questionBankForm, setQuestionBankForm] = useState<QuestionBankForm>({
 		name: '',
 		description: '',
 	});
-	
+
 	const [editQuestionBankForm, setEditQuestionBankForm] = useState<QuestionBankForm>({
 		name: '',
 		description: '',
 	});
-	
+
 	// Question forms
 	const [questionForms, setQuestionForms] = useState<Record<string, QuestionForm>>({});
-	const [questionBankQuestionForms, setQuestionBankQuestionForms] = useState<Record<string, QuestionForm>>({});
-	const [questionBankQuestionEditForms, setQuestionBankQuestionEditForms] = useState<Record<string, QuestionForm>>({});
-	
+	const [questionBankQuestionForms, setQuestionBankQuestionForms] = useState<
+		Record<string, QuestionForm>
+	>({});
+	const [questionBankQuestionEditForms, setQuestionBankQuestionEditForms] = useState<
+		Record<string, QuestionForm>
+	>({});
+
 	// Editing state
 	const [editingQuestions, setEditingQuestions] = useState<Record<string, boolean>>({});
-	const [editingQuestionBankQuestions, setEditingQuestionBankQuestions] = useState<Record<string, boolean>>({});
-	
+	const [editingQuestionBankQuestions, setEditingQuestionBankQuestions] = useState<
+		Record<string, boolean>
+	>({});
+
 	// UI state
 	const [tab, setTab] = useState<TabType>('list');
 	const [questionBankDetailTab, setQuestionBankDetailTab] = useState('list');
 	const [statsView, setStatsView] = useState<StatsViewType>('aggregated');
-	
+
 	// Modal state
 	const [showCreateModal, setShowCreateModal] = useState(false);
 	const [showEditModal, setShowEditModal] = useState(false);
@@ -214,14 +225,14 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 	const [showEditQuestionBankModal, setShowEditQuestionBankModal] = useState(false);
 	const [showScoringModal, setShowScoringModal] = useState(false);
 	const [showQR, setShowQR] = useState<Record<string, boolean>>({});
-	
+
 	// Loading and error state
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
-	
+
 	// Statistics
 	const [stats, setStats] = useState<Record<string, EnhancedStats>>({});
-	
+
 	// Check authentication on mount
 	useEffect(() => {
 		const checkAuth = async () => {
@@ -231,7 +242,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 					setLoggedIn(false);
 					return;
 				}
-				
+
 				const response = await api.get('/admin/check-auth');
 				console.log('Auth check response:', response);
 				setLoggedIn(true);
@@ -244,7 +255,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		};
 		checkAuth();
 	}, []);
-	
+
 	// Authentication functions
 	const login = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -266,7 +277,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 			setLoading(false);
 		}
 	};
-	
+
 	const logout = async () => {
 		try {
 			// Remove JWT token from localStorage
@@ -280,12 +291,12 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 			console.error('Logout error:', err);
 		}
 	};
-	
+
 	// Utility functions
 	const copyToClipboard = (text: string) => {
 		navigator.clipboard.writeText(text);
 	};
-	
+
 	const value: AdminContextType = {
 		// Authentication
 		loggedIn,
@@ -293,19 +304,19 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		setLoginForm,
 		login,
 		logout,
-		
+
 		// Data
 		surveys,
 		setSurveys,
 		questionBanks,
 		setQuestionBanks,
-		
+
 		// Selected items
 		selectedSurvey,
 		setSelectedSurvey,
 		selectedQuestionBankDetail,
 		setSelectedQuestionBankDetail,
-		
+
 		// Forms
 		newSurvey,
 		setNewSurvey,
@@ -315,7 +326,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		setQuestionBankForm,
 		editQuestionBankForm,
 		setEditQuestionBankForm,
-		
+
 		// Question forms
 		questionForms,
 		setQuestionForms,
@@ -323,13 +334,13 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		setQuestionBankQuestionForms,
 		questionBankQuestionEditForms,
 		setQuestionBankQuestionEditForms,
-		
+
 		// Editing state
 		editingQuestions,
 		setEditingQuestions,
 		editingQuestionBankQuestions,
 		setEditingQuestionBankQuestions,
-		
+
 		// UI state
 		tab,
 		setTab,
@@ -337,7 +348,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		setQuestionBankDetailTab,
 		statsView,
 		setStatsView,
-		
+
 		// Modal state
 		showCreateModal,
 		setShowCreateModal,
@@ -351,26 +362,22 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		setShowScoringModal,
 		showQR,
 		setShowQR,
-		
+
 		// Loading and error
 		loading,
 		setLoading,
 		error,
 		setError,
-		
+
 		// Statistics
 		stats,
 		setStats,
-		
+
 		// Utilities
 		copyToClipboard,
 		navigate,
 		location,
 	};
-	
-	return (
-		<AdminContext.Provider value={value}>
-			{children}
-		</AdminContext.Provider>
-	);
+
+	return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
 };

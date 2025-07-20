@@ -2,6 +2,14 @@ import { useEffect } from 'react';
 import api from '../utils/axiosConfig';
 import { useAdmin } from '../contexts/AdminContext';
 import { Survey, EnhancedStats } from '../types/admin';
+import {
+	SURVEY_TYPE,
+	SURVEY_STATUS,
+	QUESTION_TYPE,
+	NAVIGATION_MODE,
+	SCORING_MODE,
+	SOURCE_TYPE,
+} from '../constants';
 
 export const useSurveys = () => {
 	const {
@@ -48,7 +56,7 @@ export const useSurveys = () => {
 	// Handle URL routing
 	useEffect(() => {
 		if (!loggedIn) return;
-		
+
 		const path = location.pathname;
 		if (path.startsWith('/admin/survey/')) {
 			const surveyId = path.split('/').pop();
@@ -85,27 +93,27 @@ export const useSurveys = () => {
 			const surveyData = {
 				...newSurvey,
 				// Ensure isActive matches status for backward compatibility
-				isActive: newSurvey.status === 'active'
+				isActive: newSurvey.status === 'active',
 			};
-			
+
 			const response = await api.post('/admin/surveys', surveyData);
 			setSurveys([...surveys, response.data]);
 			setNewSurvey({
 				title: '',
 				description: '',
 				slug: '',
-				type: 'survey',
+				type: SURVEY_TYPE.SURVEY,
 				questions: [],
-				status: 'draft',
+				status: SURVEY_STATUS.DRAFT,
 				timeLimit: undefined,
 				maxAttempts: undefined,
 				instructions: '',
-				navigationMode: 'step-by-step',
-				sourceType: 'manual',
+				navigationMode: NAVIGATION_MODE.STEP_BY_STEP,
+				sourceType: SOURCE_TYPE.MANUAL,
 				questionBankId: undefined,
 				questionCount: undefined,
 				scoringSettings: {
-					scoringMode: 'percentage',
+					scoringMode: SCORING_MODE.PERCENTAGE,
 					totalPoints: 0,
 					passingThreshold: 70,
 					showScore: true,
@@ -131,12 +139,12 @@ export const useSurveys = () => {
 			const dataToSend = {
 				...surveyData,
 				// Ensure isActive matches status for backward compatibility
-				isActive: surveyData.status === 'active'
+				isActive: surveyData.status === 'active',
 			};
-			
+
 			const response = await api.put(`/admin/surveys/${surveyId}`, dataToSend);
 			const updatedSurvey = response.data;
-			setSurveys(surveys.map(s => s._id === surveyId ? updatedSurvey : s));
+			setSurveys(surveys.map(s => (s._id === surveyId ? updatedSurvey : s)));
 			if (selectedSurvey?._id === surveyId) {
 				setSelectedSurvey(updatedSurvey);
 			}
@@ -149,7 +157,7 @@ export const useSurveys = () => {
 
 	const deleteSurvey = async (surveyId: string) => {
 		if (!window.confirm('Are you sure you want to delete this survey?')) return;
-		
+
 		try {
 			await api.delete(`/admin/surveys/${surveyId}`);
 			setSurveys(surveys.filter(s => s._id !== surveyId));
@@ -167,7 +175,7 @@ export const useSurveys = () => {
 		try {
 			const response = await api.put(`/admin/surveys/${surveyId}/toggle-status`);
 			const updatedSurvey = response.data;
-			setSurveys(surveys.map(s => s._id === surveyId ? updatedSurvey : s));
+			setSurveys(surveys.map(s => (s._id === surveyId ? updatedSurvey : s)));
 			if (selectedSurvey?._id === surveyId) {
 				setSelectedSurvey(updatedSurvey);
 			}
@@ -195,7 +203,7 @@ export const useSurveys = () => {
 			slug: survey.slug,
 			type: survey.type,
 			questions: survey.questions,
-			status: survey.status || 'draft',
+			status: survey.status || SURVEY_STATUS.DRAFT,
 			timeLimit: survey.timeLimit,
 			maxAttempts: survey.maxAttempts,
 			instructions: survey.instructions,
@@ -204,7 +212,7 @@ export const useSurveys = () => {
 			questionBankId: survey.questionBankId,
 			questionCount: survey.questionCount,
 			scoringSettings: survey.scoringSettings || {
-				scoringMode: 'percentage',
+				scoringMode: SCORING_MODE.PERCENTAGE,
 				totalPoints: 0,
 				passingThreshold: 70,
 				showScore: true,
@@ -225,18 +233,18 @@ export const useSurveys = () => {
 			title: '',
 			description: '',
 			slug: '',
-			type: 'survey',
+			type: SURVEY_TYPE.SURVEY,
 			questions: [],
-			status: 'draft',
+			status: SURVEY_STATUS.DRAFT,
 			timeLimit: undefined,
 			maxAttempts: undefined,
 			instructions: '',
-			navigationMode: 'step-by-step',
-			sourceType: 'manual',
+			navigationMode: NAVIGATION_MODE.STEP_BY_STEP,
+			sourceType: SOURCE_TYPE.MANUAL,
 			questionBankId: undefined,
 			questionCount: undefined,
 			scoringSettings: {
-				scoringMode: 'percentage',
+				scoringMode: SCORING_MODE.PERCENTAGE,
 				totalPoints: 0,
 				passingThreshold: 70,
 				showScore: true,
@@ -255,7 +263,7 @@ export const useSurveys = () => {
 			const response = await api.get(`/admin/surveys/${surveyId}/statistics`);
 			setStats(prev => ({
 				...prev,
-				[surveyId]: response.data
+				[surveyId]: response.data,
 			}));
 		} catch (err: any) {
 			setError(err.response?.data?.error || 'Failed to load statistics');
@@ -268,9 +276,12 @@ export const useSurveys = () => {
 			setError('Please fill in question text');
 			return;
 		}
-		
+
 		// For choice questions, require at least 2 options
-		if (form.type !== 'short_text' && (!form.options || form.options.filter(opt => opt.trim()).length < 2)) {
+		if (
+			form.type !== QUESTION_TYPE.SHORT_TEXT &&
+			(!form.options || form.options.filter(opt => opt.trim()).length < 2)
+		) {
 			setError('Please provide at least 2 options for choice questions');
 			return;
 		}
@@ -278,21 +289,21 @@ export const useSurveys = () => {
 		try {
 			const response = await api.put(`/admin/surveys/${surveyId}/questions`, form);
 			const updatedSurvey = response.data;
-			setSurveys(surveys.map(s => s._id === surveyId ? updatedSurvey : s));
+			setSurveys(surveys.map(s => (s._id === surveyId ? updatedSurvey : s)));
 			if (selectedSurvey?._id === surveyId) {
 				setSelectedSurvey(updatedSurvey);
 			}
-			
+
 			// Reset form
 			setQuestionForms(prev => ({
 				...prev,
-				[surveyId]: { 
-					text: '', 
+				[surveyId]: {
+					text: '',
 					options: [],
-					type: 'single_choice',
+					type: QUESTION_TYPE.SINGLE_CHOICE,
 					correctAnswer: undefined,
-					points: undefined 
-				}
+					points: undefined,
+				},
 			}));
 		} catch (err: any) {
 			setError(err.response?.data?.error || 'Failed to add question');
@@ -301,9 +312,12 @@ export const useSurveys = () => {
 
 	const updateQuestion = async (surveyId: string, questionIndex: number, questionData: any) => {
 		try {
-			const response = await api.put(`/admin/surveys/${surveyId}/questions/${questionIndex}`, questionData);
+			const response = await api.put(
+				`/admin/surveys/${surveyId}/questions/${questionIndex}`,
+				questionData
+			);
 			const updatedSurvey = response.data;
-			setSurveys(surveys.map(s => s._id === surveyId ? updatedSurvey : s));
+			setSurveys(surveys.map(s => (s._id === surveyId ? updatedSurvey : s)));
 			if (selectedSurvey?._id === surveyId) {
 				setSelectedSurvey(updatedSurvey);
 			}
@@ -316,11 +330,13 @@ export const useSurveys = () => {
 
 	const deleteQuestion = async (surveyId: string, questionIndex: number) => {
 		if (!window.confirm('Are you sure you want to delete this question?')) return;
-		
+
 		try {
-			const response = await api.delete(`/admin/surveys/${surveyId}/questions/${questionIndex}`);
+			const response = await api.delete(
+				`/admin/surveys/${surveyId}/questions/${questionIndex}`
+			);
 			const updatedSurvey = response.data;
-			setSurveys(surveys.map(s => s._id === surveyId ? updatedSurvey : s));
+			setSurveys(surveys.map(s => (s._id === surveyId ? updatedSurvey : s)));
 			if (selectedSurvey?._id === surveyId) {
 				setSelectedSurvey(updatedSurvey);
 			}

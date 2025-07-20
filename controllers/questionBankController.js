@@ -193,8 +193,10 @@ exports.updateQuestion = async (req, res) => {
 		}
 
 		// Find question by ID
-		const questionIndex = questionBank.questions.findIndex(q => q._id.toString() === questionId);
-		
+		const questionIndex = questionBank.questions.findIndex(
+			q => q._id.toString() === questionId
+		);
+
 		if (questionIndex === -1) {
 			return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Question not found' });
 		}
@@ -232,8 +234,10 @@ exports.deleteQuestion = async (req, res) => {
 		}
 
 		// Find question by ID
-		const questionIndex = questionBank.questions.findIndex(q => q._id.toString() === questionId);
-		
+		const questionIndex = questionBank.questions.findIndex(
+			q => q._id.toString() === questionId
+		);
+
 		if (questionIndex === -1) {
 			return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Question not found' });
 		}

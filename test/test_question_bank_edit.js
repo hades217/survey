@@ -11,7 +11,7 @@ async function testQuestionBankEdit() {
 		console.log('1. Logging in...');
 		const loginResponse = await axios.post(`${BASE_URL}/admin/login`, {
 			username: 'admin',
-			password: 'password'
+			password: 'password',
 		});
 
 		const token = loginResponse.data.token;
@@ -21,16 +21,16 @@ async function testQuestionBankEdit() {
 		const api = axios.create({
 			baseURL: BASE_URL,
 			headers: {
-				'Authorization': `Bearer ${token}`,
-				'Content-Type': 'application/json'
-			}
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'application/json',
+			},
 		});
 
 		// 2. Create a question bank
 		console.log('2. Creating a question bank...');
 		const createResponse = await api.post('/admin/question-banks', {
 			name: 'Test Question Bank for Edit',
-			description: 'This is a test question bank to test edit functionality'
+			description: 'This is a test question bank to test edit functionality',
 		});
 
 		const questionBankId = createResponse.data._id;
@@ -40,7 +40,7 @@ async function testQuestionBankEdit() {
 		console.log('3. Updating the question bank...');
 		const updateData = {
 			name: 'Updated Test Question Bank',
-			description: 'This question bank has been updated with new name and description'
+			description: 'This question bank has been updated with new name and description',
 		};
 
 		const updateResponse = await api.put(`/admin/question-banks/${questionBankId}`, updateData);
@@ -48,7 +48,7 @@ async function testQuestionBankEdit() {
 		console.log('Updated data:', {
 			name: updateResponse.data.name,
 			description: updateResponse.data.description,
-			updatedAt: updateResponse.data.updatedAt
+			updatedAt: updateResponse.data.updatedAt,
 		});
 		console.log('');
 
@@ -56,12 +56,12 @@ async function testQuestionBankEdit() {
 		console.log('4. Verifying the update...');
 		const getResponse = await api.get(`/admin/question-banks/${questionBankId}`);
 		const updatedQuestionBank = getResponse.data;
-		
+
 		console.log('✅ Verification successful');
 		console.log('Current data:', {
 			name: updatedQuestionBank.name,
 			description: updatedQuestionBank.description,
-			updatedAt: updatedQuestionBank.updatedAt
+			updatedAt: updatedQuestionBank.updatedAt,
 		});
 		console.log('');
 
@@ -70,7 +70,7 @@ async function testQuestionBankEdit() {
 		try {
 			await api.put(`/admin/question-banks/${questionBankId}`, {
 				name: '',
-				description: 'This should fail'
+				description: 'This should fail',
 			});
 			console.log('❌ Validation failed - should have rejected empty name');
 		} catch (error) {
@@ -88,7 +88,7 @@ async function testQuestionBankEdit() {
 		try {
 			await api.put(`/admin/question-banks/${questionBankId}`, {
 				name: '   ',
-				description: 'This should fail'
+				description: 'This should fail',
 			});
 			console.log('❌ Validation failed - should have rejected whitespace-only name');
 		} catch (error) {
@@ -105,13 +105,13 @@ async function testQuestionBankEdit() {
 		console.log('7. Testing successful update with trimmed whitespace...');
 		const finalUpdateResponse = await api.put(`/admin/question-banks/${questionBankId}`, {
 			name: '  Final Test Question Bank  ',
-			description: '  This has whitespace that should be trimmed  '
+			description: '  This has whitespace that should be trimmed  ',
 		});
-		
+
 		console.log('✅ Final update successful');
 		console.log('Final data:', {
 			name: finalUpdateResponse.data.name,
-			description: finalUpdateResponse.data.description
+			description: finalUpdateResponse.data.description,
 		});
 		console.log('');
 
@@ -122,7 +122,6 @@ async function testQuestionBankEdit() {
 		console.log('');
 
 		console.log('🎉 All question bank edit tests passed successfully!');
-
 	} catch (error) {
 		console.error('❌ Test failed:', error.response?.data || error.message);
 		process.exit(1);
@@ -130,4 +129,4 @@ async function testQuestionBankEdit() {
 }
 
 // Run the test
-testQuestionBankEdit(); 
+testQuestionBankEdit();

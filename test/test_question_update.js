@@ -33,15 +33,15 @@ async function testQuestionUpdate() {
 		// 2. Get surveys to find one with questions
 		console.log('\n2. Getting surveys...');
 		const surveysResponse = await api.get('/api/admin/surveys', {
-			headers: { Authorization: `Bearer ${token}` }
+			headers: { Authorization: `Bearer ${token}` },
 		});
-		
+
 		const survey = surveysResponse.data.find(s => s.questions && s.questions.length > 0);
 		if (!survey) {
 			console.log('❌ No survey with questions found');
 			return;
 		}
-		
+
 		console.log('✅ Found survey with questions');
 		console.log('   - Survey ID:', survey._id);
 		console.log('   - Questions count:', survey.questions.length);
@@ -51,20 +51,24 @@ async function testQuestionUpdate() {
 		console.log('\n3. Testing question update...');
 		const questionIndex = 0;
 		const originalQuestion = survey.questions[questionIndex];
-		
+
 		const updateData = {
 			text: originalQuestion.text + ' (Updated)',
 			options: [...originalQuestion.options, 'New Option'],
 			correctAnswer: originalQuestion.correctAnswer,
-			points: originalQuestion.points || 1
+			points: originalQuestion.points || 1,
 		};
-		
+
 		console.log('   - Update data:', updateData);
-		
-		const updateResponse = await api.put(`/api/admin/surveys/${survey._id}/questions/${questionIndex}`, updateData, {
-			headers: { Authorization: `Bearer ${token}` }
-		});
-		
+
+		const updateResponse = await api.put(
+			`/api/admin/surveys/${survey._id}/questions/${questionIndex}`,
+			updateData,
+			{
+				headers: { Authorization: `Bearer ${token}` },
+			}
+		);
+
 		console.log('✅ Question updated successfully');
 		console.log('   - Updated question:', updateResponse.data.questions[questionIndex]);
 
@@ -75,12 +79,16 @@ async function testQuestionUpdate() {
 				text: '', // Empty text should cause error
 				options: ['Option 1', 'Option 2'],
 				correctAnswer: 0,
-				points: 1
+				points: 1,
 			};
-			
-			await api.put(`/api/admin/surveys/${survey._id}/questions/${questionIndex}`, invalidData, {
-				headers: { Authorization: `Bearer ${token}` }
-			});
+
+			await api.put(
+				`/api/admin/surveys/${survey._id}/questions/${questionIndex}`,
+				invalidData,
+				{
+					headers: { Authorization: `Bearer ${token}` },
+				}
+			);
 		} catch (error) {
 			console.log('✅ Expected error caught');
 			console.log('   - Status:', error.response?.status);
@@ -88,7 +96,6 @@ async function testQuestionUpdate() {
 		}
 
 		console.log('\n🎉 Question update test completed!');
-
 	} catch (error) {
 		console.error('\n❌ Test failed:', error.message);
 		if (error.response) {
@@ -99,4 +106,4 @@ async function testQuestionUpdate() {
 }
 
 // Run the test
-testQuestionUpdate(); 
+testQuestionUpdate();

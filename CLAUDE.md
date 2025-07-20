@@ -73,3 +73,38 @@ This is a full-stack survey application with MongoDB, Express, React, and Node.j
 ### Mixed TypeScript/JavaScript Codebase
 
 This project contains both .js and .ts files. The backend is primarily JavaScript with some TypeScript files for schemas and controllers. The frontend is fully TypeScript. When editing, match the existing file's language choice.
+
+## 🚨 CRITICAL AI CODING RULES 🚨
+
+### INDENTATION RULES - MANDATORY
+
+- **USE TABS ONLY - SIZE 4 CHARACTERS**
+- **NEVER use spaces for indentation**
+- This applies to ALL files: JS, TS, JSX, TSX, CSS, HTML, JSON, MD
+- Project is configured with `.editorconfig`, `.prettierrc`, and `.eslintrc.json` to enforce this
+
+### Constants Usage - MANDATORY
+
+- **ALWAYS use constants from `/client/src/constants/index.ts`**
+- **NEVER use hardcoded strings** like 'assessment', 'quiz', 'single_choice'
+- Examples:
+    - Use `SURVEY_TYPE.ASSESSMENT` instead of `'assessment'`
+    - Use `QUESTION_TYPE.SINGLE_CHOICE` instead of `'single_choice'`
+    - Use `TYPES_REQUIRING_ANSWERS.includes(type)` instead of `['assessment', 'quiz', 'iq'].includes(type)`
+
+### Configuration Files
+
+- `.editorconfig` - Universal editor settings (tabs, size 4)
+- `client/.prettierrc` - Code formatting rules
+- `client/.eslintrc.json` - Linting rules
+- `.vscode/settings.json` - VSCode configuration
+- `.gitattributes` - Git line ending settings
+
+### Code Quality
+
+- Always follow existing project patterns
+- Use TypeScript types properly
+- Handle errors appropriately
+- Test changes with `npm run build` and `npm run dev`
+
+📖 **See `AI_CODING_RULES.md` for complete documentation**

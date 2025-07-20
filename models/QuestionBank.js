@@ -19,12 +19,16 @@ const questionBankSchema = new mongoose.Schema({
 			},
 			type: {
 				type: String,
-				enum: [QUESTION_TYPE.SINGLE_CHOICE, QUESTION_TYPE.MULTIPLE_CHOICE, QUESTION_TYPE.SHORT_TEXT],
+				enum: [
+					QUESTION_TYPE.SINGLE_CHOICE,
+					QUESTION_TYPE.MULTIPLE_CHOICE,
+					QUESTION_TYPE.SHORT_TEXT,
+				],
 				default: QUESTION_TYPE.SINGLE_CHOICE,
 			},
 			options: {
 				type: [String],
-				required: function() {
+				required: function () {
 					return this.type !== QUESTION_TYPE.SHORT_TEXT;
 				},
 				validate: {
@@ -41,7 +45,7 @@ const questionBankSchema = new mongoose.Schema({
 			// Correct answer(s) for scoring
 			correctAnswer: {
 				type: mongoose.Schema.Types.Mixed, // Can be Number, [Number], or String
-				required: function() {
+				required: function () {
 					return this.type !== QUESTION_TYPE.SHORT_TEXT;
 				},
 				validate: {
@@ -49,7 +53,9 @@ const questionBankSchema = new mongoose.Schema({
 						if (this.type === QUESTION_TYPE.SHORT_TEXT) {
 							// For short_text questions, correct answer is optional
 							// but should be a string if provided
-							return value === null || value === undefined || typeof value === 'string';
+							return (
+								value === null || value === undefined || typeof value === 'string'
+							);
 						}
 
 						if (this.type === QUESTION_TYPE.SINGLE_CHOICE) {

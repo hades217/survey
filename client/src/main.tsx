@@ -12,16 +12,16 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 	<React.StrictMode>
 		<BrowserRouter>
 			<Routes>
-				<Route path="/" element={<TakeSurvey />} />
-				<Route path="/admin" element={<Admin />} />
-				<Route path="/admin/surveys" element={<Admin />} />
-				<Route path="/admin/question-banks" element={<Admin />} />
-				<Route path="/admin/question-bank/:id" element={<Admin />} />
-				<Route path="/admin/survey/:id" element={<Admin />} />
-				<Route path="/admin/:id" element={<Admin />} />
-				<Route path="/survey/:slug" element={<TakeSurvey />} />
-				<Route path="/assessment/:slug" element={<StudentAssessment />} />
-				<Route path="/legacy" element={<Survey />} />
+				<Route path='/' element={<TakeSurvey />} />
+				<Route path='/admin' element={<Admin />} />
+				<Route path='/admin/surveys' element={<Admin />} />
+				<Route path='/admin/question-banks' element={<Admin />} />
+				<Route path='/admin/question-bank/:id' element={<Admin />} />
+				<Route path='/admin/survey/:id' element={<Admin />} />
+				<Route path='/admin/:id' element={<Admin />} />
+				<Route path='/survey/:slug' element={<TakeSurvey />} />
+				<Route path='/assessment/:slug' element={<StudentAssessment />} />
+				<Route path='/legacy' element={<Survey />} />
 			</Routes>
 		</BrowserRouter>
 	</React.StrictMode>

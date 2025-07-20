@@ -62,7 +62,11 @@ router.post(
 		}
 
 		// 批量邮箱邀请逻辑
-		if (distributionMode === 'targeted' && Array.isArray(targetEmails) && targetEmails.length > 0) {
+		if (
+			distributionMode === 'targeted' &&
+			Array.isArray(targetEmails) &&
+			targetEmails.length > 0
+		) {
 			const results = [];
 			for (const email of targetEmails) {
 				try {
@@ -77,7 +81,9 @@ router.post(
 
 					// 生成 assessment 专属链接
 					const link = `${process.env.BASE_URL || 'http://localhost:5173'}/assessment/${invitation.invitationCode}`;
-					const expireText = expiresAt ? `此链接将在 ${new Date(expiresAt).toLocaleDateString()} 过期。` : '';
+					const expireText = expiresAt
+						? `此链接将在 ${new Date(expiresAt).toLocaleDateString()} 过期。`
+						: '';
 					const subject = `[Assessment Invitation] 你被邀请参与一次测评`;
 					const html = `
 						<p>Hi ${email},</p>

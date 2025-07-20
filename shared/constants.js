@@ -5,7 +5,8 @@ const ERROR_MESSAGES = {
 	UNAUTHORIZED: 'unauthorized',
 	INVALID_DATA: 'invalid data',
 	INVALID_CORRECT_ANSWER: 'invalid correctAnswer',
-	INVALID_QUESTION_TYPE: 'Invalid question type. Must be one of: single_choice, multiple_choice, short_text',
+	INVALID_QUESTION_TYPE:
+		'Invalid question type. Must be one of: single_choice, multiple_choice, short_text',
 	MISSING_CORRECT_ANSWER: 'Quiz/Assessment questions must have correct answers',
 	INVALID_MULTIPLE_CHOICE_ANSWER: 'Multiple choice answers must be an array of indices',
 };
@@ -56,7 +57,11 @@ const VALID_STATUSES = [SURVEY_STATUS.DRAFT, SURVEY_STATUS.ACTIVE, SURVEY_STATUS
 const TYPES_REQUIRING_ANSWERS = [SURVEY_TYPE.ASSESSMENT, SURVEY_TYPE.QUIZ, SURVEY_TYPE.IQ];
 
 // 有效问题类型数组
-const VALID_QUESTION_TYPES = [QUESTION_TYPE.SINGLE_CHOICE, QUESTION_TYPE.MULTIPLE_CHOICE, QUESTION_TYPE.SHORT_TEXT];
+const VALID_QUESTION_TYPES = [
+	QUESTION_TYPE.SINGLE_CHOICE,
+	QUESTION_TYPE.MULTIPLE_CHOICE,
+	QUESTION_TYPE.SHORT_TEXT,
+];
 
 module.exports = {
 	ERROR_MESSAGES,

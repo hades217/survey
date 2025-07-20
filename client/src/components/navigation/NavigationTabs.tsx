@@ -19,7 +19,7 @@ const NavigationTabs: React.FC = () => {
 	}
 
 	return (
-		<div className="flex space-x-1 rounded-lg bg-gray-100 p-1 mb-6">
+		<div className='flex space-x-1 rounded-lg bg-gray-100 p-1 mb-6'>
 			<button
 				onClick={() => handleTabClick('list')}
 				className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${

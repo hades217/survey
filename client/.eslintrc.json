@@ -17,8 +17,16 @@
 		"react/react-in-jsx-scope": "off",
 		"react/prop-types": "off",
 		"@typescript-eslint/no-require-imports": "off",
-		"indent": ["error", "tab"],
-		"no-mixed-spaces-and-tabs": "error"
+		"indent": ["error", "tab", { "SwitchCase": 1 }],
+		"no-mixed-spaces-and-tabs": "error",
+		"no-tabs": "off",
+		"prefer-const": "error",
+		"no-var": "error",
+		"semi": ["error", "always"],
+		"quotes": ["error", "single", { "avoidEscape": true }],
+		"jsx-quotes": ["error", "prefer-single"],
+		"no-trailing-spaces": "error",
+		"eol-last": "error"
 	},
 	"settings": {
 		"react": {

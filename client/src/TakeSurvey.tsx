@@ -2,24 +2,39 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import type { SurveyResponse } from '../../shared/surveyResponse';
+import {
+	SURVEY_TYPE,
+	SURVEY_STATUS,
+	QUESTION_TYPE,
+	NAVIGATION_MODE,
+	SCORING_MODE,
+	SOURCE_TYPE,
+	TYPES_REQUIRING_ANSWERS,
+	type SurveyType,
+	type SurveyStatus,
+	type QuestionType,
+	type NavigationMode,
+	type ScoringMode,
+	type SourceType,
+} from './constants';
 
 interface Survey {
 	_id: string;
 	title: string;
 	description: string;
 	slug: string;
-	type: 'survey' | 'assessment' | 'quiz' | 'iq';
+	type: SurveyType;
 	questions: Question[];
-	status?: 'draft' | 'active' | 'closed';
+	status?: SurveyStatus;
 	timeLimit?: number;
 	maxAttempts?: number;
 	instructions?: string;
-	navigationMode?: 'step-by-step' | 'paginated' | 'all-in-one';
-	sourceType?: 'manual' | 'question_bank';
+	navigationMode?: NavigationMode;
+	sourceType?: SourceType;
 	questionBankId?: string;
 	questionCount?: number;
 	scoringSettings?: {
-		scoringMode: 'percentage' | 'accumulated';
+		scoringMode: ScoringMode;
 		totalPoints: number;
 		passingThreshold: number;
 		showScore: boolean;
@@ -35,7 +50,7 @@ interface Survey {
 interface Question {
 	_id: string;
 	text: string;
-	type: 'single_choice' | 'multiple_choice' | 'short_text';
+	type: QuestionType;
 	options?: string[];
 	correctAnswer?: number | string;
 	points?: number;
@@ -64,7 +79,7 @@ interface ScoringResult {
 	wrongAnswers: number;
 	displayScore: number;
 	passed: boolean;
-	scoringMode: 'percentage' | 'accumulated';
+	scoringMode: ScoringMode;
 	scoringDescription: string;
 }
 
@@ -83,7 +98,7 @@ const TakeSurvey: React.FC = () => {
 	const [scoringResult, setScoringResult] = useState<ScoringResult | null>(null);
 
 	const loadQuestions = async (survey: Survey, userEmail?: string) => {
-		if (survey.sourceType === 'question_bank') {
+		if (survey.sourceType === SOURCE_TYPE.QUESTION_BANK) {
 			try {
 				const response = await axios.get(`/api/survey/${survey.slug}/questions`, {
 					params: { email: userEmail },
@@ -113,7 +128,7 @@ const TakeSurvey: React.FC = () => {
 
 					// For manual surveys, load questions immediately
 					// For question bank surveys, wait for user email
-					if (res.data.sourceType !== 'question_bank') {
+					if (res.data.sourceType !== SOURCE_TYPE.QUESTION_BANK) {
 						loadQuestions(res.data);
 					}
 				})
@@ -136,7 +151,12 @@ const TakeSurvey: React.FC = () => {
 		setForm({ ...form, email });
 
 		// For question bank surveys, load questions when email is entered
-		if (survey && survey.sourceType === 'question_bank' && email && !questionsLoaded) {
+		if (
+			survey &&
+			survey.sourceType === SOURCE_TYPE.QUESTION_BANK &&
+			email &&
+			!questionsLoaded
+		) {
 			loadQuestions(survey, email);
 		}
 	};
@@ -156,7 +176,7 @@ const TakeSurvey: React.FC = () => {
 			await axios.post(`/api/surveys/${survey._id}/responses`, payload);
 
 			// Calculate assessment results if this is an assessment, quiz, or iq test
-			if (['assessment', 'quiz', 'iq'].includes(survey.type)) {
+			if (TYPES_REQUIRING_ANSWERS.includes(survey.type)) {
 				let totalPoints = 0;
 				let maxPossiblePoints = 0;
 				let correctAnswers = 0;
@@ -239,10 +259,10 @@ const TakeSurvey: React.FC = () => {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-				<div className="text-center">
-					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-					<p className="text-gray-600">Loading survey...</p>
+			<div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center'>
+				<div className='text-center'>
+					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4'></div>
+					<p className='text-gray-600'>Loading survey...</p>
 				</div>
 			</div>
 		);
@@ -250,12 +270,12 @@ const TakeSurvey: React.FC = () => {
 
 	if (error) {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-				<div className="card max-w-md mx-auto text-center">
-					<div className="text-red-500 text-6xl mb-4">⚠️</div>
-					<h2 className="text-2xl font-bold text-gray-800 mb-2">Survey Not Found</h2>
-					<p className="text-gray-600 mb-6">{error}</p>
-					<button onClick={() => navigate('/')} className="btn-primary">
+			<div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center'>
+				<div className='card max-w-md mx-auto text-center'>
+					<div className='text-red-500 text-6xl mb-4'>⚠️</div>
+					<h2 className='text-2xl font-bold text-gray-800 mb-2'>Survey Not Found</h2>
+					<p className='text-gray-600 mb-6'>{error}</p>
+					<button onClick={() => navigate('/')} className='btn-primary'>
 						Go to Home
 					</button>
 				</div>
@@ -266,16 +286,16 @@ const TakeSurvey: React.FC = () => {
 	// Check if survey is not active
 	if (survey && survey.status && survey.status !== 'active') {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-				<div className="card max-w-md mx-auto text-center">
-					<div className="text-yellow-500 text-6xl mb-4">🚫</div>
-					<h2 className="text-2xl font-bold text-gray-800 mb-2">Survey Unavailable</h2>
-					<p className="text-gray-600 mb-6">
+			<div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center'>
+				<div className='card max-w-md mx-auto text-center'>
+					<div className='text-yellow-500 text-6xl mb-4'>🚫</div>
+					<h2 className='text-2xl font-bold text-gray-800 mb-2'>Survey Unavailable</h2>
+					<p className='text-gray-600 mb-6'>
 						{survey.status === 'draft'
 							? 'This survey is not yet open.'
 							: 'This survey has been closed.'}
 					</p>
-					<button onClick={() => navigate('/')} className="btn-primary">
+					<button onClick={() => navigate('/')} className='btn-primary'>
 						Go to Home
 					</button>
 				</div>
@@ -286,18 +306,18 @@ const TakeSurvey: React.FC = () => {
 	// Check if survey has no questions (for manual surveys) or questions haven't loaded yet
 	if (
 		survey &&
-		survey.sourceType === 'manual' &&
+		survey.sourceType === SOURCE_TYPE.MANUAL &&
 		(!survey.questions || survey.questions.length === 0)
 	) {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-				<div className="card max-w-md mx-auto text-center">
-					<div className="text-orange-500 text-6xl mb-4">📝</div>
-					<h2 className="text-2xl font-bold text-gray-800 mb-2">Survey In Progress</h2>
-					<p className="text-gray-600 mb-6">
+			<div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center'>
+				<div className='card max-w-md mx-auto text-center'>
+					<div className='text-orange-500 text-6xl mb-4'>📝</div>
+					<h2 className='text-2xl font-bold text-gray-800 mb-2'>Survey In Progress</h2>
+					<p className='text-gray-600 mb-6'>
 						This survey is still being prepared. Please check back later.
 					</p>
-					<div className="mb-4 p-3 bg-gray-100 rounded text-left text-xs">
+					<div className='mb-4 p-3 bg-gray-100 rounded text-left text-xs'>
 						<strong>Debug Info:</strong>
 						<br />
 						Survey: {survey ? 'loaded' : 'null'}
@@ -307,7 +327,7 @@ const TakeSurvey: React.FC = () => {
 						<br />
 						Status: {survey?.status || 'undefined'}
 					</div>
-					<button onClick={() => navigate('/')} className="btn-primary">
+					<button onClick={() => navigate('/')} className='btn-primary'>
 						Go to Home
 					</button>
 				</div>
@@ -316,39 +336,39 @@ const TakeSurvey: React.FC = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+		<div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8'>
 			<div className={`mx-auto px-4 ${slug ? 'max-w-2xl' : 'max-w-6xl'}`}>
 				{!slug && (
-					<div className="mb-8">
-						<div className="text-center mb-8">
-							<h1 className="text-4xl font-bold text-gray-800 mb-4">
+					<div className='mb-8'>
+						<div className='text-center mb-8'>
+							<h1 className='text-4xl font-bold text-gray-800 mb-4'>
 								Available Surveys
 							</h1>
-							<p className="text-gray-600 text-lg">
+							<p className='text-gray-600 text-lg'>
 								Choose a survey to participate in
 							</p>
 						</div>
 
 						{surveys.length === 0 ? (
-							<div className="card text-center">
-								<div className="text-gray-400 text-6xl mb-4">📝</div>
-								<h3 className="text-xl font-semibold text-gray-700 mb-2">
+							<div className='card text-center'>
+								<div className='text-gray-400 text-6xl mb-4'>📝</div>
+								<h3 className='text-xl font-semibold text-gray-700 mb-2'>
 									No Surveys Available
 								</h3>
-								<p className="text-gray-500">
+								<p className='text-gray-500'>
 									There are currently no active surveys to participate in.
 								</p>
 							</div>
 						) : (
-							<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+							<div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
 								{surveys.map(s => (
 									<div
 										key={s._id}
-										className="card border-2 border-transparent hover:border-blue-200 hover:shadow-xl transition-all duration-200"
+										className='card border-2 border-transparent hover:border-blue-200 hover:shadow-xl transition-all duration-200'
 									>
-										<div className="mb-4">
-											<div className="flex items-center gap-2 mb-2">
-												<h3 className="text-xl font-bold text-gray-800">
+										<div className='mb-4'>
+											<div className='flex items-center gap-2 mb-2'>
+												<h3 className='text-xl font-bold text-gray-800'>
 													{s.title}
 												</h3>
 												<span
@@ -372,19 +392,19 @@ const TakeSurvey: React.FC = () => {
 												</span>
 											</div>
 											{s.description && (
-												<p className="text-gray-600 text-sm line-clamp-3">
+												<p className='text-gray-600 text-sm line-clamp-3'>
 													{s.description}
 												</p>
 											)}
 										</div>
-										<div className="flex flex-col gap-2">
+										<div className='flex flex-col gap-2'>
 											{/* Enhanced Assessment Interface for quiz/assessment/iq */}
-											{['quiz', 'assessment', 'iq'].includes(s.type) && (
+											{TYPES_REQUIRING_ANSWERS.includes(s.type) && (
 												<button
 													onClick={() =>
 														navigate(`/assessment/${s.slug || s._id}`)
 													}
-													className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+													className='w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium'
 												>
 													Start Enhanced Assessment →
 												</button>
@@ -394,7 +414,7 @@ const TakeSurvey: React.FC = () => {
 												onClick={() =>
 													navigate(`/survey/${s.slug || s._id}`)
 												}
-												className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+												className='w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm'
 											>
 												{s.type === 'assessment'
 													? 'Classic Assessment'
@@ -414,46 +434,46 @@ const TakeSurvey: React.FC = () => {
 				)}
 
 				{survey && !submitted && (
-					<div className="card">
-						<div className="mb-8">
-							<h1 className="text-3xl font-bold text-gray-800 mb-2">
+					<div className='card'>
+						<div className='mb-8'>
+							<h1 className='text-3xl font-bold text-gray-800 mb-2'>
 								{survey.title}
 							</h1>
 							{survey.description && (
-								<p className="text-gray-600 text-lg">{survey.description}</p>
+								<p className='text-gray-600 text-lg'>{survey.description}</p>
 							)}
 						</div>
 
-						<form onSubmit={handleSubmit} className="space-y-6">
-							<div className="grid md:grid-cols-2 gap-6">
+						<form onSubmit={handleSubmit} className='space-y-6'>
+							<div className='grid md:grid-cols-2 gap-6'>
 								<div>
-									<label className="block mb-2 font-semibold text-gray-700">
+									<label className='block mb-2 font-semibold text-gray-700'>
 										Full Name *
 									</label>
 									<input
-										className="input-field"
+										className='input-field'
 										value={form.name}
 										onChange={e => setForm({ ...form, name: e.target.value })}
 										required
-										placeholder="Enter your full name"
+										placeholder='Enter your full name'
 									/>
 								</div>
 								<div>
-									<label className="block mb-2 font-semibold text-gray-700">
+									<label className='block mb-2 font-semibold text-gray-700'>
 										Email Address *
 									</label>
 									<input
-										type="email"
-										className="input-field"
+										type='email'
+										className='input-field'
 										value={form.email}
 										onChange={e => handleEmailChange(e.target.value)}
 										required
-										placeholder="Enter your email"
+										placeholder='Enter your email'
 									/>
 									{survey?.sourceType === 'question_bank' &&
 										form.email &&
 										!questionsLoaded && (
-										<div className="text-sm text-blue-600 mt-1">
+										<div className='text-sm text-blue-600 mt-1'>
 												Loading randomized questions...
 										</div>
 									)}
@@ -461,66 +481,79 @@ const TakeSurvey: React.FC = () => {
 							</div>
 
 							{questionsLoaded ? (
-								<div className="space-y-6">
-									<div className="flex items-center justify-between border-b border-gray-200 pb-2">
-										<h3 className="text-xl font-semibold text-gray-800">
+								<div className='space-y-6'>
+									<div className='flex items-center justify-between border-b border-gray-200 pb-2'>
+										<h3 className='text-xl font-semibold text-gray-800'>
 											Questions
 										</h3>
 										{survey.sourceType === 'question_bank' && (
-											<div className="text-sm text-purple-600 bg-purple-50 px-3 py-1 rounded">
+											<div className='text-sm text-purple-600 bg-purple-50 px-3 py-1 rounded'>
 												🎲 Randomized Questions
 											</div>
 										)}
 									</div>
 									{questions.map((q, index) => (
-										<div key={q._id} className="bg-gray-50 rounded-lg p-6">
-											<label className="block mb-4 font-semibold text-gray-800 text-lg">
+										<div key={q._id} className='bg-gray-50 rounded-lg p-6'>
+											<label className='block mb-4 font-semibold text-gray-800 text-lg'>
 												{index + 1}. {q.text}
 											</label>
-											{q.type === 'short_text' ? (
-												<div className="space-y-3">
+											{q.type === QUESTION_TYPE.SHORT_TEXT ? (
+												<div className='space-y-3'>
 													<textarea
-														className="w-full p-3 bg-white rounded-lg border border-gray-200 focus:border-primary-300 focus:ring-2 focus:ring-primary-100 transition-colors"
-														placeholder="Enter your answer here..."
+														className='w-full p-3 bg-white rounded-lg border border-gray-200 focus:border-primary-300 focus:ring-2 focus:ring-primary-100 transition-colors'
+														placeholder='Enter your answer here...'
 														rows={4}
 														value={form.answers[q._id] || ''}
-														onChange={(e) => handleAnswerChange(q._id, e.target.value)}
+														onChange={e =>
+															handleAnswerChange(
+																q._id,
+																e.target.value
+															)
+														}
 														required
 													/>
 												</div>
 											) : (
-												<div className="space-y-3">
-													{q.options && q.options.map((opt, optIndex) => (
-														<label
-															key={`${q._id}-${optIndex}-${opt}`}
-															className="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-primary-300 cursor-pointer transition-colors"
-														>
-															<input
-																type="radio"
-																name={q._id}
-																className="mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
-																value={opt}
-																checked={form.answers[q._id] === opt}
-																onChange={() =>
-																	handleAnswerChange(q._id, opt)
-																}
-																required
-															/>
-															<span className="text-gray-700">{opt}</span>
-														</label>
-													))}
+												<div className='space-y-3'>
+													{q.options &&
+														q.options.map((opt, optIndex) => (
+															<label
+																key={`${q._id}-${optIndex}-${opt}`}
+																className='flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-primary-300 cursor-pointer transition-colors'
+															>
+																<input
+																	type='radio'
+																	name={q._id}
+																	className='mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300'
+																	value={opt}
+																	checked={
+																		form.answers[q._id] === opt
+																	}
+																	onChange={() =>
+																		handleAnswerChange(
+																			q._id,
+																			opt
+																		)
+																	}
+																	required
+																/>
+																<span className='text-gray-700'>
+																	{opt}
+																</span>
+															</label>
+														))}
 												</div>
 											)}
 										</div>
 									))}
 								</div>
-							) : survey?.sourceType === 'question_bank' ? (
-								<div className="text-center py-8">
-									<div className="text-purple-500 text-6xl mb-4">🎲</div>
-									<h3 className="text-xl font-semibold text-gray-700 mb-2">
+							) : survey?.sourceType === SOURCE_TYPE.QUESTION_BANK ? (
+								<div className='text-center py-8'>
+									<div className='text-purple-500 text-6xl mb-4'>🎲</div>
+									<h3 className='text-xl font-semibold text-gray-700 mb-2'>
 										Questions Will Load Soon
 									</h3>
-									<p className="text-gray-500">
+									<p className='text-gray-500'>
 										{form.email
 											? 'Preparing your randomized questions...'
 											: 'Enter your email address above to load your personalized questions.'}
@@ -528,10 +561,10 @@ const TakeSurvey: React.FC = () => {
 								</div>
 							) : null}
 
-							<div className="flex justify-end pt-6 border-t border-gray-200">
+							<div className='flex justify-end pt-6 border-t border-gray-200'>
 								<button
-									className="btn-primary px-8 py-3 text-lg"
-									type="submit"
+									className='btn-primary px-8 py-3 text-lg'
+									type='submit'
 									disabled={loading || !questionsLoaded}
 								>
 									{loading
@@ -546,23 +579,23 @@ const TakeSurvey: React.FC = () => {
 				)}
 
 				{submitted && (
-					<div className="card">
-						{['assessment', 'quiz', 'iq'].includes(survey?.type || '') &&
+					<div className='card'>
+						{TYPES_REQUIRING_ANSWERS.includes(survey?.type || '') &&
 						assessmentResults.length > 0 &&
 						scoringResult ? (
 								<div>
-									<div className="text-center mb-6">
+									<div className='text-center mb-6'>
 										<div
 											className={`text-6xl mb-4 ${scoringResult.passed ? 'text-green-500' : 'text-red-500'}`}
 										>
 											{scoringResult.passed ? '🎉' : '📊'}
 										</div>
-										<h2 className="text-3xl font-bold text-gray-800 mb-2">
+										<h2 className='text-3xl font-bold text-gray-800 mb-2'>
 											{scoringResult.passed
 												? 'Congratulations! You Passed!'
 												: 'Assessment Results'}
 										</h2>
-										<div className="space-y-2 mb-4">
+										<div className='space-y-2 mb-4'>
 											<div
 												className={`text-2xl font-bold ${scoringResult.passed ? 'text-green-600' : 'text-red-600'}`}
 											>
@@ -570,10 +603,10 @@ const TakeSurvey: React.FC = () => {
 													? `${scoringResult.displayScore} points`
 													: `${scoringResult.displayScore} / ${scoringResult.maxPossiblePoints} points`}
 											</div>
-											<div className="text-sm text-gray-600">
+											<div className='text-sm text-gray-600'>
 												{scoringResult.scoringDescription}
 											</div>
-											<div className="text-sm text-gray-600">
+											<div className='text-sm text-gray-600'>
 											Correct answers: {scoringResult.correctAnswers} /{' '}
 												{scoringResult.correctAnswers +
 												scoringResult.wrongAnswers}
@@ -582,20 +615,20 @@ const TakeSurvey: React.FC = () => {
 									</div>
 
 									{survey?.scoringSettings?.showScoreBreakdown && (
-										<div className="space-y-4 mb-6">
+										<div className='space-y-4 mb-6'>
 											{assessmentResults.map((result, index) => (
 												<div
 													key={result.questionId}
 													className={`p-4 rounded-lg border-2 ${result.isCorrect ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'}`}
 												>
-													<div className="flex items-center justify-between mb-2">
-														<div className="flex items-center gap-2">
+													<div className='flex items-center justify-between mb-2'>
+														<div className='flex items-center gap-2'>
 															<span
 																className={`text-2xl ${result.isCorrect ? 'text-green-600' : 'text-red-600'}`}
 															>
 																{result.isCorrect ? '✅' : '❌'}
 															</span>
-															<div className="font-semibold text-gray-800">
+															<div className='font-semibold text-gray-800'>
 																{index + 1}. {result.questionText}
 															</div>
 														</div>
@@ -606,9 +639,9 @@ const TakeSurvey: React.FC = () => {
 														pts
 														</div>
 													</div>
-													<div className="space-y-1 text-sm">
-														<div className="text-gray-700">
-															<span className="font-medium">
+													<div className='space-y-1 text-sm'>
+														<div className='text-gray-700'>
+															<span className='font-medium'>
 															Your answer:
 															</span>{' '}
 															{result.userAnswer}
@@ -616,8 +649,8 @@ const TakeSurvey: React.FC = () => {
 														{!result.isCorrect &&
 														survey?.scoringSettings
 															?.showCorrectAnswers && (
-															<div className="text-green-700">
-																<span className="font-medium">
+															<div className='text-green-700'>
+																<span className='font-medium'>
 																	Correct answer:
 																</span>{' '}
 																{result.correctAnswer}
@@ -629,7 +662,7 @@ const TakeSurvey: React.FC = () => {
 										</div>
 									)}
 
-									<div className="text-center">
+									<div className='text-center'>
 										<button
 											onClick={() => {
 												if (slug) {
@@ -645,7 +678,7 @@ const TakeSurvey: React.FC = () => {
 													navigate('/');
 												}
 											}}
-											className="btn-secondary"
+											className='btn-secondary'
 										>
 											{slug
 												? 'Take This Assessment Again'
@@ -654,12 +687,12 @@ const TakeSurvey: React.FC = () => {
 									</div>
 								</div>
 							) : (
-								<div className="text-center">
-									<div className="text-green-500 text-6xl mb-4">✅</div>
-									<h2 className="text-3xl font-bold text-gray-800 mb-4">
+								<div className='text-center'>
+									<div className='text-green-500 text-6xl mb-4'>✅</div>
+									<h2 className='text-3xl font-bold text-gray-800 mb-4'>
 									Thank You!
 									</h2>
-									<p className="text-gray-600 text-lg mb-6">
+									<p className='text-gray-600 text-lg mb-6'>
 									Your survey response has been submitted successfully.
 									</p>
 									<button
@@ -677,7 +710,7 @@ const TakeSurvey: React.FC = () => {
 												navigate('/');
 											}
 										}}
-										className="btn-secondary"
+										className='btn-secondary'
 									>
 										{slug ? 'Take This Survey Again' : 'Choose Another Survey'}
 									</button>

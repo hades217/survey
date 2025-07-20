@@ -20,27 +20,27 @@ router.get('/check-auth', (req, res) => {
 	// This endpoint is now handled by JWT middleware
 	// For backward compatibility, we'll keep it but it should be called with JWT
 	const authHeader = req.headers.authorization;
-	
+
 	if (!authHeader || !authHeader.startsWith('Bearer ')) {
-		return res.status(HTTP_STATUS.UNAUTHORIZED).json({ 
-			success: false, 
-			authenticated: false 
+		return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+			success: false,
+			authenticated: false,
 		});
 	}
-	
+
 	const token = authHeader.split(' ')[1];
-	
+
 	try {
 		const payload = jwt.verify(token, JWT_SECRET);
-		res.json({ 
-			success: true, 
+		res.json({
+			success: true,
 			authenticated: true,
-			user: payload
+			user: payload,
 		});
 	} catch (error) {
-		res.status(HTTP_STATUS.UNAUTHORIZED).json({ 
-			success: false, 
-			authenticated: false 
+		res.status(HTTP_STATUS.UNAUTHORIZED).json({
+			success: false,
+			authenticated: false,
 		});
 	}
 });
@@ -50,22 +50,22 @@ router.post('/login', (req, res) => {
 	if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
 		// Generate JWT token instead of using session
 		const token = jwt.sign(
-			{ 
+			{
 				id: 'admin', // Admin user ID
 				username: username,
-				role: 'admin'
-			}, 
-			JWT_SECRET, 
+				role: 'admin',
+			},
+			JWT_SECRET,
 			{ expiresIn: '7d' }
 		);
-		res.json({ 
-			success: true, 
+		res.json({
+			success: true,
 			token,
 			user: {
 				id: 'admin',
 				username: username,
-				role: 'admin'
-			}
+				role: 'admin',
+			},
 		});
 	} else {
 		res.status(HTTP_STATUS.UNAUTHORIZED).json({ success: false });
@@ -77,7 +77,6 @@ router.post(
 	'/surveys',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-
 		// Generate slug after validating the request data
 		const surveyData = { ...req.body };
 		if (surveyData.title && !surveyData.slug) {
@@ -150,31 +149,39 @@ router.put(
 	asyncHandler(async (req, res) => {
 		const { id } = req.params;
 		const { text, options, correctAnswer, points, type } = req.body;
-		
+
 		// Debug: Log the received data
 		console.log('Add question request body:', req.body);
 		console.log('Question type:', type);
 		console.log('Options:', options);
 		console.log('Text:', text);
-		
+
 		// Basic validation
 		if (typeof text !== DATA_TYPES.STRING) {
 			console.log('Validation failed: text is not string, type:', typeof text);
-			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Question text must be a string' });
+			return res
+				.status(HTTP_STATUS.BAD_REQUEST)
+				.json({ error: 'Question text must be a string' });
 		}
-		
+
 		// Validate question type
 		if (type && !['single_choice', 'multiple_choice', 'short_text'].includes(type)) {
 			console.log('Validation failed: invalid type:', type);
 			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Invalid question type' });
 		}
-		
+
 		// For choice questions, validate options
 		if (type !== 'short_text') {
-			if (!options || !Array.isArray(options) || !options.every(o => typeof o === DATA_TYPES.STRING)) {
+			if (
+				!options ||
+				!Array.isArray(options) ||
+				!options.every(o => typeof o === DATA_TYPES.STRING)
+			) {
 				console.log('Validation failed: options validation failed for choice question');
 				console.log('Options:', options);
-				return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Choice questions require valid options array' });
+				return res
+					.status(HTTP_STATUS.BAD_REQUEST)
+					.json({ error: 'Choice questions require valid options array' });
 			}
 		}
 
@@ -191,20 +198,23 @@ router.put(
 				// For choice questions: Support both single answer (number) and multiple answers (array)
 				if (Array.isArray(correctAnswer)) {
 					// Multiple choice: validate array of indices
-					if (!correctAnswer.every(idx => 
-						typeof idx === DATA_TYPES.NUMBER && 
-						idx >= 0 && 
-						idx < options.length
-					)) {
+					if (
+						!correctAnswer.every(
+							idx =>
+								typeof idx === DATA_TYPES.NUMBER && idx >= 0 && idx < options.length
+						)
+					) {
 						return res
 							.status(HTTP_STATUS.BAD_REQUEST)
 							.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
 					}
 				} else {
 					// Single choice: validate single index
-					if (typeof correctAnswer !== DATA_TYPES.NUMBER ||
+					if (
+						typeof correctAnswer !== DATA_TYPES.NUMBER ||
 						correctAnswer < 0 ||
-						correctAnswer >= options.length) {
+						correctAnswer >= options.length
+					) {
 						return res
 							.status(HTTP_STATUS.BAD_REQUEST)
 							.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
@@ -228,7 +238,7 @@ router.put(
 		// Use provided type or determine from correctAnswer format
 		let questionType = type || 'single_choice';
 		let normalizedCorrectAnswer = correctAnswer;
-		
+
 		// If type is not provided, determine from correctAnswer format (backward compatibility)
 		if (!type && correctAnswer !== undefined) {
 			if (Array.isArray(correctAnswer) && correctAnswer.length > 1) {
@@ -250,16 +260,16 @@ router.put(
 			}
 		}
 
-		const question = { 
-			text, 
-			type: questionType
+		const question = {
+			text,
+			type: questionType,
 		};
-		
+
 		// Only add options for non-short_text questions
 		if (questionType !== 'short_text') {
 			question.options = options;
 		}
-		
+
 		if (correctAnswer !== undefined) {
 			question.correctAnswer = normalizedCorrectAnswer;
 		}
@@ -280,7 +290,7 @@ router.put(
 	asyncHandler(async (req, res) => {
 		const { id, questionIndex } = req.params;
 		const { text, options, correctAnswer, points } = req.body;
-		
+
 		// Validate input
 		if (
 			typeof text !== DATA_TYPES.STRING ||
@@ -293,19 +303,21 @@ router.put(
 		// Validate correctAnswer if provided (same logic as add question)
 		if (correctAnswer !== undefined && correctAnswer !== null) {
 			if (Array.isArray(correctAnswer)) {
-				if (!correctAnswer.every(idx => 
-					typeof idx === DATA_TYPES.NUMBER && 
-					idx >= 0 && 
-					idx < options.length
-				)) {
+				if (
+					!correctAnswer.every(
+						idx => typeof idx === DATA_TYPES.NUMBER && idx >= 0 && idx < options.length
+					)
+				) {
 					return res
 						.status(HTTP_STATUS.BAD_REQUEST)
 						.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
 				}
 			} else {
-				if (typeof correctAnswer !== DATA_TYPES.NUMBER ||
+				if (
+					typeof correctAnswer !== DATA_TYPES.NUMBER ||
 					correctAnswer < 0 ||
-					correctAnswer >= options.length) {
+					correctAnswer >= options.length
+				) {
 					return res
 						.status(HTTP_STATUS.BAD_REQUEST)
 						.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
@@ -327,31 +339,33 @@ router.put(
 
 		const qIndex = parseInt(questionIndex, 10);
 		if (qIndex < 0 || qIndex >= survey.questions.length) {
-			return res
-				.status(HTTP_STATUS.BAD_REQUEST)
-				.json({ error: 'Invalid question index' });
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Invalid question index' });
 		}
 
 		const requiresAnswer = ['quiz', 'assessment', 'iq'].includes(survey.type);
 
 		if (requiresAnswer) {
 			if (correctAnswer === undefined || correctAnswer === null) {
-				return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
+				return res
+					.status(HTTP_STATUS.BAD_REQUEST)
+					.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
 			}
 			if (Array.isArray(correctAnswer)) {
-				if (!correctAnswer.every(idx =>
-					typeof idx === DATA_TYPES.NUMBER &&
-					idx >= 0 &&
-					idx < options.length
-				)) {
+				if (
+					!correctAnswer.every(
+						idx => typeof idx === DATA_TYPES.NUMBER && idx >= 0 && idx < options.length
+					)
+				) {
 					return res
 						.status(HTTP_STATUS.BAD_REQUEST)
 						.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
 				}
 			} else {
-				if (typeof correctAnswer !== DATA_TYPES.NUMBER ||
+				if (
+					typeof correctAnswer !== DATA_TYPES.NUMBER ||
 					correctAnswer < 0 ||
-					correctAnswer >= options.length) {
+					correctAnswer >= options.length
+				) {
 					return res
 						.status(HTTP_STATUS.BAD_REQUEST)
 						.json({ error: ERROR_MESSAGES.INVALID_CORRECT_ANSWER });
@@ -361,7 +375,7 @@ router.put(
 
 		// Determine question type and normalize correctAnswer format (same logic as add question)
 		let questionType, normalizedCorrectAnswer;
-		
+
 		if (Array.isArray(correctAnswer) && correctAnswer.length > 1) {
 			questionType = 'multiple_choice';
 			normalizedCorrectAnswer = correctAnswer;
@@ -401,9 +415,7 @@ router.delete(
 
 		const qIndex = parseInt(questionIndex, 10);
 		if (qIndex < 0 || qIndex >= survey.questions.length) {
-			return res
-				.status(HTTP_STATUS.BAD_REQUEST)
-				.json({ error: 'Invalid question index' });
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Invalid question index' });
 		}
 
 		survey.questions.splice(qIndex, 1);
@@ -417,7 +429,6 @@ router.put(
 	'/surveys/:id/scoring',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-
 		const { id } = req.params;
 		const {
 			scoringMode,
@@ -676,7 +687,6 @@ router.post(
 	'/surveys/:id/publish',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-
 		const {
 			distributionMode,
 			targetUsers,
@@ -738,7 +748,6 @@ router.get(
 	'/surveys/:id/invitations',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-
 		const invitations = await Invitation.find({ surveyId: req.params.id })
 			.populate('targetUsers', 'name email studentId')
 			.sort({ createdAt: -1 });
@@ -752,7 +761,6 @@ router.post(
 	'/surveys/:id/invitations',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-
 		const { distributionMode, targetUsers, targetEmails, maxResponses, expiresAt } = req.body;
 
 		const survey = await Survey.findById(req.params.id);
@@ -796,7 +804,6 @@ router.get(
 	'/dashboard/statistics',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-
 		const [
 			totalSurveys,
 			activeSurveys,
@@ -883,17 +890,16 @@ router.put(
 	'/surveys/:id/toggle-status',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-		
 		const survey = await Survey.findById(req.params.id);
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
-		
+
 		// Toggle both isActive and status fields to keep them in sync
 		survey.isActive = !survey.isActive;
 		survey.status = survey.isActive ? 'active' : 'draft';
 		await survey.save();
-		
+
 		res.json(survey);
 	})
 );

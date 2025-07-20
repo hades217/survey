@@ -23,9 +23,9 @@ const QRCodeComponent: React.FC<QRCodeProps> = ({ url, size = 200 }) => {
 	}, [url, size]);
 
 	return (
-		<div className="text-center">
-			<canvas ref={canvasRef} className="mx-auto" />
-			<p className="text-sm text-gray-600 mt-2">Scan to access survey</p>
+		<div className='text-center'>
+			<canvas ref={canvasRef} className='mx-auto' />
+			<p className='text-sm text-gray-600 mt-2'>Scan to access survey</p>
 		</div>
 	);
 };

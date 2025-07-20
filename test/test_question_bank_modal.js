@@ -35,8 +35,8 @@ async function testQuestionBankCreation() {
 		console.log('   - Checking JWT authentication...');
 		const authCheckResponse = await api.get('/api/admin/check-auth', {
 			headers: {
-				Authorization: `Bearer ${loginResponse.data.token}`
-			}
+				Authorization: `Bearer ${loginResponse.data.token}`,
+			},
 		});
 		console.log('Auth check response:', authCheckResponse.data);
 		if (authCheckResponse.data.authenticated) {
@@ -48,14 +48,19 @@ async function testQuestionBankCreation() {
 
 		// 2. Test creating a question bank
 		console.log('\n2. Creating a test question bank...');
-		const createResponse = await api.post('/api/admin/question-banks', {
-			name: 'Test Question Bank for Modal',
-			description: 'This is a test question bank created to verify the modal functionality',
-		}, {
-			headers: {
-				Authorization: `Bearer ${loginResponse.data.token}`
+		const createResponse = await api.post(
+			'/api/admin/question-banks',
+			{
+				name: 'Test Question Bank for Modal',
+				description:
+					'This is a test question bank created to verify the modal functionality',
+			},
+			{
+				headers: {
+					Authorization: `Bearer ${loginResponse.data.token}`,
+				},
 			}
-		});
+		);
 
 		console.log('✅ Question Bank created successfully');
 		console.log('   - ID:', createResponse.data._id);
@@ -67,11 +72,11 @@ async function testQuestionBankCreation() {
 		console.log('\n3. Verifying question bank appears in list...');
 		const listResponse = await api.get('/api/admin/question-banks', {
 			headers: {
-				Authorization: `Bearer ${loginResponse.data.token}`
-			}
+				Authorization: `Bearer ${loginResponse.data.token}`,
+			},
 		});
 		const createdBank = listResponse.data.find(bank => bank._id === createResponse.data._id);
-		
+
 		if (createdBank) {
 			console.log('✅ Question bank found in list');
 			console.log('   - Total question banks:', listResponse.data.length);
@@ -81,14 +86,18 @@ async function testQuestionBankCreation() {
 
 		// 4. Test creating another question bank with different data
 		console.log('\n4. Creating another question bank...');
-		const createResponse2 = await api.post('/api/admin/question-banks', {
-			name: 'Another Test Bank',
-			description: 'Second test question bank',
-		}, {
-			headers: {
-				Authorization: `Bearer ${loginResponse.data.token}`
+		const createResponse2 = await api.post(
+			'/api/admin/question-banks',
+			{
+				name: 'Another Test Bank',
+				description: 'Second test question bank',
+			},
+			{
+				headers: {
+					Authorization: `Bearer ${loginResponse.data.token}`,
+				},
 			}
-		});
+		);
 
 		console.log('✅ Second Question Bank created successfully');
 		console.log('   - ID:', createResponse2.data._id);
@@ -98,21 +107,25 @@ async function testQuestionBankCreation() {
 		console.log('\n5. Verifying both banks are in list...');
 		const listResponse2 = await api.get('/api/admin/question-banks', {
 			headers: {
-				Authorization: `Bearer ${loginResponse.data.token}`
-			}
+				Authorization: `Bearer ${loginResponse.data.token}`,
+			},
 		});
 		console.log(`✅ Found ${listResponse2.data.length} question banks total`);
 
 		// 6. Test validation - try to create without name
 		console.log('\n6. Testing validation - creating without name...');
 		try {
-			await api.post('/api/admin/question-banks', {
-				description: 'This should fail',
-			}, {
-				headers: {
-					Authorization: `Bearer ${loginResponse.data.token}`
+			await api.post(
+				'/api/admin/question-banks',
+				{
+					description: 'This should fail',
+				},
+				{
+					headers: {
+						Authorization: `Bearer ${loginResponse.data.token}`,
+					},
 				}
-			});
+			);
 			console.log('❌ Should have failed - no name provided');
 		} catch (error) {
 			if (error.response?.status === 400) {
@@ -135,7 +148,6 @@ async function testQuestionBankCreation() {
 		console.log('   - List Question Banks: ✅ Working');
 		console.log('   - Validation: ✅ Working');
 		console.log('\n🚀 The modal should work correctly in the frontend!');
-
 	} catch (error) {
 		console.error('\n❌ Test failed:', error.message);
 		if (error.response) {
@@ -146,4 +158,4 @@ async function testQuestionBankCreation() {
 }
 
 // Run the test
-testQuestionBankCreation(); 
+testQuestionBankCreation();

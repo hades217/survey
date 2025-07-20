@@ -10,7 +10,7 @@ async function testQuestionBankDetail() {
 		console.log('1. Logging in as admin...');
 		const loginResponse = await axios.post(`${BASE_URL}/api/admin/login`, {
 			username: 'admin',
-			password: 'password'
+			password: 'password',
 		});
 
 		if (loginResponse.data.success) {
@@ -24,7 +24,7 @@ async function testQuestionBankDetail() {
 		console.log('\\n2. Creating a test question bank...');
 		const createBankResponse = await axios.post(`${BASE_URL}/api/admin/question-banks`, {
 			name: 'Test Question Bank for Detail',
-			description: 'A test question bank to verify detail page functionality'
+			description: 'A test question bank to verify detail page functionality',
 		});
 
 		if (createBankResponse.data._id) {
@@ -37,14 +37,14 @@ async function testQuestionBankDetail() {
 
 		// 3. Add questions to the bank
 		console.log('\\n3. Adding questions to the bank...');
-		
+
 		// Add single choice question
 		const singleChoiceQuestion = {
 			text: 'What is the capital of France?',
 			type: 'single_choice',
 			options: ['London', 'Paris', 'Berlin', 'Madrid'],
 			correctAnswer: 1,
-			points: 2
+			points: 2,
 		};
 
 		const singleChoiceResponse = await axios.post(
@@ -64,7 +64,7 @@ async function testQuestionBankDetail() {
 			type: 'multiple_choice',
 			options: ['Python', 'Java', 'HTML', 'CSS', 'JavaScript'],
 			correctAnswer: [0, 1, 4], // Python, Java, JavaScript
-			points: 3
+			points: 3,
 		};
 
 		const multipleChoiceResponse = await axios.post(
@@ -80,8 +80,10 @@ async function testQuestionBankDetail() {
 
 		// 4. Get the updated question bank
 		console.log('\\n4. Getting updated question bank...');
-		const getBankResponse = await axios.get(`${BASE_URL}/api/admin/question-banks/${questionBankId}`);
-		
+		const getBankResponse = await axios.get(
+			`${BASE_URL}/api/admin/question-banks/${questionBankId}`
+		);
+
 		if (getBankResponse.data.questions.length === 2) {
 			console.log('✅ Question bank has 2 questions');
 			console.log('   - Question 1:', getBankResponse.data.questions[0].text);
@@ -98,7 +100,7 @@ async function testQuestionBankDetail() {
 			type: 'single_choice',
 			options: ['London', 'Paris', 'Berlin', 'Madrid', 'Rome'],
 			correctAnswer: 1,
-			points: 3
+			points: 3,
 		};
 
 		const updateResponse = await axios.put(
@@ -115,7 +117,7 @@ async function testQuestionBankDetail() {
 		// 6. Test deleting a question
 		console.log('\\n6. Testing question deletion...');
 		const questionToDelete = getBankResponse.data.questions[1];
-		
+
 		const deleteResponse = await axios.delete(
 			`${BASE_URL}/api/admin/question-banks/${questionBankId}/questions/${questionToDelete._id}`
 		);
@@ -128,8 +130,10 @@ async function testQuestionBankDetail() {
 
 		// 7. Final verification
 		console.log('\\n7. Final verification...');
-		const finalBankResponse = await axios.get(`${BASE_URL}/api/admin/question-banks/${questionBankId}`);
-		
+		const finalBankResponse = await axios.get(
+			`${BASE_URL}/api/admin/question-banks/${questionBankId}`
+		);
+
 		if (finalBankResponse.data.questions.length === 1) {
 			console.log('✅ Final question bank has 1 question');
 			console.log('   - Remaining question:', finalBankResponse.data.questions[0].text);
@@ -149,11 +153,10 @@ async function testQuestionBankDetail() {
 		console.log('   2. Navigate to Admin > Question Banks');
 		console.log('   3. Click "Edit" on the test question bank');
 		console.log('   4. Verify the detail page functionality');
-
 	} catch (error) {
 		console.error('❌ Test failed:', error.response?.data || error.message);
 	}
 }
 
 // Run the test
-testQuestionBankDetail(); 
+testQuestionBankDetail();
