@@ -78,15 +78,15 @@ pipeline {
                         echo "Environment variables loaded from Vault"
                         echo "MONGO_URI: ${MONGO_URI}"
 
-                        sh '''
+                        sh """
                             # Verify docker-compose.yml exists
                             if [ ! -f "docker-compose.yml" ]; then
                                 echo "Error: docker-compose.yml not found in current directory"
                                 exit 1
                             fi
 
-                            # Create .env file with environment variables
-                            cat > .env << 'ENV_EOF'
+                            # Create .env file with actual environment variable values
+                            cat > .env << EOF
 # Database Configuration
 MONGO_URI=${MONGO_URI}
 
@@ -101,11 +101,11 @@ ADMIN_PASSWORD=${ADMIN_PASSWORD}
 
 # Frontend Configuration
 VITE_BASE_URL=http://localhost:${BACKEND_PORT}
-ENV_EOF
+EOF
 
-                            # Display .env file (without sensitive data)
-                            echo "Created .env file:"
-                            cat .env | grep -v MONGO_URI | grep -v ADMIN_PASSWORD
+                            # Show the complete .env file for debugging
+                            echo "Complete .env file content:"
+                            cat .env
 
                             # Build and start services using existing docker-compose.yml
                             docker-compose up --build -d
