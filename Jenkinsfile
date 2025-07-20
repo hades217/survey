@@ -27,6 +27,11 @@ pipeline {
             steps {
                 echo 'Stopping old survey containers...'
                 sh '''
+                    # Change to the survey directory
+                    cd ${WORKSPACE}/survey
+                    pwd
+                    ls -la
+
                     # Stop and remove existing survey containers
                     docker-compose down || true
 
@@ -43,9 +48,16 @@ pipeline {
             steps {
                 echo 'Building and deploying survey application...'
                 sh '''
-                    # Ensure we're in the root directory
+                    # Change to the survey directory
+                    cd ${WORKSPACE}/survey
                     pwd
                     ls -la
+
+                    # Verify docker-compose.yml exists
+                    if [ ! -f "docker-compose.yml" ]; then
+                        echo "Error: docker-compose.yml not found in ${WORKSPACE}/survey"
+                        exit 1
+                    fi
 
                     # Build and start services using existing docker-compose.yml
                     docker-compose up --build -d
@@ -85,31 +97,6 @@ pipeline {
                         echo "Admin dashboard is accessible"
                     '''
                 }
-            }
-        }
-
-        stage('Cleanup') {
-            steps {
-                echo 'Cleaning up survey-related resources...'
-                sh '''
-                    # List survey-related images before cleanup
-                    echo "Survey-related images before cleanup:"
-                    docker images | grep survey || echo "No survey images found"
-
-                    # Remove only survey-related images that are not being used
-                    docker images | grep survey | grep -v "REPOSITORY" | awk '{print $3}' | xargs -r docker rmi -f || true
-
-                    # Clean up only dangling images (not used by any container)
-                    docker image prune -f
-
-                    # List survey-related images after cleanup
-                    echo "Survey-related images after cleanup:"
-                    docker images | grep survey || echo "No survey images found"
-
-                    # Show disk usage
-                    echo "Docker disk usage:"
-                    docker system df
-                '''
             }
         }
     }
