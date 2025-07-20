@@ -48,9 +48,7 @@ pipeline {
                 echo 'Building and deploying survey application...'
                 sh '''
                     # Change to the survey directory
-                    cd ${WORKSPACE}/survey
                     pwd
-                    ls -la
 
                     # Verify docker-compose.yml exists
                     if [ ! -f "docker-compose.yml" ]; then
