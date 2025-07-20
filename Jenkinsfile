@@ -75,17 +75,6 @@ pipeline {
                     ]]
                 ]) {
                     script {
-                        def envVars = [
-                            "MONGO_URI": "${MONGO_URI}"
-                        ]
-
-                        // Create environment string for docker-compose
-                        def envString = ""
-                        envVars.each { key, value ->
-                            envString += " -e ${key}=\"${value}\""
-                        }
-                        envString = envString.trim()
-
                         echo "Environment variables loaded from Vault"
                         echo "MONGO_URI: ${MONGO_URI}"
 
@@ -96,12 +85,34 @@ pipeline {
                                 exit 1
                             fi
 
-							# Build and start services using existing docker-compose.yml
-							docker-compose up --build -d
+                            # Create .env file with environment variables
+                            cat > .env << 'ENV_EOF'
+# Database Configuration
+MONGO_URI=${MONGO_URI}
 
-							# Wait for services to be ready
-							echo "Waiting for services to be ready..."
-							sleep 30
+# Application Configuration
+BACKEND_PORT=${BACKEND_PORT}
+FRONTEND_PORT=${FRONTEND_PORT}
+NODE_ENV=production
+
+# Admin Configuration
+ADMIN_USERNAME=${ADMIN_USERNAME}
+ADMIN_PASSWORD=${ADMIN_PASSWORD}
+
+# Frontend Configuration
+VITE_BASE_URL=http://localhost:${BACKEND_PORT}
+ENV_EOF
+
+                            # Display .env file (without sensitive data)
+                            echo "Created .env file:"
+                            cat .env | grep -v MONGO_URI | grep -v ADMIN_PASSWORD
+
+                            # Build and start services using existing docker-compose.yml
+                            docker-compose up --build -d
+
+                            # Wait for services to be ready
+                            echo "Waiting for services to be ready..."
+                            sleep 30
 
                             # Check service status
                             docker-compose ps
@@ -148,10 +159,9 @@ pipeline {
         success {
             echo 'Deployment successful!'
             echo 'Access your application at:'
-            echo "  Frontend: http://survey.jiangren.com.au"
-            echo "  Admin Dashboard: http://survey.jiangren.com.au/admin"
-            echo "  API: http://survey.jiangren.com.au/api"
-            echo "  Health Check: http://survey.jiangren.com.au/health"
+            echo "  Backend API: http://localhost:${BACKEND_PORT}/api"
+            echo "  Frontend: http://localhost:${FRONTEND_PORT}"
+            echo "  Admin Dashboard: http://localhost:${FRONTEND_PORT}/admin"
             // You can add notifications here (Slack, email, etc.)
         }
         failure {
