@@ -83,7 +83,7 @@ export interface EnhancedStats {
 	summary: StatsSummary;
 }
 
-export type TabType = 'list' | 'detail' | 'question-banks';
+export type TabType = 'list' | 'detail' | 'question-banks' | 'profile';
 export type StatsViewType = 'aggregated' | 'individual';
 
 export interface QuestionForm {
@@ -139,4 +139,46 @@ export interface NewSurveyForm {
 export interface QuestionBankForm {
 	name: string;
 	description: string;
+}
+
+export interface AdminUser {
+	_id: string;
+	name: string;
+	email: string;
+	avatarUrl?: string;
+}
+
+export interface Company {
+	_id: string;
+	name: string;
+	industry?: string;
+	logoUrl?: string;
+	description?: string;
+	website?: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface ProfileData {
+	user: AdminUser;
+	company: Company;
+}
+
+export interface ProfileForm {
+	name: string;
+	email: string;
+	avatarUrl?: string;
+}
+
+export interface PasswordForm {
+	currentPassword: string;
+	newPassword: string;
+}
+
+export interface CompanyForm {
+	name: string;
+	industry?: string;
+	logoUrl?: string;
+	description?: string;
+	website?: string;
 }

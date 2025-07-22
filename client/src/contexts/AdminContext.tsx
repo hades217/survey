@@ -12,6 +12,10 @@ import {
 	LoginForm,
 	NewSurveyForm,
 	QuestionBankForm,
+	ProfileData,
+	ProfileForm,
+	PasswordForm,
+	CompanyForm,
 } from '../types/admin';
 
 interface AdminContextType {
@@ -93,6 +97,22 @@ interface AdminContextType {
 	// Statistics
 	stats: Record<string, EnhancedStats>;
 	setStats: React.Dispatch<React.SetStateAction<Record<string, EnhancedStats>>>;
+
+	// Profile data
+	profileData: ProfileData | null;
+	setProfileData: React.Dispatch<React.SetStateAction<ProfileData | null>>;
+	profileForm: ProfileForm;
+	setProfileForm: React.Dispatch<React.SetStateAction<ProfileForm>>;
+	passwordForm: PasswordForm;
+	setPasswordForm: React.Dispatch<React.SetStateAction<PasswordForm>>;
+	companyForm: CompanyForm;
+	setCompanyForm: React.Dispatch<React.SetStateAction<CompanyForm>>;
+
+	// Profile actions
+	loadProfile: () => Promise<void>;
+	updateProfile: () => Promise<void>;
+	updatePassword: () => Promise<void>;
+	updateCompany: () => Promise<void>;
 
 	// Utility functions
 	copyToClipboard: (text: string) => void;
@@ -233,6 +253,25 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 	// Statistics
 	const [stats, setStats] = useState<Record<string, EnhancedStats>>({});
 
+	// Profile data
+	const [profileData, setProfileData] = useState<ProfileData | null>(null);
+	const [profileForm, setProfileForm] = useState<ProfileForm>({
+		name: '',
+		email: '',
+		avatarUrl: '',
+	});
+	const [passwordForm, setPasswordForm] = useState<PasswordForm>({
+		currentPassword: '',
+		newPassword: '',
+	});
+	const [companyForm, setCompanyForm] = useState<CompanyForm>({
+		name: '',
+		industry: '',
+		logoUrl: '',
+		description: '',
+		website: '',
+	});
+
 	// Check authentication on mount
 	useEffect(() => {
 		const checkAuth = async () => {
@@ -255,6 +294,22 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		};
 		checkAuth();
 	}, []);
+
+	// Handle route changes
+	useEffect(() => {
+		const path = location.pathname;
+		if (path === '/admin/question-banks' || path.startsWith('/admin/question-bank/')) {
+			setTab('question-banks');
+		} else if (path === '/admin/profile') {
+			setTab('profile');
+		} else if (path.startsWith('/admin/survey/') || path.startsWith('/admin/')) {
+			if (path.startsWith('/admin/survey/')) {
+				setTab('detail');
+			} else {
+				setTab('list');
+			}
+		}
+	}, [location.pathname]);
 
 	// Authentication functions
 	const login = async (e: React.FormEvent) => {
@@ -289,6 +344,102 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 			navigate('/admin');
 		} catch (err) {
 			console.error('Logout error:', err);
+		}
+	};
+
+	// Profile methods
+	const loadProfile = async () => {
+		try {
+			setLoading(true);
+			const response = await api.get('/admin/profile');
+			setProfileData(response.data);
+			
+			// Update forms with current data
+			setProfileForm({
+				name: response.data.user.name,
+				email: response.data.user.email,
+				avatarUrl: response.data.user.avatarUrl || '',
+			});
+			
+			setCompanyForm({
+				name: response.data.company.name,
+				industry: response.data.company.industry || '',
+				logoUrl: response.data.company.logoUrl || '',
+				description: response.data.company.description || '',
+				website: response.data.company.website || '',
+			});
+		} catch (err) {
+			console.error('Load profile error:', err);
+			setError('Failed to load profile');
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const updateProfile = async () => {
+		try {
+			setLoading(true);
+			const response = await api.put('/admin/profile', profileForm);
+			
+			// Update profile data
+			if (profileData) {
+				setProfileData({
+					...profileData,
+					user: response.data.user,
+				});
+			}
+			
+			setError('');
+			alert('Profile updated successfully!');
+		} catch (err: any) {
+			console.error('Update profile error:', err);
+			setError(err.response?.data?.error || 'Failed to update profile');
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const updatePassword = async () => {
+		try {
+			setLoading(true);
+			await api.put('/admin/profile/password', passwordForm);
+			
+			// Clear password form
+			setPasswordForm({
+				currentPassword: '',
+				newPassword: '',
+			});
+			
+			setError('');
+			alert('Password updated successfully!');
+		} catch (err: any) {
+			console.error('Update password error:', err);
+			setError(err.response?.data?.error || 'Failed to update password');
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const updateCompany = async () => {
+		try {
+			setLoading(true);
+			const response = await api.put('/admin/company', companyForm);
+			
+			// Update profile data
+			if (profileData) {
+				setProfileData({
+					...profileData,
+					company: response.data.company,
+				});
+			}
+			
+			setError('');
+			alert('Company information updated successfully!');
+		} catch (err: any) {
+			console.error('Update company error:', err);
+			setError(err.response?.data?.error || 'Failed to update company information');
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -372,6 +523,22 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		// Statistics
 		stats,
 		setStats,
+
+		// Profile data
+		profileData,
+		setProfileData,
+		profileForm,
+		setProfileForm,
+		passwordForm,
+		setPasswordForm,
+		companyForm,
+		setCompanyForm,
+
+		// Profile actions
+		loadProfile,
+		updateProfile,
+		updatePassword,
+		updateCompany,
 
 		// Utilities
 		copyToClipboard,
