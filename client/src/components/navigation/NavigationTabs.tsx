@@ -4,12 +4,14 @@ import { useAdmin } from '../../contexts/AdminContext';
 const NavigationTabs: React.FC = () => {
 	const { tab, setTab, navigate } = useAdmin();
 
-	const handleTabClick = (newTab: 'list' | 'question-banks') => {
+	const handleTabClick = (newTab: 'list' | 'question-banks' | 'profile') => {
 		setTab(newTab);
 		if (newTab === 'list') {
 			navigate('/admin');
 		} else if (newTab === 'question-banks') {
 			navigate('/admin/question-banks');
+		} else if (newTab === 'profile') {
+			navigate('/admin/profile');
 		}
 	};
 
@@ -39,6 +41,16 @@ const NavigationTabs: React.FC = () => {
 				}`}
 			>
 				Question Banks
+			</button>
+			<button
+				onClick={() => handleTabClick('profile')}
+				className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+					tab === 'profile'
+						? 'bg-white text-gray-900 shadow-sm'
+						: 'text-gray-600 hover:text-gray-900'
+				}`}
+			>
+				Profile
 			</button>
 		</div>
 	);

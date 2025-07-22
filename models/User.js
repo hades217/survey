@@ -13,10 +13,22 @@ const userSchema = new mongoose.Schema({
 		lowercase: true,
 		trim: true,
 	},
+	password: {
+		type: String,
+		select: false, // 默认不返回密码字段
+	},
+	avatarUrl: {
+		type: String,
+		trim: true,
+	},
 	role: {
 		type: String,
 		enum: ['student', 'teacher', 'admin', 'user'],
 		default: 'user',
+	},
+	companyId: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'Company',
 	},
 	studentId: {
 		type: String,

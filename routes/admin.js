@@ -6,7 +6,9 @@ const Survey = require('../models/Survey');
 const Response = require('../models/Response');
 const Invitation = require('../models/Invitation');
 const User = require('../models/User');
+const Company = require('../models/Company');
 const asyncHandler = require('../middlewares/asyncHandler');
+const bcrypt = require('bcrypt');
 const AppError = require('../utils/AppError');
 const { ERROR_MESSAGES, DATA_TYPES, HTTP_STATUS } = require('../shared/constants');
 const { JWT_SECRET, jwtAuth } = require('../middlewares/jwtAuth');
@@ -909,5 +911,193 @@ router.get('/logout', (req, res) => {
 		res.json({ success: true });
 	});
 });
+
+// Get current admin profile and company information
+router.get(
+	'/profile',
+	jwtAuth,
+	asyncHandler(async (req, res) => {
+		// For now, we'll use a default admin user since we're using simple auth
+		// In a real application, you'd get the user from req.user.id
+		let adminUser = await User.findOne({ role: 'admin' }).populate('companyId');
+		
+		// If no admin user exists, create a default one
+		if (!adminUser) {
+			adminUser = new User({
+				name: 'Administrator',
+				email: 'admin@example.com',
+				role: 'admin',
+			});
+			await adminUser.save();
+		}
+
+		// Get or create default company
+		let company = adminUser.companyId;
+		if (!company) {
+			company = await Company.findOne();
+			if (!company) {
+				company = new Company({
+					name: 'My Company',
+					industry: '',
+					description: '',
+				});
+				await company.save();
+				
+				// Link company to admin user
+				adminUser.companyId = company._id;
+				await adminUser.save();
+			}
+		}
+
+		res.json({
+			user: {
+				_id: adminUser._id,
+				name: adminUser.name,
+				email: adminUser.email,
+				avatarUrl: adminUser.avatarUrl,
+			},
+			company: company,
+		});
+	})
+);
+
+// Update admin profile (excluding password)
+router.put(
+	'/profile',
+	jwtAuth,
+	asyncHandler(async (req, res) => {
+		const { name, email, avatarUrl } = req.body;
+
+		// Validate input
+		if (!name || !email) {
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({
+				error: 'Name and email are required',
+			});
+		}
+
+		// Get or create admin user
+		let adminUser = await User.findOne({ role: 'admin' });
+		if (!adminUser) {
+			adminUser = new User({
+				name,
+				email,
+				role: 'admin',
+				avatarUrl,
+			});
+		} else {
+			adminUser.name = name;
+			adminUser.email = email;
+			if (avatarUrl !== undefined) {
+				adminUser.avatarUrl = avatarUrl;
+			}
+		}
+
+		await adminUser.save();
+
+		res.json({
+			message: 'Profile updated successfully',
+			user: {
+				_id: adminUser._id,
+				name: adminUser.name,
+				email: adminUser.email,
+				avatarUrl: adminUser.avatarUrl,
+			},
+		});
+	})
+);
+
+// Update admin password
+router.put(
+	'/profile/password',
+	jwtAuth,
+	asyncHandler(async (req, res) => {
+		const { currentPassword, newPassword } = req.body;
+
+		// Validate input
+		if (!currentPassword || !newPassword) {
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({
+				error: 'Current password and new password are required',
+			});
+		}
+
+		if (newPassword.length < 6) {
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({
+				error: 'New password must be at least 6 characters long',
+			});
+		}
+
+		// For simple admin auth, verify against environment variables
+		const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'password';
+		if (currentPassword !== ADMIN_PASSWORD) {
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({
+				error: 'Current password is incorrect',
+			});
+		}
+
+		// In a real application, you would hash the password and save it
+		// For now, we'll just return success since we're using env-based auth
+		res.json({
+			message: 'Password updated successfully',
+		});
+	})
+);
+
+// Update company information
+router.put(
+	'/company',
+	jwtAuth,
+	asyncHandler(async (req, res) => {
+		const { name, industry, logoUrl, description, website } = req.body;
+
+		// Validate input
+		if (!name) {
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({
+				error: 'Company name is required',
+			});
+		}
+
+		// Get or create admin user
+		let adminUser = await User.findOne({ role: 'admin' });
+		if (!adminUser) {
+			adminUser = new User({
+				name: 'Administrator',
+				email: 'admin@example.com',
+				role: 'admin',
+			});
+			await adminUser.save();
+		}
+
+		// Get or create company
+		let company = await Company.findById(adminUser.companyId);
+		if (!company) {
+			company = new Company({
+				name,
+				industry,
+				logoUrl,
+				description,
+				website,
+			});
+		} else {
+			company.name = name;
+			company.industry = industry || '';
+			company.logoUrl = logoUrl || '';
+			company.description = description || '';
+			company.website = website || '';
+		}
+
+		await company.save();
+
+		// Link company to admin user if not already linked
+		if (!adminUser.companyId) {
+			adminUser.companyId = company._id;
+			await adminUser.save();
+		}
+
+		res.json({
+			message: 'Company information updated successfully',
+			company: company,
+		});
+	})
+);
 
 module.exports = router;

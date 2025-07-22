@@ -2,7 +2,7 @@ import React from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
 
 const AdminHeader: React.FC = () => {
-	const { logout, setShowCreateModal } = useAdmin();
+	const { logout, setShowCreateModal, navigate, profileData } = useAdmin();
 
 	return (
 		<div className='flex justify-between items-center mb-8'>
@@ -12,9 +12,15 @@ const AdminHeader: React.FC = () => {
 					Manage your surveys, assessments and view responses
 				</p>
 			</div>
-			<div className='flex gap-3'>
+			<div className='flex items-center gap-3'>
 				<button className='btn-primary' onClick={() => setShowCreateModal(true)}>
 					+ Create Sigma
+				</button>
+				<button 
+					className='btn-secondary' 
+					onClick={() => navigate('/admin/profile')}
+				>
+					Profile
 				</button>
 				<button className='btn-secondary' onClick={logout}>
 					Logout
