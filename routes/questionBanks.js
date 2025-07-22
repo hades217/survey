@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const questionBankController = require('../controllers/questionBankController');
 const { jwtAuth } = require('../middlewares/jwtAuth');
+const upload = require('../middlewares/upload');
 
 // Apply JWT authentication middleware to all routes
 router.use(jwtAuth);
@@ -21,5 +22,7 @@ router.delete('/:id/questions/:questionId', questionBankController.deleteQuestio
 // Utility routes
 router.get('/:id/random-questions', questionBankController.getRandomQuestions);
 router.post('/:id/import', questionBankController.importQuestions);
+router.post('/:id/import-csv', upload.single('csvFile'), questionBankController.importQuestionsFromCSV);
+router.get('/csv-template/download', questionBankController.downloadCSVTemplate);
 
 module.exports = router;
