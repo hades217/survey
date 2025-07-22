@@ -3,6 +3,8 @@ import { useAdmin } from '../../contexts/AdminContext';
 import { useQuestionBanks } from '../../hooks/useQuestionBanks';
 import { QuestionBank, Question, QuestionForm } from '../../types/admin';
 import AddQuestionModal from '../modals/AddQuestionModal';
+import ImportCSVModal from '../modals/ImportCSVModal';
+import ImportResultModal from '../modals/ImportResultModal';
 
 interface QuestionBankDetailViewProps {
 	questionBank: QuestionBank;
@@ -36,6 +38,16 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 	>({});
 	// Local state for add question modal
 	const [showAddQuestionModal, setShowAddQuestionModal] = useState(false);
+	// Local state for CSV import
+	const [showImportCSVModal, setShowImportCSVModal] = useState(false);
+	const [showImportResultModal, setShowImportResultModal] = useState(false);
+	const [importResult, setImportResult] = useState<{
+		success: boolean;
+		message: string;
+		imported: number;
+		warnings?: string[];
+		errors?: string[];
+	} | null>(null);
 
 	const qb = questionBank;
 	const currentForm = questionBankQuestionForms[qb._id] || {
@@ -344,6 +356,69 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 		}
 	};
 
+	// CSV import functions
+	const handleCSVImport = async (file: File) => {
+		try {
+			setLoading(true);
+			
+			const formData = new FormData();
+			formData.append('csvFile', file);
+
+			const response = await fetch(`/api/question-banks/${qb._id}/import-csv`, {
+				method: 'POST',
+				headers: {
+					'Authorization': `Bearer ${localStorage.getItem('token')}`,
+				},
+				body: formData,
+			});
+
+			const data = await response.json();
+
+			if (response.ok) {
+				// Update the question bank data
+				if (data.questionBank) {
+					// Trigger a refresh of the question bank data
+					window.location.reload();
+				}
+				
+				setImportResult({
+					success: true,
+					message: data.message,
+					imported: data.imported,
+					warnings: data.warnings,
+				});
+			} else {
+				setImportResult({
+					success: false,
+					message: data.error || 'Import failed',
+					imported: 0,
+					errors: data.errors,
+				});
+			}
+
+			setShowImportResultModal(true);
+			setLoading(false);
+		} catch (error) {
+			console.error('CSV import error:', error);
+			setImportResult({
+				success: false,
+				message: 'Network error occurred during import',
+				imported: 0,
+			});
+			setShowImportResultModal(true);
+			setLoading(false);
+		}
+	};
+
+	const handleDownloadTemplate = () => {
+		const link = document.createElement('a');
+		link.href = '/api/question-banks/csv-template/download';
+		link.setAttribute('download', 'question_bank_template.csv');
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+	};
+
 	return (
 		<>
 			<div className='space-y-4'>
@@ -390,13 +465,23 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 							<h4 className='font-semibold text-gray-800'>
 								Questions ({qb.questions?.length || 0})
 							</h4>
-							<button
-								className='btn-primary text-sm'
-								onClick={() => setShowAddQuestionModal(true)}
-								type='button'
-							>
-								+ Add New Question
-							</button>
+							<div className='flex gap-2'>
+								<button
+									className='btn-secondary text-sm'
+									onClick={() => setShowImportCSVModal(true)}
+									type='button'
+									disabled={loading}
+								>
+									📄 导入 CSV
+								</button>
+								<button
+									className='btn-primary text-sm'
+									onClick={() => setShowAddQuestionModal(true)}
+									type='button'
+								>
+									+ Add New Question
+								</button>
+							</div>
 						</div>
 					</div>
 
@@ -787,6 +872,22 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 				onAddOption={() => addQuestionBankOption(qb._id)}
 				onRemoveOption={index => removeQuestionBankOption(qb._id, index)}
 				loading={loading}
+			/>
+
+			{/* Import CSV Modal */}
+			<ImportCSVModal
+				isOpen={showImportCSVModal}
+				onClose={() => setShowImportCSVModal(false)}
+				onImport={handleCSVImport}
+				onDownloadTemplate={handleDownloadTemplate}
+				loading={loading}
+			/>
+
+			{/* Import Result Modal */}
+			<ImportResultModal
+				isOpen={showImportResultModal}
+				onClose={() => setShowImportResultModal(false)}
+				result={importResult}
 			/>
 		</>
 	);

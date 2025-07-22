@@ -1,5 +1,7 @@
 const QuestionBank = require('../models/QuestionBank');
 const { HTTP_STATUS } = require('../shared/constants');
+const csv = require('csv-parser');
+const { Readable } = require('stream');
 
 // Get all question banks
 exports.getAllQuestionBanks = async (req, res) => {
@@ -360,5 +362,198 @@ exports.importQuestions = async (req, res) => {
 	} catch (error) {
 		console.error('Error importing questions:', error);
 		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: 'Failed to import questions' });
+	}
+};
+
+// Import questions from CSV file
+exports.importQuestionsFromCSV = async (req, res) => {
+	try {
+		if (!req.file) {
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'CSV file is required' });
+		}
+
+		const questionBank = await QuestionBank.findById(req.params.id);
+
+		if (!questionBank) {
+			return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Question bank not found' });
+		}
+
+		const csvData = req.file.buffer.toString('utf8');
+		const questions = [];
+		const errors = [];
+		let lineNumber = 1; // Start from 1 (header line)
+
+		// Parse CSV data
+		const stream = Readable.from([csvData]);
+		
+		return new Promise((resolve) => {
+			stream
+				.pipe(csv({
+					headers: ['questionText', 'type', 'options', 'correctAnswers', 'tags'],
+					skipEmptyLines: true
+				}))
+				.on('data', (row) => {
+					lineNumber++;
+					try {
+						// Skip empty rows
+						if (!row.questionText || !row.questionText.trim()) {
+							return;
+						}
+
+						const questionText = row.questionText.trim();
+						const type = (row.type || 'single').toLowerCase();
+						
+						// Map CSV type to internal type
+						let questionType;
+						switch (type) {
+							case 'single':
+								questionType = 'single_choice';
+								break;
+							case 'multiple':
+								questionType = 'multiple_choice';
+								break;
+							case 'text':
+								questionType = 'short_text';
+								break;
+							default:
+								questionType = 'single_choice';
+						}
+
+						const newQuestion = {
+							text: questionText,
+							type: questionType,
+							points: 1,
+							tags: [],
+							difficulty: 'medium'
+						};
+
+						// Handle tags
+						if (row.tags && row.tags.trim()) {
+							newQuestion.tags = row.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+						}
+
+						// Handle options and correct answers for choice questions
+						if (questionType !== 'short_text') {
+							if (!row.options || !row.options.trim()) {
+								errors.push(`Line ${lineNumber}: Options are required for choice questions`);
+								return;
+							}
+
+							const options = row.options.split(';').map(opt => opt.trim()).filter(opt => opt.length > 0);
+							
+							if (options.length < 2) {
+								errors.push(`Line ${lineNumber}: At least 2 options are required`);
+								return;
+							}
+
+							newQuestion.options = options;
+
+							// Parse correct answers
+							if (!row.correctAnswers || !row.correctAnswers.trim()) {
+								errors.push(`Line ${lineNumber}: Correct answers are required for choice questions`);
+								return;
+							}
+
+							const correctAnswerIndices = row.correctAnswers
+								.split(';')
+								.map(idx => parseInt(idx.trim()))
+								.filter(idx => !isNaN(idx) && idx >= 0 && idx < options.length);
+
+							if (correctAnswerIndices.length === 0) {
+								errors.push(`Line ${lineNumber}: Invalid correct answer indices`);
+								return;
+							}
+
+							if (questionType === 'single_choice') {
+								if (correctAnswerIndices.length > 1) {
+									errors.push(`Line ${lineNumber}: Single choice questions can only have one correct answer`);
+									return;
+								}
+								newQuestion.correctAnswer = correctAnswerIndices[0];
+							} else {
+								newQuestion.correctAnswer = correctAnswerIndices;
+							}
+						} else {
+							// For text questions, correctAnswer is optional
+							if (row.correctAnswers && row.correctAnswers.trim()) {
+								newQuestion.correctAnswer = row.correctAnswers.trim();
+							}
+						}
+
+						questions.push(newQuestion);
+
+					} catch (error) {
+						errors.push(`Line ${lineNumber}: ${error.message}`);
+					}
+				})
+				.on('end', async () => {
+					try {
+						if (errors.length > 0 && questions.length === 0) {
+							return res.status(HTTP_STATUS.BAD_REQUEST).json({
+								error: 'CSV parsing failed',
+								errors,
+								imported: 0
+							});
+						}
+
+						// Add questions to the bank
+						if (questions.length > 0) {
+							questionBank.questions.push(...questions);
+							await questionBank.save();
+						}
+
+						const response = {
+							message: `Successfully imported ${questions.length} questions`,
+							imported: questions.length,
+							questionBank
+						};
+
+						if (errors.length > 0) {
+							response.warnings = errors;
+							response.message += ` with ${errors.length} warnings`;
+						}
+
+						res.status(HTTP_STATUS.OK).json(response);
+						resolve();
+
+					} catch (error) {
+						console.error('Error saving questions:', error);
+						res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
+							error: 'Failed to save questions to database' 
+						});
+						resolve();
+					}
+				})
+				.on('error', (error) => {
+					console.error('CSV parsing error:', error);
+					res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+						error: 'Failed to parse CSV file',
+						details: error.message 
+					});
+					resolve();
+				});
+		});
+
+	} catch (error) {
+		console.error('Error importing CSV:', error);
+		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: 'Failed to import CSV file' });
+	}
+};
+
+// Download CSV template
+exports.downloadCSVTemplate = async (req, res) => {
+	try {
+		const csvTemplate = `questionText,type,options,correctAnswers,tags
+你喜欢哪个颜色？,single,红色;绿色;蓝色,1,颜色,兴趣
+哪些是编程语言？,multiple,JavaScript;Python;Dog,0;1,技术,测试
+请简要说明你的人生目标,text,,,思辨`;
+
+		res.setHeader('Content-Type', 'text/csv');
+		res.setHeader('Content-Disposition', 'attachment; filename="question_bank_template.csv"');
+		res.send(csvTemplate);
+
+	} catch (error) {
+		console.error('Error generating CSV template:', error);
+		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: 'Failed to generate CSV template' });
 	}
 };
