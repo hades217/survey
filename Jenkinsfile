@@ -68,7 +68,7 @@ pipeline {
             steps {
                 echo 'Building and deploying survey application...'
                 withVault([configuration: [ vaultUrl: 'https://vault.jiangren.com.au', vaultCredentialId: 'Vault Credential', timeout: 120],
-                    vaultSecrets: [[path: 'jenkins_jr_academy/uat',
+                    vaultSecrets: [[path: 'jenkins_jr_academy/prod',
                         secretValues: [
                             [vaultKey: 'MONGO_URI']
                         ]
