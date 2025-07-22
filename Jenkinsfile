@@ -131,7 +131,7 @@ EOF
 
                     // Test backend API
                     sh '''
-                        curl -f http://localhost:${BACKEND_PORT} || exit 1
+                        curl -f http://localhost:${BACKEND_PORT}/api/surveys || exit 1
                         echo "Backend API is healthy"
                     '''
 
