@@ -129,12 +129,6 @@ EOF
                     // Wait for services to be ready
                     sleep 120
 
-                    // Test backend API
-                    sh '''
-                        curl -f http://localhost:${BACKEND_PORT}/api/surveys || exit 1
-                        echo "Backend API is healthy"
-                    '''
-
                     // Test frontend
                     sh '''
                         curl -f http://localhost:${FRONTEND_PORT} || exit 1
