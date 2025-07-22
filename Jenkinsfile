@@ -127,7 +127,7 @@ EOF
                 echo 'Performing health checks...'
                 script {
                     // Wait for services to be ready
-                    sleep 60
+                    sleep 120
 
                     // Test backend API
                     sh '''
