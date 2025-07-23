@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
-import LoginForm from './LoginForm';
+import AuthContainer from './AuthContainer';
 
 interface AuthWrapperProps {
 	children: React.ReactNode;
@@ -10,7 +10,7 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
 	const { loggedIn } = useAdmin();
 
 	if (!loggedIn) {
-		return <LoginForm />;
+		return <AuthContainer />;
 	}
 
 	return <>{children}</>;

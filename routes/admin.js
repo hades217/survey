@@ -47,20 +47,21 @@ router.get('/check-auth', (req, res) => {
 	}
 });
 
-router.post('/login', (req, res) => {
+router.post('/login', asyncHandler(async (req, res) => {
 	const { username, password } = req.body;
+
+	// First try legacy admin login
 	if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-		// Generate JWT token instead of using session
 		const token = jwt.sign(
 			{
-				id: 'admin', // Admin user ID
+				id: 'admin',
 				username: username,
 				role: 'admin',
 			},
 			JWT_SECRET,
 			{ expiresIn: '7d' }
 		);
-		res.json({
+		return res.json({
 			success: true,
 			token,
 			user: {
@@ -69,10 +70,144 @@ router.post('/login', (req, res) => {
 				role: 'admin',
 			},
 		});
-	} else {
-		res.status(HTTP_STATUS.UNAUTHORIZED).json({ success: false });
 	}
-});
+
+	// Try database user login (using email as username)
+	try {
+		const user = await User.findOne({ 
+			email: username.toLowerCase(),
+			role: 'admin'
+		}).select('+password');
+
+		if (!user) {
+			return res.status(HTTP_STATUS.UNAUTHORIZED).json({ 
+				success: false,
+				error: 'Invalid credentials'
+			});
+		}
+
+		const isPasswordValid = await bcrypt.compare(password, user.password);
+		if (!isPasswordValid) {
+			return res.status(HTTP_STATUS.UNAUTHORIZED).json({ 
+				success: false,
+				error: 'Invalid credentials'
+			});
+		}
+
+		// Update last login time
+		user.lastLoginAt = new Date();
+		await user.save();
+
+		const token = jwt.sign(
+			{
+				id: user._id,
+				email: user.email,
+				role: user.role,
+			},
+			JWT_SECRET,
+			{ expiresIn: '7d' }
+		);
+
+		res.json({
+			success: true,
+			token,
+			user: {
+				id: user._id,
+				name: user.name,
+				email: user.email,
+				role: user.role,
+			},
+		});
+	} catch (error) {
+		console.error('Login error:', error);
+		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+			success: false,
+			error: 'Login failed. Please try again.',
+		});
+	}
+}));
+
+// Register a new admin user
+router.post('/register', asyncHandler(async (req, res) => {
+	const { name, email, password, companyName } = req.body;
+
+	// Validation
+	if (!name || !email || !password) {
+		return res.status(HTTP_STATUS.BAD_REQUEST).json({
+			success: false,
+			error: 'Name, email, and password are required',
+		});
+	}
+
+	if (password.length < 8) {
+		return res.status(HTTP_STATUS.BAD_REQUEST).json({
+			success: false,
+			error: 'Password must be at least 8 characters long',
+		});
+	}
+
+	// Check if user already exists
+	const existingUser = await User.findOne({ email: email.toLowerCase() });
+	if (existingUser) {
+		return res.status(HTTP_STATUS.BAD_REQUEST).json({
+			success: false,
+			error: 'An account with this email already exists',
+		});
+	}
+
+	try {
+		// Hash password
+		const hashedPassword = await bcrypt.hash(password, 12);
+
+		// Create company if provided
+		let company = null;
+		if (companyName) {
+			company = new Company({
+				name: companyName,
+			});
+			await company.save();
+		}
+
+		// Create user
+		const user = new User({
+			name,
+			email: email.toLowerCase(),
+			password: hashedPassword,
+			role: 'admin',
+			companyId: company ? company._id : undefined,
+		});
+
+		await user.save();
+
+		// Generate JWT token
+		const token = jwt.sign(
+			{
+				id: user._id,
+				email: user.email,
+				role: user.role,
+			},
+			JWT_SECRET,
+			{ expiresIn: '7d' }
+		);
+
+		res.status(HTTP_STATUS.CREATED).json({
+			success: true,
+			token,
+			user: {
+				id: user._id,
+				name: user.name,
+				email: user.email,
+				role: user.role,
+			},
+		});
+	} catch (error) {
+		console.error('Registration error:', error);
+		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+			success: false,
+			error: 'Registration failed. Please try again.',
+		});
+	}
+}));
 
 // Create a new survey
 router.post(

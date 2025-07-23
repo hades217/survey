@@ -1,7 +1,11 @@
 import React from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
 
-const LoginForm: React.FC = () => {
+interface LoginFormProps {
+	onSwitchToRegister?: () => void;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
 	const { loginForm, setLoginForm, login, loading, error } = useAdmin();
 
 	const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,6 +78,18 @@ const LoginForm: React.FC = () => {
 							{loading ? 'Signing in...' : 'Sign in'}
 						</button>
 					</div>
+
+					{onSwitchToRegister && (
+						<div className='text-center'>
+							<button
+								type='button'
+								onClick={onSwitchToRegister}
+								className='text-blue-600 hover:text-blue-500 text-sm font-medium'
+							>
+								Don't have an account? Register here
+							</button>
+						</div>
+					)}
 				</form>
 			</div>
 		</div>

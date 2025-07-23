@@ -10,6 +10,7 @@ import {
 	StatsViewType,
 	QuestionForm,
 	LoginForm,
+	RegisterForm,
 	NewSurveyForm,
 	QuestionBankForm,
 	ProfileData,
@@ -23,7 +24,10 @@ interface AdminContextType {
 	loggedIn: boolean;
 	loginForm: LoginForm;
 	setLoginForm: React.Dispatch<React.SetStateAction<LoginForm>>;
+	registerForm: RegisterForm;
+	setRegisterForm: React.Dispatch<React.SetStateAction<RegisterForm>>;
 	login: (e: React.FormEvent) => Promise<void>;
+	register: (e: React.FormEvent) => Promise<void>;
 	logout: () => void;
 
 	// Data state
@@ -141,6 +145,13 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 	// Authentication state
 	const [loggedIn, setLoggedIn] = useState(false);
 	const [loginForm, setLoginForm] = useState<LoginForm>({ username: '', password: '' });
+	const [registerForm, setRegisterForm] = useState<RegisterForm>({
+		name: '',
+		email: '',
+		password: '',
+		confirmPassword: '',
+		companyName: '',
+	});
 
 	// Data state
 	const [surveys, setSurveys] = useState<Survey[]>([]);
@@ -333,6 +344,35 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		}
 	};
 
+	const register = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setLoading(true);
+		setError('');
+		try {
+			const response = await api.post('/admin/register', registerForm);
+			if (response.data.success) {
+				// Save JWT token to localStorage and log in automatically
+				localStorage.setItem('adminToken', response.data.token);
+				setLoggedIn(true);
+				setRegisterForm({
+					name: '',
+					email: '',
+					password: '',
+					confirmPassword: '',
+					companyName: '',
+				});
+				// Redirect to admin dashboard
+				navigate('/admin');
+			} else {
+				setError(response.data.error || 'Registration failed');
+			}
+		} catch (err: any) {
+			setError(err.response?.data?.error || 'Registration failed');
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	const logout = async () => {
 		try {
 			// Remove JWT token from localStorage
@@ -453,7 +493,10 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		loggedIn,
 		loginForm,
 		setLoginForm,
+		registerForm,
+		setRegisterForm,
 		login,
+		register,
 		logout,
 
 		// Data

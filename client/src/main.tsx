@@ -14,6 +14,8 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 			<Routes>
 				<Route path='/' element={<TakeSurvey />} />
 				<Route path='/admin' element={<Admin />} />
+				<Route path='/admin/login' element={<Admin />} />
+				<Route path='/admin/register' element={<Admin />} />
 				<Route path='/admin/surveys' element={<Admin />} />
 				<Route path='/admin/question-banks' element={<Admin />} />
 				<Route path='/admin/question-bank/:id' element={<Admin />} />

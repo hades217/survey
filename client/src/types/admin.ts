@@ -102,6 +102,14 @@ export interface LoginForm {
 	password: string;
 }
 
+export interface RegisterForm {
+	name: string;
+	email: string;
+	password: string;
+	confirmPassword: string;
+	companyName?: string;
+}
+
 export interface NewSurveyForm {
 	title: string;
 	description: string;
