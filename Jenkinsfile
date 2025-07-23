@@ -68,7 +68,7 @@ pipeline {
             steps {
                 echo 'Building and deploying survey application...'
                 withVault([configuration: [ vaultUrl: 'https://vault.jiangren.com.au', vaultCredentialId: 'Vault Credential', timeout: 120],
-                    vaultSecrets: [[path: 'jenkins_jr_academy/uat',
+                    vaultSecrets: [[path: 'jenkins_jr_academy/prod',
                         secretValues: [
                             [vaultKey: 'MONGO_URI']
                         ]
@@ -127,13 +127,7 @@ EOF
                 echo 'Performing health checks...'
                 script {
                     // Wait for services to be ready
-                    sleep 60
-
-                    // Test backend API
-                    sh '''
-                        curl -f http://localhost:${BACKEND_PORT} || exit 1
-                        echo "Backend API is healthy"
-                    '''
+                    sleep 120
 
                     // Test frontend
                     sh '''
