@@ -557,3 +557,201 @@ exports.downloadCSVTemplate = async (req, res) => {
 		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: 'Failed to generate CSV template' });
 	}
 };
+
+// Get questions from multiple question banks with filters
+exports.getQuestionsFromMultipleBanks = async (req, res) => {
+	try {
+		const { configurations } = req.body; // Array of { questionBankId, questionCount, filters }
+
+		if (!Array.isArray(configurations) || configurations.length === 0) {
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({
+				error: 'Configurations array is required'
+			});
+		}
+
+		const results = [];
+
+		for (const config of configurations) {
+			const { questionBankId, questionCount, filters = {} } = config;
+
+			const questionBank = await QuestionBank.findById(questionBankId);
+			if (!questionBank) {
+				return res.status(HTTP_STATUS.NOT_FOUND).json({
+					error: `Question bank with ID ${questionBankId} not found`
+				});
+			}
+
+			let questions = [...questionBank.questions];
+
+			// Apply filters
+			if (filters.tags && filters.tags.length > 0) {
+				questions = questions.filter(q => 
+					filters.tags.some(tag => q.tags.includes(tag))
+				);
+			}
+
+			if (filters.difficulty) {
+				questions = questions.filter(q => q.difficulty === filters.difficulty);
+			}
+
+			if (filters.questionTypes && filters.questionTypes.length > 0) {
+				questions = questions.filter(q => 
+					filters.questionTypes.includes(q.type)
+				);
+			}
+
+			// Randomly select the requested number of questions
+			const selectedQuestions = [];
+			const availableQuestions = [...questions];
+
+			for (let i = 0; i < Math.min(questionCount, availableQuestions.length); i++) {
+				const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+				const selectedQuestion = availableQuestions.splice(randomIndex, 1)[0];
+				
+				selectedQuestions.push({
+					...selectedQuestion.toObject(),
+					questionBankId,
+					questionBankName: questionBank.name
+				});
+			}
+
+			results.push({
+				questionBankId,
+				questionBankName: questionBank.name,
+				requestedCount: questionCount,
+				actualCount: selectedQuestions.length,
+				questions: selectedQuestions
+			});
+		}
+
+		res.status(HTTP_STATUS.OK).json({
+			results,
+			totalQuestions: results.reduce((sum, r) => sum + r.actualCount, 0)
+		});
+
+	} catch (error) {
+		console.error('Error getting questions from multiple banks:', error);
+		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+			error: 'Failed to get questions from multiple banks'
+		});
+	}
+};
+
+// Get all questions from a question bank with pagination and filtering
+exports.getQuestionBankQuestions = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const { 
+			page = 1, 
+			limit = 50, 
+			tags, 
+			difficulty, 
+			questionTypes, 
+			search 
+		} = req.query;
+
+		const questionBank = await QuestionBank.findById(id);
+		if (!questionBank) {
+			return res.status(HTTP_STATUS.NOT_FOUND).json({
+				error: 'Question bank not found'
+			});
+		}
+
+		let questions = [...questionBank.questions];
+
+		// Apply filters
+		if (tags) {
+			const tagArray = tags.split(',').map(tag => tag.trim());
+			questions = questions.filter(q => 
+				tagArray.some(tag => q.tags.includes(tag))
+			);
+		}
+
+		if (difficulty) {
+			questions = questions.filter(q => q.difficulty === difficulty);
+		}
+
+		if (questionTypes) {
+			const typeArray = questionTypes.split(',').map(type => type.trim());
+			questions = questions.filter(q => typeArray.includes(q.type));
+		}
+
+		if (search) {
+			const searchLower = search.toLowerCase();
+			questions = questions.filter(q => 
+				q.text.toLowerCase().includes(searchLower) ||
+				q.tags.some(tag => tag.toLowerCase().includes(searchLower))
+			);
+		}
+
+		// Pagination
+		const startIndex = (page - 1) * limit;
+		const endIndex = page * limit;
+		const paginatedQuestions = questions.slice(startIndex, endIndex);
+
+		// Add question IDs for reference
+		const questionsWithIds = paginatedQuestions.map((question, index) => ({
+			...question.toObject(),
+			questionId: questionBank.questions.id(question._id) ? question._id : null,
+			index: startIndex + index
+		}));
+
+		res.status(HTTP_STATUS.OK).json({
+			questionBank: {
+				_id: questionBank._id,
+				name: questionBank.name,
+				description: questionBank.description
+			},
+			questions: questionsWithIds,
+			pagination: {
+				currentPage: parseInt(page),
+				totalPages: Math.ceil(questions.length / limit),
+				totalQuestions: questions.length,
+				hasNextPage: endIndex < questions.length,
+				hasPreviousPage: page > 1
+			}
+		});
+
+	} catch (error) {
+		console.error('Error getting question bank questions:', error);
+		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+			error: 'Failed to get question bank questions'
+		});
+	}
+};
+
+// Get question details by bank ID and question ID
+exports.getQuestionDetails = async (req, res) => {
+	try {
+		const { bankId, questionId } = req.params;
+
+		const questionBank = await QuestionBank.findById(bankId);
+		if (!questionBank) {
+			return res.status(HTTP_STATUS.NOT_FOUND).json({
+				error: 'Question bank not found'
+			});
+		}
+
+		const question = questionBank.questions.id(questionId);
+		if (!question) {
+			return res.status(HTTP_STATUS.NOT_FOUND).json({
+				error: 'Question not found'
+			});
+		}
+
+		res.status(HTTP_STATUS.OK).json({
+			questionBankId: bankId,
+			questionBankName: questionBank.name,
+			question: {
+				...question.toObject(),
+				questionId: question._id
+			}
+		});
+
+	} catch (error) {
+		console.error('Error getting question details:', error);
+		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+			error: 'Failed to get question details'
+		});
+	}
+};

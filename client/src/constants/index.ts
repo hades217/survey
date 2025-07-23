@@ -37,6 +37,7 @@ export const SCORING_MODE = {
 export const TAB_TYPES = {
 	DETAIL: 'detail',
 	INVITATIONS: 'invitations',
+	STATISTICS: 'statistics',
 	LIST: 'list',
 	QUESTION_BANKS: 'question-banks',
 } as const;
@@ -51,6 +52,8 @@ export const STATS_VIEW = {
 export const SOURCE_TYPE = {
 	MANUAL: 'manual',
 	QUESTION_BANK: 'question_bank',
+	MULTI_QUESTION_BANK: 'multi_question_bank',
+	MANUAL_SELECTION: 'manual_selection',
 } as const;
 
 // Types for better type safety

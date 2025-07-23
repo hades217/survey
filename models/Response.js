@@ -25,14 +25,8 @@ const responseSchema = new mongoose.Schema({
 			},
 			// Store the actual question data to ensure consistency
 			questionData: {
-				text: String,
-				type: String,
-				options: [String],
-				correctAnswer: mongoose.Schema.Types.Mixed,
-				explanation: String,
-				points: Number,
-				tags: [String],
-				difficulty: String,
+				type: mongoose.Schema.Types.Mixed,
+				required: false,
 			},
 		},
 	],

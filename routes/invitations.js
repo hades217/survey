@@ -6,21 +6,14 @@ const asyncHandler = require('../middlewares/asyncHandler');
 const AppError = require('../utils/AppError');
 const { ERROR_MESSAGES, HTTP_STATUS } = require('../shared/constants');
 const { sendMail } = require('../utils/mailer');
+const { jwtAuth } = require('../middlewares/jwtAuth');
 
 const router = express.Router();
-
-// Admin authentication middleware
-const requireAdmin = (req, res, next) => {
-	if (!req.session.admin) {
-		return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: ERROR_MESSAGES.UNAUTHORIZED });
-	}
-	next();
-};
 
 // Create a new invitation (admin only)
 router.post(
 	'/',
-	requireAdmin,
+	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const {
 			surveyId,
@@ -124,7 +117,7 @@ router.post(
 // Get all invitations for a survey (admin only)
 router.get(
 	'/survey/:surveyId',
-	requireAdmin,
+	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { surveyId } = req.params;
 
@@ -140,7 +133,7 @@ router.get(
 // Get all invitations (admin only)
 router.get(
 	'/',
-	requireAdmin,
+	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { distributionMode, isActive, surveyId } = req.query;
 
@@ -163,7 +156,7 @@ router.get(
 // Update an invitation (admin only)
 router.put(
 	'/:id',
-	requireAdmin,
+	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { targetUsers, targetEmails, maxResponses, expiresAt, isActive } = req.body;
 
@@ -194,7 +187,7 @@ router.put(
 // Delete an invitation (admin only)
 router.delete(
 	'/:id',
-	requireAdmin,
+	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const invitation = await Invitation.findById(req.params.id);
 		if (!invitation) {
@@ -214,7 +207,7 @@ router.delete(
 // Get invitation statistics (admin only)
 router.get(
 	'/:id/statistics',
-	requireAdmin,
+	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const invitation = await Invitation.findById(req.params.id).populate(
 			'surveyId',
@@ -352,7 +345,7 @@ router.post(
 // Generate invitation URLs (admin only)
 router.get(
 	'/:id/urls',
-	requireAdmin,
+	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const invitation = await Invitation.findById(req.params.id).populate(
 			'surveyId',
@@ -380,7 +373,7 @@ router.get(
 // Get all invitations for a specific user (admin only)
 router.get(
 	'/user/:userId',
-	requireAdmin,
+	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { userId } = req.params;
 		const { includeCompleted = false } = req.query;
@@ -491,7 +484,7 @@ router.get(
 // Check if user has already been invited to a survey
 router.get(
 	'/check-duplicate/:surveyId',
-	requireAdmin,
+	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { surveyId } = req.params;
 		const { userId, email } = req.query;
@@ -528,7 +521,7 @@ router.get(
 // Bulk create invitations (admin only)
 router.post(
 	'/bulk',
-	requireAdmin,
+	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { surveyId, invitations } = req.body;
 

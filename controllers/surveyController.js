@@ -9,7 +9,8 @@ const {
 	getSurveyStatistics,
 } = require('../services/surveyService');
 const SurveyModel = require('../models/Survey');
-const { HTTP_STATUS, ERROR_MESSAGES } = require('../shared/constants');
+const QuestionBankModel = require('../models/QuestionBank');
+const { HTTP_STATUS, ERROR_MESSAGES, SOURCE_TYPE } = require('../shared/constants');
 
 async function submitSurveyResponse(req, res) {
 	try {
@@ -40,9 +41,96 @@ async function submitSurveyResponse(req, res) {
 	}
 }
 
+// Helper function to validate and process multi-question bank configurations
+async function processMultiQuestionBankConfig(config) {
+	for (const bankConfig of config) {
+		const questionBank = await QuestionBankModel.findById(bankConfig.questionBankId);
+		if (!questionBank) {
+			throw new Error(`Question bank with ID ${bankConfig.questionBankId} not found`);
+		}
+
+		// Validate that there are enough questions available
+		let availableQuestions = questionBank.questions;
+		
+		// Apply filters if provided
+		if (bankConfig.filters) {
+			if (bankConfig.filters.tags && bankConfig.filters.tags.length > 0) {
+				availableQuestions = availableQuestions.filter(q => 
+					bankConfig.filters.tags.some(tag => q.tags.includes(tag))
+				);
+			}
+			
+			if (bankConfig.filters.difficulty) {
+				availableQuestions = availableQuestions.filter(q => 
+					q.difficulty === bankConfig.filters.difficulty
+				);
+			}
+			
+			if (bankConfig.filters.questionTypes && bankConfig.filters.questionTypes.length > 0) {
+				availableQuestions = availableQuestions.filter(q => 
+					bankConfig.filters.questionTypes.includes(q.type)
+				);
+			}
+		}
+
+		if (availableQuestions.length < bankConfig.questionCount) {
+			throw new Error(
+				`Question bank "${questionBank.name}" only has ${availableQuestions.length} questions matching the filters, but ${bankConfig.questionCount} were requested`
+			);
+		}
+	}
+}
+
+// Helper function to validate manual selection questions
+async function processSelectedQuestions(selectedQuestions) {
+	for (const selection of selectedQuestions) {
+		const questionBank = await QuestionBankModel.findById(selection.questionBankId);
+		if (!questionBank) {
+			throw new Error(`Question bank with ID ${selection.questionBankId} not found`);
+		}
+
+		const question = questionBank.questions.id(selection.questionId);
+		if (!question) {
+			throw new Error(`Question with ID ${selection.questionId} not found in question bank "${questionBank.name}"`);
+		}
+
+		// Create question snapshot if not provided
+		if (!selection.questionSnapshot) {
+			selection.questionSnapshot = {
+				text: question.text,
+				type: question.type,
+				options: question.options,
+				correctAnswer: question.correctAnswer,
+				explanation: question.explanation,
+				points: question.points,
+				tags: question.tags,
+				difficulty: question.difficulty,
+			};
+		}
+	}
+}
+
 async function createSurvey(req, res) {
 	try {
 		const data = surveyCreateSchema.parse(req.body);
+
+		// Validate and process different source types
+		if (data.sourceType === SOURCE_TYPE.MULTI_QUESTION_BANK && data.multiQuestionBankConfig) {
+			await processMultiQuestionBankConfig(data.multiQuestionBankConfig);
+		} else if (data.sourceType === SOURCE_TYPE.MANUAL_SELECTION && data.selectedQuestions) {
+			await processSelectedQuestions(data.selectedQuestions);
+		} else if (data.sourceType === SOURCE_TYPE.QUESTION_BANK && data.questionBankId) {
+			// Validate single question bank
+			const questionBank = await QuestionBankModel.findById(data.questionBankId);
+			if (!questionBank) {
+				throw new Error('Question bank not found');
+			}
+			if (questionBank.questions.length < data.questionCount) {
+				throw new Error(
+					`Question bank only has ${questionBank.questions.length} questions, but ${data.questionCount} were requested`
+				);
+			}
+		}
 
 		// Generate slug after schema validation
 		if (data.title && !data.slug) {

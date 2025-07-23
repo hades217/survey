@@ -177,6 +177,8 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		sourceType: 'manual',
 		questionBankId: undefined,
 		questionCount: undefined,
+		multiQuestionBankConfig: [],
+		selectedQuestions: [],
 		scoringSettings: {
 			scoringMode: 'percentage',
 			totalPoints: 0,
@@ -205,6 +207,8 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		sourceType: 'manual',
 		questionBankId: undefined,
 		questionCount: undefined,
+		multiQuestionBankConfig: [],
+		selectedQuestions: [],
 		scoringSettings: {
 			scoringMode: 'percentage',
 			totalPoints: 0,

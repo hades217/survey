@@ -61,7 +61,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	// Local state for add question modal
 	const [showAddQuestionModal, setShowAddQuestionModal] = useState(false);
 	const [showInviteModal, setShowInviteModal] = useState(false);
-	const [tabLocal, setTabLocal] = useState<'detail' | 'invitations'>(TAB_TYPES.DETAIL);
+	const [tabLocal, setTabLocal] = useState<'detail' | 'invitations' | 'statistics'>(TAB_TYPES.DETAIL);
 	const [invitations, setInvitations] = useState<any[]>([]);
 	const [loadingInvitations, setLoadingInvitations] = useState(false);
 	const [page, setPage] = useState(1);
@@ -84,6 +84,8 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	useEffect(() => {
 		if (tabLocal === TAB_TYPES.INVITATIONS) {
 			loadInvitations();
+		} else if (tabLocal === TAB_TYPES.STATISTICS) {
+			loadStats(survey._id);
 		}
 	}, [tabLocal, survey._id]);
 
@@ -144,6 +146,8 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			sourceType: survey.sourceType || SOURCE_TYPE.MANUAL,
 			questionBankId: survey.questionBankId,
 			questionCount: survey.questionCount,
+			multiQuestionBankConfig: survey.multiQuestionBankConfig || [],
+			selectedQuestions: survey.selectedQuestions || [],
 			scoringSettings: survey.scoringSettings || {
 				scoringMode: SCORING_MODE.PERCENTAGE,
 				totalPoints: 0,
@@ -519,6 +523,12 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 							已邀请用户
 						</button>
 					)}
+					<button
+						className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tabLocal === TAB_TYPES.STATISTICS ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
+						onClick={() => setTabLocal(TAB_TYPES.STATISTICS)}
+					>
+						统计数据
+					</button>
 				</div>
 				{/* Tab 内容 */}
 				{tabLocal === TAB_TYPES.DETAIL && (
@@ -1369,201 +1379,204 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 									</div>
 								</div>
 							)}
+						</div>
+					</>
+				)}
+				{tabLocal === TAB_TYPES.STATISTICS && (
+					<div className='card'>
+						<div className='flex justify-between items-center mb-4'>
+							<h3 className='text-xl font-bold text-gray-800'>统计数据</h3>
+							<button
+								className='btn-secondary text-sm'
+								onClick={() => loadStats(s._id)}
+								type='button'
+							>
+								刷新数据
+							</button>
+						</div>
+						{stats && stats[s._id] ? (
+							<div className='space-y-4'>
+								{/* Statistics Summary */}
+								<div className='bg-blue-50 rounded-lg p-4'>
+									<h5 className='font-semibold text-gray-800 mb-2'>
+										概览
+									</h5>
+									<div className='grid grid-cols-3 gap-4 text-sm'>
+										<div className='text-center'>
+											<div className='font-bold text-blue-600 text-lg'>
+												{stats[s._id]?.summary?.totalResponses || 0}
+											</div>
+											<div className='text-gray-600'>
+												总回复数
+											</div>
+										</div>
+										<div className='text-center'>
+											<div className='font-bold text-green-600 text-lg'>
+												{stats[s._id]?.summary?.completionRate || 0}
+												%
+											</div>
+											<div className='text-gray-600'>
+												完成率
+											</div>
+										</div>
+										<div className='text-center'>
+											<div className='font-bold text-purple-600 text-lg'>
+												{stats[s._id]?.summary?.totalQuestions || 0}
+											</div>
+											<div className='text-gray-600'>
+												总题目数
+											</div>
+										</div>
+									</div>
+								</div>
 
-							{/* Statistics Section */}
-							<div className='border-t border-gray-200 pt-4'>
-								<div className='flex justify-between items-center mb-3'>
-									<h4 className='font-semibold text-gray-800'>Statistics</h4>
+								{/* Statistics View Toggle */}
+								<div className='flex space-x-4 border-b border-gray-200 pb-2'>
 									<button
-										className='btn-secondary text-sm'
-										onClick={() => loadStats(s._id)}
-										type='button'
+										className={`py-2 px-4 font-medium text-sm transition-colors ${
+											statsView === STATS_VIEW.AGGREGATED
+												? 'text-blue-600 border-b-2 border-blue-600'
+												: 'text-gray-500 hover:text-blue-600'
+										}`}
+										onClick={() => setStatsView(STATS_VIEW.AGGREGATED)}
 									>
-										View Statistics
+										汇总结果
+									</button>
+									<button
+										className={`py-2 px-4 font-medium text-sm transition-colors ${
+											statsView === STATS_VIEW.INDIVIDUAL
+												? 'text-blue-600 border-b-2 border-blue-600'
+												: 'text-gray-500 hover:text-blue-600'
+										}`}
+										onClick={() => setStatsView(STATS_VIEW.INDIVIDUAL)}
+									>
+										个人回复 ({stats[s._id]?.userResponses?.length || 0})
 									</button>
 								</div>
-								{stats && stats[s._id] && (
+
+								{/* Aggregated Statistics */}
+								{statsView === STATS_VIEW.AGGREGATED && (
 									<div className='space-y-4'>
-										{/* Statistics Summary */}
-										<div className='bg-blue-50 rounded-lg p-4'>
-											<h5 className='font-semibold text-gray-800 mb-2'>
-												Summary
-											</h5>
-											<div className='grid grid-cols-3 gap-4 text-sm'>
-												<div className='text-center'>
-													<div className='font-bold text-blue-600 text-lg'>
-														{stats[s._id]?.summary?.totalResponses || 0}
-													</div>
-													<div className='text-gray-600'>
-														Total Responses
-													</div>
+										{stats[s._id]?.aggregatedStats?.map((st, idx) => (
+											<div
+												key={idx}
+												className='bg-gray-50 rounded-lg p-4'
+											>
+												<div className='font-semibold text-gray-800 mb-2'>
+													{st.question}
 												</div>
-												<div className='text-center'>
-													<div className='font-bold text-green-600 text-lg'>
-														{stats[s._id]?.summary?.completionRate || 0}
-														%
-													</div>
-													<div className='text-gray-600'>
-														Completion Rate
-													</div>
-												</div>
-												<div className='text-center'>
-													<div className='font-bold text-purple-600 text-lg'>
-														{stats[s._id]?.summary?.totalQuestions || 0}
-													</div>
-													<div className='text-gray-600'>
-														Total Questions
-													</div>
+												<div className='space-y-2'>
+													{Object.entries(st.options).map(
+														([opt, count]) => {
+															const percentage =
+																stats[s._id]?.summary
+																	?.totalResponses > 0
+																	? (
+																		(count /
+																			stats[s._id]
+																				.summary
+																				.totalResponses) *
+																		100
+																	).toFixed(1)
+																	: 0;
+															return (
+																<div
+																	key={opt}
+																	className='flex justify-between items-center'
+																>
+																	<span className='text-gray-700'>
+																		{opt}
+																	</span>
+																	<div className='flex items-center gap-2'>
+																		<div className='w-20 bg-gray-200 rounded-full h-2'>
+																			<div
+																				className='bg-blue-600 h-2 rounded-full transition-all duration-300'
+																				style={{
+																					width: `${percentage}%`,
+																				}}
+																			></div>
+																		</div>
+																		<span className='font-medium text-blue-600 text-sm w-12'>
+																			{count}
+																		</span>
+																		<span className='text-gray-500 text-xs w-12'>
+																			({percentage}%)
+																		</span>
+																	</div>
+																</div>
+															);
+														}
+													)}
 												</div>
 											</div>
-										</div>
+										))}
+									</div>
+								)}
 
-										{/* Statistics View Toggle */}
-										<div className='flex space-x-4 border-b border-gray-200 pb-2'>
-											<button
-												className={`py-2 px-4 font-medium text-sm transition-colors ${
-													statsView === STATS_VIEW.AGGREGATED
-														? 'text-blue-600 border-b-2 border-blue-600'
-														: 'text-gray-500 hover:text-blue-600'
-												}`}
-												onClick={() => setStatsView(STATS_VIEW.AGGREGATED)}
-											>
-												Aggregated Results
-											</button>
-											<button
-												className={`py-2 px-4 font-medium text-sm transition-colors ${
-													statsView === STATS_VIEW.INDIVIDUAL
-														? 'text-blue-600 border-b-2 border-blue-600'
-														: 'text-gray-500 hover:text-blue-600'
-												}`}
-												onClick={() => setStatsView(STATS_VIEW.INDIVIDUAL)}
-											>
-												Individual Responses (
-												{stats[s._id]?.userResponses?.length || 0})
-											</button>
-										</div>
-
-										{/* Aggregated Statistics */}
-										{statsView === STATS_VIEW.AGGREGATED && (
-											<div className='space-y-4'>
-												{stats[s._id]?.aggregatedStats?.map((st, idx) => (
+								{/* Individual User Responses */}
+								{statsView === STATS_VIEW.INDIVIDUAL && (
+									<div className='space-y-4'>
+										{stats[s._id]?.userResponses?.length > 0 ? (
+											stats[s._id].userResponses.map(
+												(response, idx) => (
 													<div
-														key={idx}
+														key={response._id}
 														className='bg-gray-50 rounded-lg p-4'
 													>
-														<div className='font-semibold text-gray-800 mb-2'>
-															{st.question}
-														</div>
-														<div className='space-y-2'>
-															{Object.entries(st.options).map(
-																([opt, count]) => {
-																	const percentage =
-																		stats[s._id]?.summary
-																			?.totalResponses > 0
-																			? (
-																				(count /
-																						stats[s._id]
-																							.summary
-																							.totalResponses) *
-																					100
-																			).toFixed(1)
-																			: 0;
-																	return (
-																		<div
-																			key={opt}
-																			className='flex justify-between items-center'
-																		>
-																			<span className='text-gray-700'>
-																				{opt}
-																			</span>
-																			<div className='flex items-center gap-2'>
-																				<div className='w-20 bg-gray-200 rounded-full h-2'>
-																					<div
-																						className='bg-blue-600 h-2 rounded-full transition-all duration-300'
-																						style={{
-																							width: `${percentage}%`,
-																						}}
-																					></div>
-																				</div>
-																				<span className='font-medium text-blue-600 text-sm w-12'>
-																					{count}
-																				</span>
-																				<span className='text-gray-500 text-xs w-12'>
-																					({percentage}%)
-																				</span>
-																			</div>
-																		</div>
-																	);
-																}
-															)}
-														</div>
-													</div>
-												))}
-											</div>
-										)}
-
-										{/* Individual User Responses */}
-										{statsView === STATS_VIEW.INDIVIDUAL && (
-											<div className='space-y-4'>
-												{stats[s._id]?.userResponses?.length > 0 ? (
-													stats[s._id].userResponses.map(
-														(response, idx) => (
-															<div
-																key={response._id}
-																className='bg-gray-50 rounded-lg p-4'
-															>
-																<div className='flex justify-between items-start mb-3'>
-																	<div>
-																		<div className='font-semibold text-gray-800'>
-																			{response.name}
-																		</div>
-																		<div className='text-sm text-gray-500'>
-																			{response.email}
-																		</div>
-																	</div>
-																	<div className='text-xs text-gray-500'>
-																		{new Date(
-																			response.createdAt
-																		).toLocaleDateString()}{' '}
-																		{new Date(
-																			response.createdAt
-																		).toLocaleTimeString()}
-																	</div>
+														<div className='flex justify-between items-start mb-3'>
+															<div>
+																<div className='font-semibold text-gray-800'>
+																	{response.name}
 																</div>
-																<div className='space-y-2'>
-																	{Object.entries(
-																		response.answers
-																	).map(([question, answer]) => (
-																		<div
-																			key={question}
-																			className='border-l-4 border-blue-200 pl-3'
-																		>
-																			<div className='font-medium text-gray-700 text-sm'>
-																				{question}
-																			</div>
-																			<div
-																				className={`text-sm ${answer === 'No answer' ? 'text-gray-400 italic' : 'text-gray-900'}`}
-																			>
-																				{answer}
-																			</div>
-																		</div>
-																	))}
+																<div className='text-sm text-gray-500'>
+																	{response.email}
 																</div>
 															</div>
-														)
-													)
-												) : (
-													<div className='text-center py-8 text-gray-500'>
-														<p>No responses yet for this survey.</p>
+															<div className='text-xs text-gray-500'>
+																{new Date(
+																	response.createdAt
+																).toLocaleDateString()}{' '}
+																{new Date(
+																	response.createdAt
+																).toLocaleTimeString()}
+															</div>
+														</div>
+														<div className='space-y-2'>
+															{Object.entries(
+																response.answers
+															).map(([question, answer]) => (
+																<div
+																	key={question}
+																	className='border-l-4 border-blue-200 pl-3'
+																>
+																	<div className='font-medium text-gray-700 text-sm'>
+																		{question}
+																	</div>
+																	<div
+																		className={`text-sm ${answer === 'No answer' ? 'text-gray-400 italic' : 'text-gray-900'}`}
+																	>
+																		{answer}
+																	</div>
+																</div>
+															))}
+														</div>
 													</div>
-												)}
+												)
+											)
+										) : (
+											<div className='text-center py-8 text-gray-500'>
+												<p>暂无回复数据</p>
 											</div>
 										)}
 									</div>
 								)}
 							</div>
-						</div>
-					</>
+						) : (
+							<div className='text-center py-8 text-gray-500'>
+								<p>暂无统计数据，点击"刷新数据"按钮加载</p>
+							</div>
+						)}
+					</div>
 				)}
 				{tabLocal === TAB_TYPES.INVITATIONS && (
 					<div className='mt-4'>
@@ -1685,12 +1698,15 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 						)}
 					</div>
 				)}
-				<InviteAssessmentModal
-					show={showInviteModal}
-					onClose={() => setShowInviteModal(false)}
-					surveyId={survey._id}
-					surveyTitle={survey.title}
-				/>
+				{/* 只有 showInviteModal 为 true 时才显示弹窗 */}
+				{showInviteModal && (
+					<InviteAssessmentModal
+						show={showInviteModal}
+						onClose={() => setShowInviteModal(false)}
+						surveyId={survey._id}
+						surveyTitle={survey.title}
+					/>
+				)}
 
 				{/* Add Question Modal */}
 				<AddSurveyQuestionModal

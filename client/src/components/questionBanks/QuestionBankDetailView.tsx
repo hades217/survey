@@ -360,14 +360,14 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 	const handleCSVImport = async (file: File) => {
 		try {
 			setLoading(true);
-			
+
 			const formData = new FormData();
 			formData.append('csvFile', file);
 
 			const response = await fetch(`/api/question-banks/${qb._id}/import-csv`, {
 				method: 'POST',
 				headers: {
-					'Authorization': `Bearer ${localStorage.getItem('token')}`,
+					'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
 				},
 				body: formData,
 			});
@@ -380,7 +380,7 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 					// Trigger a refresh of the question bank data
 					window.location.reload();
 				}
-				
+
 				setImportResult({
 					success: true,
 					message: data.message,

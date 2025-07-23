@@ -4,7 +4,6 @@ interface ImportCSVModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	onImport: (file: File) => Promise<void>;
-	onDownloadTemplate: () => void;
 	loading: boolean;
 }
 
@@ -12,7 +11,6 @@ const ImportCSVModal: React.FC<ImportCSVModalProps> = ({
 	isOpen,
 	onClose,
 	onImport,
-	onDownloadTemplate,
 	loading,
 }) => {
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -40,7 +38,7 @@ const ImportCSVModal: React.FC<ImportCSVModalProps> = ({
 		e.preventDefault();
 		e.stopPropagation();
 		setDragActive(false);
-		
+
 		if (e.dataTransfer.files && e.dataTransfer.files[0]) {
 			handleFileSelect(e.dataTransfer.files[0]);
 		}
@@ -48,7 +46,7 @@ const ImportCSVModal: React.FC<ImportCSVModalProps> = ({
 
 	const handleImport = async () => {
 		if (!selectedFile) return;
-		
+
 		try {
 			await onImport(selectedFile);
 			setSelectedFile(null);
@@ -63,10 +61,31 @@ const ImportCSVModal: React.FC<ImportCSVModalProps> = ({
 		onClose();
 	};
 
+	// 新增更兼容的下载模板方法
+	const handleDownloadTemplate = async () => {
+		try {
+			const response = await fetch('/api/admin/question-banks/csv-template/download');
+			if (!response.ok) throw new Error('下载失败');
+			const blob = await response.blob();
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = 'question_bank_template.csv';
+			document.body.appendChild(a);
+			a.click();
+			setTimeout(() => {
+				window.URL.revokeObjectURL(url);
+				document.body.removeChild(a);
+			}, 100);
+		} catch {
+			alert('下载失败，请稍后重试');
+		}
+	};
+
 	if (!isOpen) return null;
 
 	return (
-		<div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
+		<div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
 			<div className='bg-white rounded-lg p-6 w-full max-w-md mx-4'>
 				<div className='flex justify-between items-center mb-4'>
 					<h3 className='text-lg font-semibold text-gray-800'>导入 CSV 文件</h3>
@@ -95,7 +114,7 @@ const ImportCSVModal: React.FC<ImportCSVModalProps> = ({
 					{/* Download Template Button */}
 					<div className='text-center'>
 						<button
-							onClick={onDownloadTemplate}
+							onClick={handleDownloadTemplate}
 							className='btn-secondary text-sm'
 							disabled={loading}
 						>
@@ -109,8 +128,8 @@ const ImportCSVModal: React.FC<ImportCSVModalProps> = ({
 							dragActive
 								? 'border-blue-400 bg-blue-50'
 								: selectedFile
-								? 'border-green-400 bg-green-50'
-								: 'border-gray-300 hover:border-gray-400'
+									? 'border-green-400 bg-green-50'
+									: 'border-gray-300 hover:border-gray-400'
 						}`}
 						onDragEnter={handleDrag}
 						onDragLeave={handleDrag}
@@ -125,7 +144,7 @@ const ImportCSVModal: React.FC<ImportCSVModalProps> = ({
 							id='csv-file-input'
 							disabled={loading}
 						/>
-						
+
 						{selectedFile ? (
 							<div className='text-green-600'>
 								<div className='text-2xl mb-2'>✓</div>

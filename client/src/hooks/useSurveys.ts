@@ -211,6 +211,8 @@ export const useSurveys = () => {
 			sourceType: survey.sourceType,
 			questionBankId: survey.questionBankId,
 			questionCount: survey.questionCount,
+			multiQuestionBankConfig: survey.multiQuestionBankConfig || [],
+			selectedQuestions: survey.selectedQuestions || [],
 			scoringSettings: survey.scoringSettings || {
 				scoringMode: SCORING_MODE.PERCENTAGE,
 				totalPoints: 0,

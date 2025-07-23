@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
 import { useSurveys } from '../../hooks/useSurveys';
 import { useQuestionBanks } from '../../hooks/useQuestionBanks';
 import Modal from '../Modal';
+import MultiQuestionBankModal from './MultiQuestionBankModal';
+import ManualQuestionSelectionModal from './ManualQuestionSelectionModal';
+import { SOURCE_TYPE, SURVEY_TYPE } from '../../constants';
 
 const CreateSurveyModal: React.FC = () => {
 	const { showCreateModal, setShowCreateModal, newSurvey, setNewSurvey, loading, error } =
@@ -10,6 +13,10 @@ const CreateSurveyModal: React.FC = () => {
 
 	const { createSurvey } = useSurveys();
 	const { questionBanks } = useQuestionBanks();
+
+	// Modal states for multi-question selection
+	const [showMultiBankModal, setShowMultiBankModal] = useState(false);
+	const [showManualSelectionModal, setShowManualSelectionModal] = useState(false);
 
 	if (!showCreateModal) return null;
 
@@ -40,7 +47,15 @@ const CreateSurveyModal: React.FC = () => {
 		}));
 	};
 
-	const isAssessmentType = ['quiz', 'assessment', 'iq'].includes(newSurvey.type);
+	const isAssessmentType = [SURVEY_TYPE.QUIZ, SURVEY_TYPE.ASSESSMENT, SURVEY_TYPE.IQ].includes(newSurvey.type);
+
+	const handleMultiBankSave = (config: any[]) => {
+		setNewSurvey(prev => ({ ...prev, multiQuestionBankConfig: config }));
+	};
+
+	const handleManualSelectionSave = (selectedQuestions: any[]) => {
+		setNewSurvey(prev => ({ ...prev, selectedQuestions }));
+	};
 
 	return (
 		<Modal
@@ -110,21 +125,28 @@ const CreateSurveyModal: React.FC = () => {
 								value={newSurvey.sourceType}
 								onChange={e => handleInputChange('sourceType', e.target.value)}
 								className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-								disabled={newSurvey.type === 'survey'}
+								disabled={newSurvey.type === SURVEY_TYPE.SURVEY}
 							>
-								<option value='manual'>Manual (Create questions manually)</option>
-								<option value='question_bank'>
-									Question Bank (Random selection)
+								<option value={SOURCE_TYPE.MANUAL}>Manual (Create questions manually)</option>
+								<option value={SOURCE_TYPE.QUESTION_BANK}>
+									Single Question Bank (Random selection)
+								</option>
+								<option value={SOURCE_TYPE.MULTI_QUESTION_BANK}>
+									Multiple Question Banks (Configured selection)
+								</option>
+								<option value={SOURCE_TYPE.MANUAL_SELECTION}>
+									Manual Selection (Choose specific questions)
 								</option>
 							</select>
-							{newSurvey.type === 'survey' && (
+							{newSurvey.type === SURVEY_TYPE.SURVEY && (
 								<p className='text-sm text-gray-500 mt-1'>
 									Surveys only support manual question creation
 								</p>
 							)}
 						</div>
 
-						{newSurvey.sourceType === 'question_bank' && (
+						{/* Single Question Bank */}
+						{newSurvey.sourceType === SOURCE_TYPE.QUESTION_BANK && (
 							<>
 								<div>
 									<label className='block text-sm font-medium text-gray-700 mb-1'>
@@ -171,6 +193,78 @@ const CreateSurveyModal: React.FC = () => {
 									</div>
 								)}
 							</>
+						)}
+
+						{/* Multiple Question Banks */}
+						{newSurvey.sourceType === SOURCE_TYPE.MULTI_QUESTION_BANK && (
+							<div>
+								<label className='block text-sm font-medium text-gray-700 mb-1'>
+									Multi-Question Bank Configuration
+								</label>
+								<div className='border border-gray-300 rounded-lg p-4 bg-gray-50'>
+									{newSurvey.multiQuestionBankConfig && newSurvey.multiQuestionBankConfig.length > 0 ? (
+										<div className='space-y-2'>
+											{newSurvey.multiQuestionBankConfig.map((config: any, index: number) => {
+												const bank = questionBanks.find(b => b._id === config.questionBankId);
+												return (
+													<div key={index} className='text-sm text-gray-700'>
+														<strong>{bank?.name || 'Unknown Bank'}</strong>: {config.questionCount} questions
+														{config.filters && Object.keys(config.filters).length > 0 && (
+															<span className='text-gray-500'> (with filters)</span>
+														)}
+													</div>
+												);
+											})}
+											<div className='text-xs text-gray-500 mt-2'>
+												Total: {newSurvey.multiQuestionBankConfig.reduce((sum: number, config: any) => sum + config.questionCount, 0)} questions
+											</div>
+										</div>
+									) : (
+										<div className='text-sm text-gray-500'>
+											No configurations set
+										</div>
+									)}
+									<button
+										type='button'
+										onClick={() => setShowMultiBankModal(true)}
+										className='mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors'
+									>
+										Configure Question Banks
+									</button>
+								</div>
+							</div>
+						)}
+
+						{/* Manual Question Selection */}
+						{newSurvey.sourceType === SOURCE_TYPE.MANUAL_SELECTION && (
+							<div>
+								<label className='block text-sm font-medium text-gray-700 mb-1'>
+									Manual Question Selection
+								</label>
+								<div className='border border-gray-300 rounded-lg p-4 bg-gray-50'>
+									{newSurvey.selectedQuestions && newSurvey.selectedQuestions.length > 0 ? (
+										<div className='space-y-2'>
+											<div className='text-sm text-gray-700'>
+												<strong>{newSurvey.selectedQuestions.length}</strong> questions selected
+											</div>
+											<div className='text-xs text-gray-500'>
+												Questions selected from various question banks
+											</div>
+										</div>
+									) : (
+										<div className='text-sm text-gray-500'>
+											No questions selected
+										</div>
+									)}
+									<button
+										type='button'
+										onClick={() => setShowManualSelectionModal(true)}
+										className='mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors'
+									>
+										Select Questions
+									</button>
+								</div>
+							</div>
 						)}
 					</div>
 				</div>
@@ -417,6 +511,22 @@ const CreateSurveyModal: React.FC = () => {
 					</button>
 				</div>
 			</form>
+
+			{/* Multi-Question Bank Configuration Modal */}
+			<MultiQuestionBankModal
+				show={showMultiBankModal}
+				onClose={() => setShowMultiBankModal(false)}
+				onSave={handleMultiBankSave}
+				initialConfig={newSurvey.multiQuestionBankConfig || []}
+			/>
+
+			{/* Manual Question Selection Modal */}
+			<ManualQuestionSelectionModal
+				show={showManualSelectionModal}
+				onClose={() => setShowManualSelectionModal(false)}
+				onSave={handleManualSelectionSave}
+				initialSelection={newSurvey.selectedQuestions || []}
+			/>
 		</Modal>
 	);
 };

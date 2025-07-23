@@ -18,9 +18,32 @@ export interface Survey {
 	maxAttempts?: number;
 	instructions?: string;
 	navigationMode?: 'step-by-step' | 'paginated' | 'all-in-one';
-	sourceType?: 'manual' | 'question_bank';
+	sourceType?: 'manual' | 'question_bank' | 'multi_question_bank' | 'manual_selection';
 	questionBankId?: string;
 	questionCount?: number;
+	multiQuestionBankConfig?: {
+		questionBankId: string;
+		questionCount: number;
+		filters?: {
+			tags?: string[];
+			difficulty?: 'easy' | 'medium' | 'hard';
+			questionTypes?: ('single_choice' | 'multiple_choice' | 'short_text')[];
+		};
+	}[];
+	selectedQuestions?: {
+		questionBankId: string;
+		questionId: string;
+		questionSnapshot?: {
+			text: string;
+			type: string;
+			options?: string[];
+			correctAnswer?: any;
+			explanation?: string;
+			points?: number;
+			tags?: string[];
+			difficulty?: string;
+		};
+	}[];
 	scoringSettings?: {
 		scoringMode: 'percentage' | 'accumulated';
 		totalPoints: number;
@@ -127,9 +150,32 @@ export interface NewSurveyForm {
 	maxAttempts?: number;
 	instructions?: string;
 	navigationMode?: 'step-by-step' | 'paginated' | 'all-in-one';
-	sourceType?: 'manual' | 'question_bank';
+	sourceType?: 'manual' | 'question_bank' | 'multi_question_bank' | 'manual_selection';
 	questionBankId?: string;
 	questionCount?: number;
+	multiQuestionBankConfig?: {
+		questionBankId: string;
+		questionCount: number;
+		filters?: {
+			tags?: string[];
+			difficulty?: 'easy' | 'medium' | 'hard';
+			questionTypes?: ('single_choice' | 'multiple_choice' | 'short_text')[];
+		};
+	}[];
+	selectedQuestions?: {
+		questionBankId: string;
+		questionId: string;
+		questionSnapshot?: {
+			text: string;
+			type: string;
+			options?: string[];
+			correctAnswer?: any;
+			explanation?: string;
+			points?: number;
+			tags?: string[];
+			difficulty?: string;
+		};
+	}[];
 	scoringSettings?: {
 		scoringMode: 'percentage' | 'accumulated';
 		totalPoints: number;

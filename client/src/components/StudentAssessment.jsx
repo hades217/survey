@@ -2,6 +2,15 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+// Check if we need to use a different base URL for API calls
+const API_BASE_URL = window.location.port === '5173' || window.location.port === '5174' 
+	? 'http://localhost:5050' 
+	: '';
+
+const api = axios.create({
+	baseURL: API_BASE_URL,
+});
+
 const isInvitationCode = str => /^[a-f0-9]{32}$/i.test(str);
 
 const StudentAssessment = () => {
@@ -24,26 +33,44 @@ const StudentAssessment = () => {
 	const timerRef = useRef(null);
 	const autoSubmitRef = useRef(false);
 
-	// Load survey data (支持邀请码和 slug)
+	// Load survey data and questions (支持邀请码和 slug)
 	useEffect(() => {
 		if (!slug) return;
 		setLoading(true);
 		setError('');
 		setInvitationInfo(null);
+		
+		const loadSurveyAndQuestions = async (surveyData, invitationData = null) => {
+			try {
+				setSurvey(surveyData);
+				setInvitationInfo(invitationData);
+				
+				if (surveyData.timeLimit) {
+					setTimer({
+						timeLeft: surveyData.timeLimit * 60,
+						isActive: false,
+						isExpired: false,
+					});
+				}
+
+				// For question bank-based surveys, fetch questions separately
+				if (['question_bank', 'multi_question_bank', 'manual_selection'].includes(surveyData.sourceType)) {
+					// Need to get questions via the questions endpoint
+					// This will be called when user starts the assessment with email
+					console.log('Survey uses question bank source type:', surveyData.sourceType);
+				}
+			} catch (err) {
+				console.error('Error processing survey data:', err);
+				setError('Failed to load survey data');
+			}
+		};
+
 		if (isInvitationCode(slug)) {
 			// 通过邀请码获取 survey
-			axios
+			api
 				.get(`/api/invitations/access/${slug}`)
 				.then(res => {
-					setSurvey(res.data.survey);
-					setInvitationInfo(res.data.invitation);
-					if (res.data.survey.timeLimit) {
-						setTimer({
-							timeLeft: res.data.survey.timeLimit * 60,
-							isActive: false,
-							isExpired: false,
-						});
-					}
+					loadSurveyAndQuestions(res.data.survey, res.data.invitation);
 				})
 				.catch(err => {
 					setError(err.response?.data?.error || '邀请码无效或已过期');
@@ -52,21 +79,22 @@ const StudentAssessment = () => {
 				.finally(() => setLoading(false));
 		} else {
 			// 兼容原有 slug 逻辑
-			axios
+			api
 				.get(`/api/survey/${slug}`)
 				.then(res => {
-					setSurvey(res.data);
-					if (res.data.timeLimit) {
-						setTimer({
-							timeLeft: res.data.timeLimit * 60,
-							isActive: false,
-							isExpired: false,
-						});
-					}
+					loadSurveyAndQuestions(res.data);
 				})
 				.catch(err => {
-					setError('Assessment not found');
 					console.error('Error fetching survey:', err);
+					if (err.code === 'ERR_NETWORK') {
+						setError('Network error: Unable to connect to server. Please check if the server is running.');
+					} else if (err.response?.status === 404) {
+						setError('Assessment not found');
+					} else if (err.response?.status >= 500) {
+						setError('Server error: Please try again later.');
+					} else {
+						setError(`Error: ${err.response?.data?.message || err.message || 'Unknown error'}`);
+					}
 				})
 				.finally(() => setLoading(false));
 		}
@@ -111,11 +139,45 @@ const StudentAssessment = () => {
 	};
 
 	// Start assessment
-	const startAssessment = () => {
-		setCurrentStep('questions');
-		setStartTime(new Date());
-		if (survey?.timeLimit) {
-			setTimer(prev => ({ ...prev, isActive: true }));
+	const startAssessment = async () => {
+		if (!survey) return;
+		
+		setLoading(true);
+		try {
+			// For question bank-based surveys, fetch questions first
+			if (['question_bank', 'multi_question_bank', 'manual_selection'].includes(survey.sourceType)) {
+				const questionsResponse = await api.get(`/api/survey/${slug}/questions`, {
+					params: {
+						email: form.email,
+						attempt: 1
+					}
+				});
+				
+				// Update survey with fetched questions
+				setSurvey(prev => ({
+					...prev,
+					questions: questionsResponse.data.questions
+				}));
+			}
+			
+			setCurrentStep('questions');
+			setStartTime(new Date());
+			if (survey?.timeLimit) {
+				setTimer(prev => ({ ...prev, isActive: true }));
+			}
+		} catch (err) {
+			console.error('Error fetching questions:', err);
+			if (err.code === 'ERR_NETWORK') {
+				setError('Network error: Unable to connect to server. Please check if the server is running.');
+			} else if (err.response?.status === 400) {
+				setError(`Failed to load questions: ${err.response?.data?.message || 'Invalid request'}`);
+			} else if (err.response?.status === 404) {
+				setError('Questions not found for this assessment.');
+			} else {
+				setError(`Failed to load questions: ${err.response?.data?.message || err.message || 'Unknown error'}`);
+			}
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -148,7 +210,7 @@ const StudentAssessment = () => {
 
 	// Navigate questions
 	const nextQuestion = () => {
-		if (survey && currentQuestionIndex < survey.questions.length - 1) {
+		if (survey && survey.questions && currentQuestionIndex < survey.questions.length - 1) {
 			setCurrentQuestionIndex(prev => prev + 1);
 		}
 	};
@@ -186,9 +248,9 @@ const StudentAssessment = () => {
 			if (isInvitationCode(slug)) {
 				payload.invitationCode = slug;
 			}
-			await axios.post(`/api/surveys/${survey._id}/responses`, payload);
+			await api.post(`/api/surveys/${survey._id}/responses`, payload);
 			if (isInvitationCode(slug)) {
-				await axios.post(`/api/invitations/complete/${slug}`, {
+				await api.post(`/api/invitations/complete/${slug}`, {
 					userId: null,
 					email: form.email || null,
 				});
@@ -311,7 +373,16 @@ const StudentAssessment = () => {
 									<div className='flex justify-between'>
 										<span className='text-gray-600'>题目数量:</span>
 										<span className='font-medium'>
-											{survey.questions.length} 题
+											{survey.sourceType === 'manual' 
+												? `${survey.questions.length} 题` 
+												: survey.sourceType === 'question_bank' 
+													? `${survey.questionCount || '随机'} 题`
+													: survey.sourceType === 'multi_question_bank'
+														? `${survey.multiQuestionBankConfig?.reduce((sum, config) => sum + config.questionCount, 0) || '多题库'} 题`
+														: survey.sourceType === 'manual_selection'
+															? `${survey.selectedQuestions?.length || '已选'} 题`
+															: `${survey.questions?.length || 0} 题`
+											}
 										</span>
 									</div>
 									{survey.timeLimit && (
@@ -333,11 +404,11 @@ const StudentAssessment = () => {
 									<div className='flex justify-between'>
 										<span className='text-gray-600'>题目类型:</span>
 										<span className='font-medium'>
-											{survey.questions.some(
-												q => q.type === 'multiple_choice'
-											)
-												? '单选+多选'
-												: '单选'}
+											{survey.sourceType === 'manual' && survey.questions?.length > 0
+												? (survey.questions.some(q => q.type === 'multiple_choice')
+													? '单选+多选'
+													: '单选')
+												: '混合题型'}
 										</span>
 									</div>
 								</div>
@@ -441,7 +512,7 @@ const StudentAssessment = () => {
 	}
 
 	// Get current question for step-by-step mode
-	const currentQuestion = survey.questions[currentQuestionIndex];
+	const currentQuestion = survey?.questions?.[currentQuestionIndex];
 
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8'>
@@ -455,7 +526,7 @@ const StudentAssessment = () => {
 									{survey.title}
 								</h2>
 								<span className='text-sm text-gray-500'>
-									题目 {currentQuestionIndex + 1} / {survey.questions.length}
+									题目 {currentQuestionIndex + 1} / {survey.questions?.length || 0}
 								</span>
 							</div>
 
@@ -479,7 +550,7 @@ const StudentAssessment = () => {
 									<div
 										className='bg-blue-600 h-2 rounded-full transition-all duration-300'
 										style={{
-											width: `${((currentQuestionIndex + 1) / survey.questions.length) * 100}%`,
+											width: `${((currentQuestionIndex + 1) / (survey.questions?.length || 1)) * 100}%`,
 										}}
 									/>
 								</div>
@@ -576,7 +647,7 @@ const StudentAssessment = () => {
 							</button>
 
 							<div className='flex gap-3'>
-								{currentQuestionIndex === survey.questions.length - 1 ? (
+								{currentQuestionIndex === (survey.questions?.length || 0) - 1 ? (
 									<button
 										onClick={() => handleSubmit(false)}
 										disabled={loading}
@@ -610,12 +681,6 @@ const StudentAssessment = () => {
 								<p className='text-gray-600 text-lg mb-6'>
 									您的调研回答已成功提交，感谢您的宝贵意见。
 								</p>
-								<button
-									onClick={() => navigate('/')}
-									className='bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors'
-								>
-									返回首页
-								</button>
 							</div>
 						) : (
 							// Quiz/Assessment/IQ results

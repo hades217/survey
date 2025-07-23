@@ -3,7 +3,9 @@ const {
 	SURVEY_STATUS,
 	SURVEY_TYPE,
 	QUESTION_TYPE,
+	SOURCE_TYPE,
 	TYPES_REQUIRING_ANSWERS,
+	VALID_SOURCE_TYPES,
 } = require('../shared/constants');
 
 const surveySchema = new mongoose.Schema({
@@ -44,8 +46,8 @@ const surveySchema = new mongoose.Schema({
 	// Question source configuration
 	sourceType: {
 		type: String,
-		enum: ['manual', 'question_bank'],
-		default: 'manual',
+		enum: VALID_SOURCE_TYPES,
+		default: SOURCE_TYPE.MANUAL,
 	},
 	// Reference to question bank (when sourceType is 'question_bank')
 	questionBankId: {
@@ -58,6 +60,64 @@ const surveySchema = new mongoose.Schema({
 		type: Number,
 		default: null,
 	},
+	// Multi-question bank configuration (when sourceType is 'multi_question_bank')
+	multiQuestionBankConfig: [
+		{
+			questionBankId: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: 'QuestionBank',
+				required: true,
+			},
+			questionCount: {
+				type: Number,
+				required: true,
+				min: 1,
+			},
+			// Optional filters for question selection
+			filters: {
+				tags: [String],
+				difficulty: {
+					type: String,
+					enum: ['easy', 'medium', 'hard'],
+				},
+				questionTypes: [
+					{
+						type: String,
+						enum: [
+							QUESTION_TYPE.SINGLE_CHOICE,
+							QUESTION_TYPE.MULTIPLE_CHOICE,
+							QUESTION_TYPE.SHORT_TEXT,
+						],
+					},
+				],
+			},
+		},
+	],
+	// Manual question selection (when sourceType is 'manual_selection')
+	selectedQuestions: [
+		{
+			questionBankId: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: 'QuestionBank',
+				required: true,
+			},
+			questionId: {
+				type: mongoose.Schema.Types.ObjectId,
+				required: true,
+			},
+			// Store question snapshot for consistency
+			questionSnapshot: {
+				text: String,
+				type: String,
+				options: [String],
+				correctAnswer: mongoose.Schema.Types.Mixed,
+				explanation: String,
+				points: Number,
+				tags: [String],
+				difficulty: String,
+			},
+		},
+	],
 	questions: [
 		{
 			text: {

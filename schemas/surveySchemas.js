@@ -1,5 +1,5 @@
 const { z } = require('zod');
-const { SURVEY_TYPE, QUESTION_TYPE, TYPES_REQUIRING_ANSWERS } = require('../shared/constants');
+const { SURVEY_TYPE, QUESTION_TYPE, SOURCE_TYPE, TYPES_REQUIRING_ANSWERS, VALID_SOURCE_TYPES } = require('../shared/constants');
 
 // Question schema
 const questionSchema = z
@@ -36,6 +36,45 @@ const questionSchema = z
 		}
 	);
 
+// Multi-question bank configuration schema
+const multiQuestionBankConfigSchema = z.object({
+	questionBankId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid question bank ID'),
+	questionCount: z.number().positive('Question count must be positive'),
+	filters: z
+		.object({
+			tags: z.array(z.string()).optional(),
+			difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
+			questionTypes: z
+				.array(
+					z.enum([
+						QUESTION_TYPE.SINGLE_CHOICE,
+						QUESTION_TYPE.MULTIPLE_CHOICE,
+						QUESTION_TYPE.SHORT_TEXT,
+					])
+				)
+				.optional(),
+		})
+		.optional(),
+});
+
+// Selected question schema for manual selection
+const selectedQuestionSchema = z.object({
+	questionBankId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid question bank ID'),
+	questionId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid question ID'),
+	questionSnapshot: z
+		.object({
+			text: z.string(),
+			type: z.string(),
+			options: z.array(z.string()).optional(),
+			correctAnswer: z.union([z.number(), z.array(z.number()), z.string(), z.null()]).optional(),
+			explanation: z.string().optional(),
+			points: z.number().optional(),
+			tags: z.array(z.string()).optional(),
+			difficulty: z.string().optional(),
+		})
+		.optional(),
+});
+
 // Survey creation schema
 const surveyCreateSchema = z
 	.object({
@@ -51,10 +90,12 @@ const surveyCreateSchema = z
 		maxAttempts: z.number().positive().default(1),
 		instructions: z.string().optional(),
 		navigationMode: z.enum(['step-by-step', 'paginated', 'all-in-one']).default('step-by-step'),
-		sourceType: z.enum(['manual', 'question_bank']).default('manual').optional(),
+		sourceType: z.enum(VALID_SOURCE_TYPES).default(SOURCE_TYPE.MANUAL).optional(),
 		questionBankId: z.string().min(1).optional(),
 		questionCount: z.number().positive().optional(),
-		questions: z.array(questionSchema).min(1, 'At least one question is required'),
+		multiQuestionBankConfig: z.array(multiQuestionBankConfigSchema).optional(),
+		selectedQuestions: z.array(selectedQuestionSchema).optional(),
+		questions: z.array(questionSchema).optional(),
 		distributionSettings: z
 			.object({
 				allowAnonymous: z.boolean().default(true),
@@ -74,7 +115,8 @@ const surveyCreateSchema = z
 	.refine(
 		data => {
 			// Validate that survey type cannot use question banks
-			if (data.type === SURVEY_TYPE.SURVEY && data.sourceType === 'question_bank') {
+			if (data.type === SURVEY_TYPE.SURVEY && 
+				[SOURCE_TYPE.QUESTION_BANK, SOURCE_TYPE.MULTI_QUESTION_BANK, SOURCE_TYPE.MANUAL_SELECTION].includes(data.sourceType)) {
 				return false;
 			}
 			return true;
@@ -85,10 +127,31 @@ const surveyCreateSchema = z
 	)
 	.refine(
 		data => {
-			// Validate that quiz/assessment/iq questions have correct answers
+			// Validate required fields based on source type
+			if (data.sourceType === SOURCE_TYPE.QUESTION_BANK) {
+				return data.questionBankId && data.questionCount;
+			}
+			if (data.sourceType === SOURCE_TYPE.MULTI_QUESTION_BANK) {
+				return data.multiQuestionBankConfig && data.multiQuestionBankConfig.length > 0;
+			}
+			if (data.sourceType === SOURCE_TYPE.MANUAL_SELECTION) {
+				return data.selectedQuestions && data.selectedQuestions.length > 0;
+			}
+			if (data.sourceType === SOURCE_TYPE.MANUAL) {
+				return data.questions && data.questions.length > 0;
+			}
+			return true;
+		},
+		{
+			message: 'Required fields missing for selected source type',
+		}
+	)
+	.refine(
+		data => {
+			// Validate that quiz/assessment/iq questions have correct answers (only for manual questions)
 			const requiresAnswers = TYPES_REQUIRING_ANSWERS.includes(data.type);
 
-			if (requiresAnswers) {
+			if (requiresAnswers && data.sourceType === SOURCE_TYPE.MANUAL && data.questions) {
 				return data.questions.every(question => {
 					// For short_text questions, correct answer is optional
 					if (question.type === QUESTION_TYPE.SHORT_TEXT) {

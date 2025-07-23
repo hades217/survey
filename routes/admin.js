@@ -12,6 +12,7 @@ const bcrypt = require('bcrypt');
 const AppError = require('../utils/AppError');
 const { ERROR_MESSAGES, DATA_TYPES, HTTP_STATUS } = require('../shared/constants');
 const { JWT_SECRET, jwtAuth } = require('../middlewares/jwtAuth');
+const QuestionBank = require('../models/QuestionBank');
 
 const router = express.Router();
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
@@ -74,13 +75,13 @@ router.post('/login', asyncHandler(async (req, res) => {
 
 	// Try database user login (using email as username)
 	try {
-		const user = await User.findOne({ 
+		const user = await User.findOne({
 			email: username.toLowerCase(),
 			role: 'admin'
 		}).select('+password');
 
 		if (!user) {
-			return res.status(HTTP_STATUS.UNAUTHORIZED).json({ 
+			return res.status(HTTP_STATUS.UNAUTHORIZED).json({
 				success: false,
 				error: 'Invalid credentials'
 			});
@@ -88,7 +89,7 @@ router.post('/login', asyncHandler(async (req, res) => {
 
 		const isPasswordValid = await bcrypt.compare(password, user.password);
 		if (!isPasswordValid) {
-			return res.status(HTTP_STATUS.UNAUTHORIZED).json({ 
+			return res.status(HTTP_STATUS.UNAUTHORIZED).json({
 				success: false,
 				error: 'Invalid credentials'
 			});
@@ -651,18 +652,40 @@ router.get(
 
 		const responses = await Response.find({ surveyId }).lean();
 
+		// Get questions based on survey type
+		let questions = [];
+		if (survey.sourceType === 'question_bank' && survey.questionBankId) {
+			// Single question bank
+			const questionBank = await QuestionBank.findById(survey.questionBankId).lean();
+			if (questionBank) {
+				questions = questionBank.questions || [];
+			}
+		} else if (survey.sourceType === 'multi_question_bank' && survey.multiQuestionBankConfig) {
+			// Multiple question banks
+			const questionBankIds = survey.multiQuestionBankConfig.map(config => config.questionBankId);
+			const questionBanks = await QuestionBank.find({ _id: { $in: questionBankIds } }).lean();
+			questions = questionBanks.reduce((allQuestions, qb) => {
+				return allQuestions.concat(qb.questions || []);
+			}, []);
+		} else {
+			// Manual questions
+			questions = survey.questions || [];
+		}
+
 		// Debug: Print survey questions
 		console.log(
 			'Survey questions:',
-			survey.questions.map((q, i) => `${i}: ${q.text} - [${q.options.join(', ')}]`)
+			questions.map((q, i) => `${i}: ${q.text} - [${(q.options || []).join(', ')}]`)
 		);
 
 		// Calculate aggregated statistics
-		const stats = survey.questions.map((q, questionIndex) => {
+		const stats = questions.map((q, questionIndex) => {
 			const counts = {};
-			q.options.forEach(opt => {
-				counts[opt] = 0;
-			});
+			if (q.options && q.options.length > 0) {
+				q.options.forEach(opt => {
+					counts[opt] = 0;
+				});
+			}
 			responses.forEach(r => {
 				// Handle different answer formats
 				let ans = null;
@@ -699,12 +722,12 @@ router.get(
 					// Handle different answer value formats
 					if (typeof ans === 'number' || (typeof ans === 'string' && /^\d+$/.test(ans))) {
 						const idx = typeof ans === 'number' ? ans : parseInt(ans, 10);
-						if (idx >= 0 && idx < q.options.length) {
+						if (idx >= 0 && idx < (q.options || []).length) {
 							counts[q.options[idx]] += 1;
 							console.log(`  -> Counted: ${q.options[idx]} (index ${idx})`);
 						} else {
 							console.log(
-								`  -> Invalid index: ${idx}, options length: ${q.options.length}`
+								`  -> Invalid index: ${idx}, options length: ${(q.options || []).length}`
 							);
 						}
 					} else if (Array.isArray(ans)) {
@@ -714,7 +737,7 @@ router.get(
 								typeof optionIndex === 'number'
 									? optionIndex
 									: parseInt(optionIndex, 10);
-							if (idx >= 0 && idx < q.options.length) {
+							if (idx >= 0 && idx < (q.options || []).length) {
 								counts[q.options[idx]] += 1;
 							}
 						});
@@ -734,7 +757,7 @@ router.get(
 		// Prepare individual user responses
 		const userResponses = responses.map(response => {
 			const userAnswers = {};
-			survey.questions.forEach((q, questionIndex) => {
+			questions.forEach((q, questionIndex) => {
 				let ans = null;
 
 				// Handle different answer formats
@@ -763,7 +786,7 @@ router.get(
 				if (ans !== undefined && ans !== null) {
 					if (typeof ans === 'number' || (typeof ans === 'string' && /^\d+$/.test(ans))) {
 						const idx = typeof ans === 'number' ? ans : parseInt(ans, 10);
-						if (idx >= 0 && idx < q.options.length) {
+						if (idx >= 0 && idx < (q.options || []).length) {
 							formattedAnswer = q.options[idx];
 						}
 					} else if (Array.isArray(ans)) {
@@ -774,7 +797,7 @@ router.get(
 									: parseInt(optionIndex, 10)
 							)
 							.filter(
-								optionIndex => optionIndex >= 0 && optionIndex < q.options.length
+								optionIndex => optionIndex >= 0 && optionIndex < (q.options || []).length
 							)
 							.map(optionIndex => q.options[optionIndex]);
 						formattedAnswer =
@@ -799,7 +822,7 @@ router.get(
 		// Calculate total responses and completion rate
 		const totalResponses = responses.length;
 		const completionRate =
-			survey.questions.length > 0
+			questions.length > 0
 				? (userResponses.filter(r =>
 					Object.values(r.answers).some(ans => ans !== 'No answer')
 				).length /
@@ -813,7 +836,7 @@ router.get(
 			summary: {
 				totalResponses,
 				completionRate: parseFloat(completionRate.toFixed(2)),
-				totalQuestions: survey.questions.length,
+				totalQuestions: questions.length,
 			},
 		});
 	})
@@ -1055,7 +1078,7 @@ router.get(
 		// For now, we'll use a default admin user since we're using simple auth
 		// In a real application, you'd get the user from req.user.id
 		let adminUser = await User.findOne({ role: 'admin' }).populate('companyId');
-		
+
 		// If no admin user exists, create a default one
 		if (!adminUser) {
 			adminUser = new User({
@@ -1077,7 +1100,7 @@ router.get(
 					description: '',
 				});
 				await company.save();
-				
+
 				// Link company to admin user
 				adminUser.companyId = company._id;
 				await adminUser.save();
