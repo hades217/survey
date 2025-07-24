@@ -385,14 +385,16 @@ exports.importQuestionsFromCSV = async (req, res) => {
 
 		// Parse CSV data
 		const stream = Readable.from([csvData]);
-		
-		return new Promise((resolve) => {
+
+		return new Promise(resolve => {
 			stream
-				.pipe(csv({
-					headers: ['questionText', 'type', 'options', 'correctAnswers', 'tags'],
-					skipEmptyLines: true
-				}))
-				.on('data', (row) => {
+				.pipe(
+					csv({
+						headers: ['questionText', 'type', 'options', 'correctAnswers', 'tags'],
+						skipEmptyLines: true,
+					})
+				)
+				.on('data', row => {
 					lineNumber++;
 					try {
 						// Skip empty rows
@@ -402,21 +404,21 @@ exports.importQuestionsFromCSV = async (req, res) => {
 
 						const questionText = row.questionText.trim();
 						const type = (row.type || 'single').toLowerCase();
-						
+
 						// Map CSV type to internal type
 						let questionType;
 						switch (type) {
-							case 'single':
-								questionType = 'single_choice';
-								break;
-							case 'multiple':
-								questionType = 'multiple_choice';
-								break;
-							case 'text':
-								questionType = 'short_text';
-								break;
-							default:
-								questionType = 'single_choice';
+						case 'single':
+							questionType = 'single_choice';
+							break;
+						case 'multiple':
+							questionType = 'multiple_choice';
+							break;
+						case 'text':
+							questionType = 'short_text';
+							break;
+						default:
+							questionType = 'single_choice';
 						}
 
 						const newQuestion = {
@@ -424,23 +426,31 @@ exports.importQuestionsFromCSV = async (req, res) => {
 							type: questionType,
 							points: 1,
 							tags: [],
-							difficulty: 'medium'
+							difficulty: 'medium',
 						};
 
 						// Handle tags
 						if (row.tags && row.tags.trim()) {
-							newQuestion.tags = row.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+							newQuestion.tags = row.tags
+								.split(',')
+								.map(tag => tag.trim())
+								.filter(tag => tag.length > 0);
 						}
 
 						// Handle options and correct answers for choice questions
 						if (questionType !== 'short_text') {
 							if (!row.options || !row.options.trim()) {
-								errors.push(`Line ${lineNumber}: Options are required for choice questions`);
+								errors.push(
+									`Line ${lineNumber}: Options are required for choice questions`
+								);
 								return;
 							}
 
-							const options = row.options.split(';').map(opt => opt.trim()).filter(opt => opt.length > 0);
-							
+							const options = row.options
+								.split(';')
+								.map(opt => opt.trim())
+								.filter(opt => opt.length > 0);
+
 							if (options.length < 2) {
 								errors.push(`Line ${lineNumber}: At least 2 options are required`);
 								return;
@@ -450,7 +460,9 @@ exports.importQuestionsFromCSV = async (req, res) => {
 
 							// Parse correct answers
 							if (!row.correctAnswers || !row.correctAnswers.trim()) {
-								errors.push(`Line ${lineNumber}: Correct answers are required for choice questions`);
+								errors.push(
+									`Line ${lineNumber}: Correct answers are required for choice questions`
+								);
 								return;
 							}
 
@@ -466,7 +478,9 @@ exports.importQuestionsFromCSV = async (req, res) => {
 
 							if (questionType === 'single_choice') {
 								if (correctAnswerIndices.length > 1) {
-									errors.push(`Line ${lineNumber}: Single choice questions can only have one correct answer`);
+									errors.push(
+										`Line ${lineNumber}: Single choice questions can only have one correct answer`
+									);
 									return;
 								}
 								newQuestion.correctAnswer = correctAnswerIndices[0];
@@ -481,7 +495,6 @@ exports.importQuestionsFromCSV = async (req, res) => {
 						}
 
 						questions.push(newQuestion);
-
 					} catch (error) {
 						errors.push(`Line ${lineNumber}: ${error.message}`);
 					}
@@ -492,7 +505,7 @@ exports.importQuestionsFromCSV = async (req, res) => {
 							return res.status(HTTP_STATUS.BAD_REQUEST).json({
 								error: 'CSV parsing failed',
 								errors,
-								imported: 0
+								imported: 0,
 							});
 						}
 
@@ -505,7 +518,7 @@ exports.importQuestionsFromCSV = async (req, res) => {
 						const response = {
 							message: `Successfully imported ${questions.length} questions`,
 							imported: questions.length,
-							questionBank
+							questionBank,
 						};
 
 						if (errors.length > 0) {
@@ -515,25 +528,23 @@ exports.importQuestionsFromCSV = async (req, res) => {
 
 						res.status(HTTP_STATUS.OK).json(response);
 						resolve();
-
 					} catch (error) {
 						console.error('Error saving questions:', error);
-						res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ 
-							error: 'Failed to save questions to database' 
+						res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+							error: 'Failed to save questions to database',
 						});
 						resolve();
 					}
 				})
-				.on('error', (error) => {
+				.on('error', error => {
 					console.error('CSV parsing error:', error);
-					res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+					res.status(HTTP_STATUS.BAD_REQUEST).json({
 						error: 'Failed to parse CSV file',
-						details: error.message 
+						details: error.message,
 					});
 					resolve();
 				});
 		});
-
 	} catch (error) {
 		console.error('Error importing CSV:', error);
 		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: 'Failed to import CSV file' });
@@ -551,10 +562,11 @@ exports.downloadCSVTemplate = async (req, res) => {
 		res.setHeader('Content-Type', 'text/csv');
 		res.setHeader('Content-Disposition', 'attachment; filename="question_bank_template.csv"');
 		res.send(csvTemplate);
-
 	} catch (error) {
 		console.error('Error generating CSV template:', error);
-		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: 'Failed to generate CSV template' });
+		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+			error: 'Failed to generate CSV template',
+		});
 	}
 };
 
@@ -565,7 +577,7 @@ exports.getQuestionsFromMultipleBanks = async (req, res) => {
 
 		if (!Array.isArray(configurations) || configurations.length === 0) {
 			return res.status(HTTP_STATUS.BAD_REQUEST).json({
-				error: 'Configurations array is required'
+				error: 'Configurations array is required',
 			});
 		}
 
@@ -577,7 +589,7 @@ exports.getQuestionsFromMultipleBanks = async (req, res) => {
 			const questionBank = await QuestionBank.findById(questionBankId);
 			if (!questionBank) {
 				return res.status(HTTP_STATUS.NOT_FOUND).json({
-					error: `Question bank with ID ${questionBankId} not found`
+					error: `Question bank with ID ${questionBankId} not found`,
 				});
 			}
 
@@ -585,9 +597,7 @@ exports.getQuestionsFromMultipleBanks = async (req, res) => {
 
 			// Apply filters
 			if (filters.tags && filters.tags.length > 0) {
-				questions = questions.filter(q => 
-					filters.tags.some(tag => q.tags.includes(tag))
-				);
+				questions = questions.filter(q => filters.tags.some(tag => q.tags.includes(tag)));
 			}
 
 			if (filters.difficulty) {
@@ -595,9 +605,7 @@ exports.getQuestionsFromMultipleBanks = async (req, res) => {
 			}
 
 			if (filters.questionTypes && filters.questionTypes.length > 0) {
-				questions = questions.filter(q => 
-					filters.questionTypes.includes(q.type)
-				);
+				questions = questions.filter(q => filters.questionTypes.includes(q.type));
 			}
 
 			// Randomly select the requested number of questions
@@ -607,11 +615,11 @@ exports.getQuestionsFromMultipleBanks = async (req, res) => {
 			for (let i = 0; i < Math.min(questionCount, availableQuestions.length); i++) {
 				const randomIndex = Math.floor(Math.random() * availableQuestions.length);
 				const selectedQuestion = availableQuestions.splice(randomIndex, 1)[0];
-				
+
 				selectedQuestions.push({
 					...selectedQuestion.toObject(),
 					questionBankId,
-					questionBankName: questionBank.name
+					questionBankName: questionBank.name,
 				});
 			}
 
@@ -620,19 +628,18 @@ exports.getQuestionsFromMultipleBanks = async (req, res) => {
 				questionBankName: questionBank.name,
 				requestedCount: questionCount,
 				actualCount: selectedQuestions.length,
-				questions: selectedQuestions
+				questions: selectedQuestions,
 			});
 		}
 
 		res.status(HTTP_STATUS.OK).json({
 			results,
-			totalQuestions: results.reduce((sum, r) => sum + r.actualCount, 0)
+			totalQuestions: results.reduce((sum, r) => sum + r.actualCount, 0),
 		});
-
 	} catch (error) {
 		console.error('Error getting questions from multiple banks:', error);
 		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-			error: 'Failed to get questions from multiple banks'
+			error: 'Failed to get questions from multiple banks',
 		});
 	}
 };
@@ -641,19 +648,12 @@ exports.getQuestionsFromMultipleBanks = async (req, res) => {
 exports.getQuestionBankQuestions = async (req, res) => {
 	try {
 		const { id } = req.params;
-		const { 
-			page = 1, 
-			limit = 50, 
-			tags, 
-			difficulty, 
-			questionTypes, 
-			search 
-		} = req.query;
+		const { page = 1, limit = 50, tags, difficulty, questionTypes, search } = req.query;
 
 		const questionBank = await QuestionBank.findById(id);
 		if (!questionBank) {
 			return res.status(HTTP_STATUS.NOT_FOUND).json({
-				error: 'Question bank not found'
+				error: 'Question bank not found',
 			});
 		}
 
@@ -662,9 +662,7 @@ exports.getQuestionBankQuestions = async (req, res) => {
 		// Apply filters
 		if (tags) {
 			const tagArray = tags.split(',').map(tag => tag.trim());
-			questions = questions.filter(q => 
-				tagArray.some(tag => q.tags.includes(tag))
-			);
+			questions = questions.filter(q => tagArray.some(tag => q.tags.includes(tag)));
 		}
 
 		if (difficulty) {
@@ -678,9 +676,10 @@ exports.getQuestionBankQuestions = async (req, res) => {
 
 		if (search) {
 			const searchLower = search.toLowerCase();
-			questions = questions.filter(q => 
-				q.text.toLowerCase().includes(searchLower) ||
-				q.tags.some(tag => tag.toLowerCase().includes(searchLower))
+			questions = questions.filter(
+				q =>
+					q.text.toLowerCase().includes(searchLower) ||
+					q.tags.some(tag => tag.toLowerCase().includes(searchLower))
 			);
 		}
 
@@ -693,14 +692,14 @@ exports.getQuestionBankQuestions = async (req, res) => {
 		const questionsWithIds = paginatedQuestions.map((question, index) => ({
 			...question.toObject(),
 			questionId: questionBank.questions.id(question._id) ? question._id : null,
-			index: startIndex + index
+			index: startIndex + index,
 		}));
 
 		res.status(HTTP_STATUS.OK).json({
 			questionBank: {
 				_id: questionBank._id,
 				name: questionBank.name,
-				description: questionBank.description
+				description: questionBank.description,
 			},
 			questions: questionsWithIds,
 			pagination: {
@@ -708,14 +707,13 @@ exports.getQuestionBankQuestions = async (req, res) => {
 				totalPages: Math.ceil(questions.length / limit),
 				totalQuestions: questions.length,
 				hasNextPage: endIndex < questions.length,
-				hasPreviousPage: page > 1
-			}
+				hasPreviousPage: page > 1,
+			},
 		});
-
 	} catch (error) {
 		console.error('Error getting question bank questions:', error);
 		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-			error: 'Failed to get question bank questions'
+			error: 'Failed to get question bank questions',
 		});
 	}
 };
@@ -728,14 +726,14 @@ exports.getQuestionDetails = async (req, res) => {
 		const questionBank = await QuestionBank.findById(bankId);
 		if (!questionBank) {
 			return res.status(HTTP_STATUS.NOT_FOUND).json({
-				error: 'Question bank not found'
+				error: 'Question bank not found',
 			});
 		}
 
 		const question = questionBank.questions.id(questionId);
 		if (!question) {
 			return res.status(HTTP_STATUS.NOT_FOUND).json({
-				error: 'Question not found'
+				error: 'Question not found',
 			});
 		}
 
@@ -744,14 +742,13 @@ exports.getQuestionDetails = async (req, res) => {
 			questionBankName: questionBank.name,
 			question: {
 				...question.toObject(),
-				questionId: question._id
-			}
+				questionId: question._id,
+			},
 		});
-
 	} catch (error) {
 		console.error('Error getting question details:', error);
 		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-			error: 'Failed to get question details'
+			error: 'Failed to get question details',
 		});
 	}
 };

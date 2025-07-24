@@ -330,7 +330,7 @@ export const useSurveys = () => {
 
 	const updateQuestion = async (surveyId: string, questionIndex: number, questionData: any) => {
 		try {
-			const response = await api.put(
+			const response = await api.patch(
 				`/admin/surveys/${surveyId}/questions/${questionIndex}`,
 				questionData
 			);

@@ -12,11 +12,7 @@ interface ImportResultModalProps {
 	} | null;
 }
 
-const ImportResultModal: React.FC<ImportResultModalProps> = ({
-	isOpen,
-	onClose,
-	result,
-}) => {
+const ImportResultModal: React.FC<ImportResultModalProps> = ({ isOpen, onClose, result }) => {
 	if (!isOpen || !result) return null;
 
 	return (
@@ -34,16 +30,22 @@ const ImportResultModal: React.FC<ImportResultModalProps> = ({
 
 				<div className='space-y-4'>
 					{/* Success/Error Status */}
-					<div className={`p-4 rounded-lg ${
-						result.success
-							? 'bg-green-50 border border-green-200'
-							: 'bg-red-50 border border-red-200'
-					}`}>
+					<div
+						className={`p-4 rounded-lg ${
+							result.success
+								? 'bg-green-50 border border-green-200'
+								: 'bg-red-50 border border-red-200'
+						}`}
+					>
 						<div className='flex items-center gap-2 mb-2'>
-							<div className={`text-2xl ${result.success ? 'text-green-600' : 'text-red-600'}`}>
+							<div
+								className={`text-2xl ${result.success ? 'text-green-600' : 'text-red-600'}`}
+							>
 								{result.success ? '✅' : '❌'}
 							</div>
-							<h4 className={`font-semibold ${result.success ? 'text-green-800' : 'text-red-800'}`}>
+							<h4
+								className={`font-semibold ${result.success ? 'text-green-800' : 'text-red-800'}`}
+							>
 								{result.success ? '导入成功' : '导入失败'}
 							</h4>
 						</div>
@@ -105,10 +107,7 @@ const ImportResultModal: React.FC<ImportResultModalProps> = ({
 
 					{/* Action Buttons */}
 					<div className='flex gap-2 pt-2'>
-						<button
-							onClick={onClose}
-							className='btn-primary flex-1'
-						>
+						<button onClick={onClose} className='btn-primary flex-1'>
 							确定
 						</button>
 					</div>

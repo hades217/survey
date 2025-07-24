@@ -14,18 +14,18 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		
+
 		// Validation
 		if (registerForm.password !== registerForm.confirmPassword) {
 			alert('Passwords do not match');
 			return;
 		}
-		
+
 		if (registerForm.password.length < 8) {
 			alert('Password must be at least 8 characters long');
 			return;
 		}
-		
+
 		await register(e);
 	};
 

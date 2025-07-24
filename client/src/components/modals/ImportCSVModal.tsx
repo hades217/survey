@@ -7,12 +7,7 @@ interface ImportCSVModalProps {
 	loading: boolean;
 }
 
-const ImportCSVModal: React.FC<ImportCSVModalProps> = ({
-	isOpen,
-	onClose,
-	onImport,
-	loading,
-}) => {
+const ImportCSVModal: React.FC<ImportCSVModalProps> = ({ isOpen, onClose, onImport, loading }) => {
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 	const [dragActive, setDragActive] = useState(false);
 
@@ -103,11 +98,22 @@ const ImportCSVModal: React.FC<ImportCSVModalProps> = ({
 					<div className='bg-blue-50 p-3 rounded-lg text-sm'>
 						<h4 className='font-medium text-blue-800 mb-2'>CSV 文件格式说明：</h4>
 						<div className='text-blue-700 space-y-1'>
-							<p><strong>列名：</strong> questionText, type, options, correctAnswers, tags</p>
-							<p><strong>类型：</strong> single (单选), multiple (多选), text (文本)</p>
-							<p><strong>选项：</strong> 用分号(;)分隔</p>
-							<p><strong>正确答案：</strong> 选项索引，从0开始，多个用分号分隔</p>
-							<p><strong>标签：</strong> 用逗号(,)分隔</p>
+							<p>
+								<strong>列名：</strong> questionText, type, options, correctAnswers,
+								tags
+							</p>
+							<p>
+								<strong>类型：</strong> single (单选), multiple (多选), text (文本)
+							</p>
+							<p>
+								<strong>选项：</strong> 用分号(;)分隔
+							</p>
+							<p>
+								<strong>正确答案：</strong> 选项索引，从0开始，多个用分号分隔
+							</p>
+							<p>
+								<strong>标签：</strong> 用逗号(,)分隔
+							</p>
 						</div>
 					</div>
 
@@ -139,7 +145,7 @@ const ImportCSVModal: React.FC<ImportCSVModalProps> = ({
 						<input
 							type='file'
 							accept='.csv'
-							onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
+							onChange={e => handleFileSelect(e.target.files?.[0] || null)}
 							className='hidden'
 							id='csv-file-input'
 							disabled={loading}

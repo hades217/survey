@@ -25,7 +25,11 @@ router.delete('/:id/questions/:questionId', questionBankController.deleteQuestio
 // Utility routes (需要登录)
 router.get('/:id/random-questions', questionBankController.getRandomQuestions);
 router.post('/:id/import', questionBankController.importQuestions);
-router.post('/:id/import-csv', upload.single('csvFile'), questionBankController.importQuestionsFromCSV);
+router.post(
+	'/:id/import-csv',
+	upload.single('csvFile'),
+	questionBankController.importQuestionsFromCSV
+);
 
 // Multi-question selection routes
 router.post('/multi-bank-questions', questionBankController.getQuestionsFromMultipleBanks);

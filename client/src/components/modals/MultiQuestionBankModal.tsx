@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuestionBanks } from '../../hooks/useQuestionBanks';
 import Modal from '../Modal';
-import { 
-	QUESTION_TYPE, 
-	type QuestionType 
-} from '../../constants';
+import { QUESTION_TYPE, type QuestionType } from '../../constants';
 
 interface MultiQuestionBankConfig {
 	questionBankId: string;
@@ -36,7 +33,7 @@ const MultiQuestionBankModal: React.FC<MultiQuestionBankModalProps> = ({
 	useEffect(() => {
 		if (show) {
 			setConfigurations(initialConfig.length > 0 ? initialConfig : [createEmptyConfig()]);
-			
+
 			// Extract all unique tags from question banks
 			const allTags = new Set<string>();
 			questionBanks.forEach(bank => {
@@ -67,7 +64,11 @@ const MultiQuestionBankModal: React.FC<MultiQuestionBankModalProps> = ({
 		}
 	};
 
-	const updateConfiguration = (index: number, field: keyof MultiQuestionBankConfig, value: any) => {
+	const updateConfiguration = (
+		index: number,
+		field: keyof MultiQuestionBankConfig,
+		value: any
+	) => {
 		const updated = [...configurations];
 		updated[index] = { ...updated[index], [field]: value };
 		setConfigurations(updated);
@@ -96,7 +97,7 @@ const MultiQuestionBankModal: React.FC<MultiQuestionBankModalProps> = ({
 		let questions = bank.questions;
 
 		if (config.filters?.tags && config.filters.tags.length > 0) {
-			questions = questions.filter(q => 
+			questions = questions.filter(q =>
 				config.filters!.tags!.some(tag => q.tags?.includes(tag))
 			);
 		}
@@ -106,7 +107,7 @@ const MultiQuestionBankModal: React.FC<MultiQuestionBankModalProps> = ({
 		}
 
 		if (config.filters?.questionTypes && config.filters.questionTypes.length > 0) {
-			questions = questions.filter(q => 
+			questions = questions.filter(q =>
 				config.filters!.questionTypes!.includes(q.type as QuestionType)
 			);
 		}
@@ -116,10 +117,11 @@ const MultiQuestionBankModal: React.FC<MultiQuestionBankModalProps> = ({
 
 	const handleSave = () => {
 		// Validate configurations
-		const validConfigs = configurations.filter(config => 
-			config.questionBankId && 
-			config.questionCount > 0 && 
-			getAvailableQuestionCount(config) >= config.questionCount
+		const validConfigs = configurations.filter(
+			config =>
+				config.questionBankId &&
+				config.questionCount > 0 &&
+				getAvailableQuestionCount(config) >= config.questionCount
 		);
 
 		if (validConfigs.length === 0) {
@@ -150,37 +152,39 @@ const MultiQuestionBankModal: React.FC<MultiQuestionBankModalProps> = ({
 	if (!show) return null;
 
 	return (
-		<Modal show={show} onClose={onClose} title="Configure Multi-Question Bank Selection">
-			<div className="space-y-6 max-h-96 overflow-y-auto">
+		<Modal show={show} onClose={onClose} title='Configure Multi-Question Bank Selection'>
+			<div className='space-y-6 max-h-96 overflow-y-auto'>
 				{configurations.map((config, index) => (
-					<div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-						<div className="flex justify-between items-center mb-4">
-							<h4 className="text-sm font-medium text-gray-900">
+					<div key={index} className='border border-gray-200 rounded-lg p-4 bg-gray-50'>
+						<div className='flex justify-between items-center mb-4'>
+							<h4 className='text-sm font-medium text-gray-900'>
 								Configuration {index + 1}
 							</h4>
 							{configurations.length > 1 && (
 								<button
-									type="button"
+									type='button'
 									onClick={() => removeConfiguration(index)}
-									className="text-red-600 hover:text-red-800 text-sm"
+									className='text-red-600 hover:text-red-800 text-sm'
 								>
 									Remove
 								</button>
 							)}
 						</div>
 
-						<div className="space-y-4">
+						<div className='space-y-4'>
 							{/* Question Bank Selection */}
 							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-1">
+								<label className='block text-sm font-medium text-gray-700 mb-1'>
 									Question Bank *
 								</label>
 								<select
 									value={config.questionBankId}
-									onChange={e => updateConfiguration(index, 'questionBankId', e.target.value)}
-									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+									onChange={e =>
+										updateConfiguration(index, 'questionBankId', e.target.value)
+									}
+									className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 								>
-									<option value="">Select a question bank</option>
+									<option value=''>Select a question bank</option>
 									{questionBanks.map(bank => (
 										<option key={bank._id} value={bank._id}>
 											{bank.name} ({bank.questions.length} questions)
@@ -191,60 +195,86 @@ const MultiQuestionBankModal: React.FC<MultiQuestionBankModalProps> = ({
 
 							{/* Question Count */}
 							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-1">
+								<label className='block text-sm font-medium text-gray-700 mb-1'>
 									Number of Questions *
 								</label>
 								<input
-									type="number"
-									min="1"
+									type='number'
+									min='1'
 									max={getAvailableQuestionCount(config)}
 									value={config.questionCount}
-									onChange={e => updateConfiguration(index, 'questionCount', parseInt(e.target.value) || 1)}
-									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+									onChange={e =>
+										updateConfiguration(
+											index,
+											'questionCount',
+											parseInt(e.target.value) || 1
+										)
+									}
+									className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 								/>
-								<p className="text-xs text-gray-500 mt-1">
-									Available questions with filters: {getAvailableQuestionCount(config)}
+								<p className='text-xs text-gray-500 mt-1'>
+									Available questions with filters:{' '}
+									{getAvailableQuestionCount(config)}
 								</p>
 							</div>
 
 							{/* Filters */}
 							{config.questionBankId && (
-								<div className="border-t pt-4">
-									<h5 className="text-sm font-medium text-gray-700 mb-3">Optional Filters</h5>
+								<div className='border-t pt-4'>
+									<h5 className='text-sm font-medium text-gray-700 mb-3'>
+										Optional Filters
+									</h5>
 
 									{/* Difficulty Filter */}
-									<div className="mb-3">
-										<label className="block text-sm font-medium text-gray-700 mb-1">
+									<div className='mb-3'>
+										<label className='block text-sm font-medium text-gray-700 mb-1'>
 											Difficulty
 										</label>
 										<select
 											value={config.filters?.difficulty || ''}
-											onChange={e => updateFilter(index, 'difficulty', e.target.value || undefined)}
-											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+											onChange={e =>
+												updateFilter(
+													index,
+													'difficulty',
+													e.target.value || undefined
+												)
+											}
+											className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 										>
-											<option value="">Any difficulty</option>
-											<option value="easy">Easy</option>
-											<option value="medium">Medium</option>
-											<option value="hard">Hard</option>
+											<option value=''>Any difficulty</option>
+											<option value='easy'>Easy</option>
+											<option value='medium'>Medium</option>
+											<option value='hard'>Hard</option>
 										</select>
 									</div>
 
 									{/* Question Types Filter */}
-									<div className="mb-3">
-										<label className="block text-sm font-medium text-gray-700 mb-2">
+									<div className='mb-3'>
+										<label className='block text-sm font-medium text-gray-700 mb-2'>
 											Question Types
 										</label>
-										<div className="flex flex-wrap gap-2">
+										<div className='flex flex-wrap gap-2'>
 											{Object.values(QUESTION_TYPE).map(type => (
-												<label key={type} className="flex items-center">
+												<label key={type} className='flex items-center'>
 													<input
-														type="checkbox"
-														checked={config.filters?.questionTypes?.includes(type as QuestionType) || false}
-														onChange={() => toggleQuestionType(index, type as QuestionType)}
-														className="mr-1"
+														type='checkbox'
+														checked={
+															config.filters?.questionTypes?.includes(
+																type as QuestionType
+															) || false
+														}
+														onChange={() =>
+															toggleQuestionType(
+																index,
+																type as QuestionType
+															)
+														}
+														className='mr-1'
 													/>
-													<span className="text-sm text-gray-700">
-														{type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+													<span className='text-sm text-gray-700'>
+														{type
+															.replace('_', ' ')
+															.replace(/\b\w/g, l => l.toUpperCase())}
 													</span>
 												</label>
 											))}
@@ -254,14 +284,14 @@ const MultiQuestionBankModal: React.FC<MultiQuestionBankModalProps> = ({
 									{/* Tags Filter */}
 									{availableTags.length > 0 && (
 										<div>
-											<label className="block text-sm font-medium text-gray-700 mb-2">
+											<label className='block text-sm font-medium text-gray-700 mb-2'>
 												Tags
 											</label>
-											<div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
+											<div className='flex flex-wrap gap-1 max-h-20 overflow-y-auto'>
 												{availableTags.map(tag => (
 													<button
 														key={tag}
-														type="button"
+														type='button'
 														onClick={() => toggleTag(index, tag)}
 														className={`px-2 py-1 text-xs rounded-full border ${
 															config.filters?.tags?.includes(tag)
@@ -282,27 +312,27 @@ const MultiQuestionBankModal: React.FC<MultiQuestionBankModalProps> = ({
 				))}
 
 				<button
-					type="button"
+					type='button'
 					onClick={addConfiguration}
-					className="w-full px-4 py-2 border-2 border-dashed border-gray-300 text-gray-600 rounded-lg hover:border-gray-400 hover:text-gray-700 transition-colors"
+					className='w-full px-4 py-2 border-2 border-dashed border-gray-300 text-gray-600 rounded-lg hover:border-gray-400 hover:text-gray-700 transition-colors'
 				>
 					+ Add Another Question Bank
 				</button>
 			</div>
 
 			{/* Form Actions */}
-			<div className="flex justify-end space-x-3 pt-6 border-t mt-6">
+			<div className='flex justify-end space-x-3 pt-6 border-t mt-6'>
 				<button
-					type="button"
+					type='button'
 					onClick={onClose}
-					className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+					className='px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors'
 				>
 					Cancel
 				</button>
 				<button
-					type="button"
+					type='button'
 					onClick={handleSave}
-					className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+					className='px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors'
 				>
 					Save Configuration
 				</button>

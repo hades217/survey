@@ -14,12 +14,9 @@ const AdminHeader: React.FC = () => {
 			</div>
 			<div className='flex items-center gap-3'>
 				<button className='btn-primary' onClick={() => setShowCreateModal(true)}>
-					+ Create Sigma
+					+ Create Survey
 				</button>
-				<button 
-					className='btn-secondary' 
-					onClick={() => navigate('/admin/profile')}
-				>
+				<button className='btn-secondary' onClick={() => navigate('/admin/profile')}>
 					Profile
 				</button>
 				<button className='btn-secondary' onClick={logout}>

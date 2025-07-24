@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 // Check if we need to use a different base URL for API calls
-const API_BASE_URL = window.location.port === '5173' || window.location.port === '5174'
-	? 'http://localhost:5050'
-	: '';
+const API_BASE_URL =
+	window.location.port === '5173' || window.location.port === '5174'
+		? 'http://localhost:5050'
+		: '';
 
 const api = axios.create({
 	baseURL: API_BASE_URL,
@@ -54,7 +55,11 @@ const StudentAssessment = () => {
 				}
 
 				// For question bank-based surveys, fetch questions separately
-				if (['question_bank', 'multi_question_bank', 'manual_selection'].includes(surveyData.sourceType)) {
+				if (
+					['question_bank', 'multi_question_bank', 'manual_selection'].includes(
+						surveyData.sourceType
+					)
+				) {
 					// Need to get questions via the questions endpoint
 					// This will be called when user starts the assessment with email
 					console.log('Survey uses question bank source type:', surveyData.sourceType);
@@ -67,8 +72,7 @@ const StudentAssessment = () => {
 
 		if (isInvitationCode(slug)) {
 			// 通过邀请码获取 survey
-			api
-				.get(`/api/invitations/access/${slug}`)
+			api.get(`/api/invitations/access/${slug}`)
 				.then(res => {
 					loadSurveyAndQuestions(res.data.survey, res.data.invitation);
 				})
@@ -79,21 +83,24 @@ const StudentAssessment = () => {
 				.finally(() => setLoading(false));
 		} else {
 			// 兼容原有 slug 逻辑
-			api
-				.get(`/api/survey/${slug}`)
+			api.get(`/api/survey/${slug}`)
 				.then(res => {
 					loadSurveyAndQuestions(res.data);
 				})
 				.catch(err => {
 					console.error('Error fetching survey:', err);
 					if (err.code === 'ERR_NETWORK') {
-						setError('Network error: Unable to connect to server. Please check if the server is running.');
+						setError(
+							'Network error: Unable to connect to server. Please check if the server is running.'
+						);
 					} else if (err.response?.status === 404) {
 						setError('Assessment not found');
 					} else if (err.response?.status >= 500) {
 						setError('Server error: Please try again later.');
 					} else {
-						setError(`Error: ${err.response?.data?.message || err.message || 'Unknown error'}`);
+						setError(
+							`Error: ${err.response?.data?.message || err.message || 'Unknown error'}`
+						);
 					}
 				})
 				.finally(() => setLoading(false));
@@ -145,18 +152,22 @@ const StudentAssessment = () => {
 		setLoading(true);
 		try {
 			// For question bank-based surveys, fetch questions first
-			if (['question_bank', 'multi_question_bank', 'manual_selection'].includes(survey.sourceType)) {
+			if (
+				['question_bank', 'multi_question_bank', 'manual_selection'].includes(
+					survey.sourceType
+				)
+			) {
 				const questionsResponse = await api.get(`/api/survey/${slug}/questions`, {
 					params: {
 						email: form.email,
-						attempt: 1
-					}
+						attempt: 1,
+					},
 				});
 
 				// Update survey with fetched questions
 				setSurvey(prev => ({
 					...prev,
-					questions: questionsResponse.data.questions
+					questions: questionsResponse.data.questions,
 				}));
 			}
 
@@ -168,13 +179,19 @@ const StudentAssessment = () => {
 		} catch (err) {
 			console.error('Error fetching questions:', err);
 			if (err.code === 'ERR_NETWORK') {
-				setError('Network error: Unable to connect to server. Please check if the server is running.');
+				setError(
+					'Network error: Unable to connect to server. Please check if the server is running.'
+				);
 			} else if (err.response?.status === 400) {
-				setError(`Failed to load questions: ${err.response?.data?.message || 'Invalid request'}`);
+				setError(
+					`Failed to load questions: ${err.response?.data?.message || 'Invalid request'}`
+				);
 			} else if (err.response?.status === 404) {
 				setError('Questions not found for this assessment.');
 			} else {
-				setError(`Failed to load questions: ${err.response?.data?.message || err.message || 'Unknown error'}`);
+				setError(
+					`Failed to load questions: ${err.response?.data?.message || err.message || 'Unknown error'}`
+				);
 			}
 		} finally {
 			setLoading(false);
@@ -381,8 +398,7 @@ const StudentAssessment = () => {
 														? `${survey.multiQuestionBankConfig?.reduce((sum, config) => sum + config.questionCount, 0) || '多题库'} 题`
 														: survey.sourceType === 'manual_selection'
 															? `${survey.selectedQuestions?.length || '已选'} 题`
-															: `${survey.questions?.length || 0} 题`
-											}
+															: `${survey.questions?.length || 0} 题`}
 										</span>
 									</div>
 									{survey.timeLimit && (
@@ -404,10 +420,13 @@ const StudentAssessment = () => {
 									<div className='flex justify-between'>
 										<span className='text-gray-600'>题目类型:</span>
 										<span className='font-medium'>
-											{survey.sourceType === 'manual' && survey.questions?.length > 0
-												? (survey.questions.some(q => q.type === 'multiple_choice')
+											{survey.sourceType === 'manual' &&
+											survey.questions?.length > 0
+												? survey.questions.some(
+														q => q.type === 'multiple_choice'
+													)
 													? '单选+多选'
-													: '单选')
+													: '单选'
 												: '混合题型'}
 										</span>
 									</div>
@@ -526,7 +545,8 @@ const StudentAssessment = () => {
 									{survey.title}
 								</h2>
 								<span className='text-sm text-gray-500'>
-									题目 {currentQuestionIndex + 1} / {survey.questions?.length || 0}
+									题目 {currentQuestionIndex + 1} /{' '}
+									{survey.questions?.length || 0}
 								</span>
 							</div>
 
@@ -740,8 +760,8 @@ const StudentAssessment = () => {
 																</span>{' '}
 																{Array.isArray(result.correctAnswer)
 																	? result.correctAnswer.join(
-																		', '
-																	)
+																			', '
+																		)
 																	: result.correctAnswer}
 															</div>
 														)}

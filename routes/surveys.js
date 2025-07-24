@@ -54,7 +54,13 @@ router.get(
 
 		// For question bank surveys, don't include actual questions in the initial response
 		// Questions will be fetched separately when the user starts the survey
-		if ([SOURCE_TYPE.QUESTION_BANK, SOURCE_TYPE.MULTI_QUESTION_BANK, SOURCE_TYPE.MANUAL_SELECTION].includes(survey.sourceType)) {
+		if (
+			[
+				SOURCE_TYPE.QUESTION_BANK,
+				SOURCE_TYPE.MULTI_QUESTION_BANK,
+				SOURCE_TYPE.MANUAL_SELECTION,
+			].includes(survey.sourceType)
+		) {
 			survey.questions = []; // Clear questions for security
 		}
 
@@ -83,7 +89,13 @@ router.get(
 		if (survey.sourceType === SOURCE_TYPE.MANUAL) {
 			// For manual surveys, return the questions directly
 			questions = survey.questions;
-		} else if ([SOURCE_TYPE.QUESTION_BANK, SOURCE_TYPE.MULTI_QUESTION_BANK, SOURCE_TYPE.MANUAL_SELECTION].includes(survey.sourceType)) {
+		} else if (
+			[
+				SOURCE_TYPE.QUESTION_BANK,
+				SOURCE_TYPE.MULTI_QUESTION_BANK,
+				SOURCE_TYPE.MANUAL_SELECTION,
+			].includes(survey.sourceType)
+		) {
 			// For all question bank-based surveys, check if user has already started
 
 			// Check if user has already started this survey
@@ -116,17 +128,25 @@ router.get(
 					);
 					const shuffled = [...questionBank.questions].sort(() => 0.5 - Math.random());
 					selectedQuestions = shuffled.slice(0, questionCount);
-
 				} else if (survey.sourceType === SOURCE_TYPE.MULTI_QUESTION_BANK) {
 					// Multi-question bank configured selection
-					if (!survey.multiQuestionBankConfig || survey.multiQuestionBankConfig.length === 0) {
-						throw new AppError('Multi-question bank configuration not found', HTTP_STATUS.BAD_REQUEST);
+					if (
+						!survey.multiQuestionBankConfig ||
+						survey.multiQuestionBankConfig.length === 0
+					) {
+						throw new AppError(
+							'Multi-question bank configuration not found',
+							HTTP_STATUS.BAD_REQUEST
+						);
 					}
 
 					for (const config of survey.multiQuestionBankConfig) {
 						const questionBank = await QuestionBank.findById(config.questionBankId);
 						if (!questionBank) {
-							throw new AppError(`Question bank with ID ${config.questionBankId} not found`, HTTP_STATUS.NOT_FOUND);
+							throw new AppError(
+								`Question bank with ID ${config.questionBankId} not found`,
+								HTTP_STATUS.NOT_FOUND
+							);
 						}
 
 						let bankQuestions = [...questionBank.questions];
@@ -134,17 +154,22 @@ router.get(
 						// Apply filters
 						if (config.filters) {
 							if (config.filters.tags && config.filters.tags.length > 0) {
-								bankQuestions = bankQuestions.filter(q => 
+								bankQuestions = bankQuestions.filter(q =>
 									config.filters.tags.some(tag => q.tags && q.tags.includes(tag))
 								);
 							}
 
 							if (config.filters.difficulty) {
-								bankQuestions = bankQuestions.filter(q => q.difficulty === config.filters.difficulty);
+								bankQuestions = bankQuestions.filter(
+									q => q.difficulty === config.filters.difficulty
+								);
 							}
 
-							if (config.filters.questionTypes && config.filters.questionTypes.length > 0) {
-								bankQuestions = bankQuestions.filter(q => 
+							if (
+								config.filters.questionTypes &&
+								config.filters.questionTypes.length > 0
+							) {
+								bankQuestions = bankQuestions.filter(q =>
 									config.filters.questionTypes.includes(q.type)
 								);
 							}
@@ -152,25 +177,31 @@ router.get(
 
 						// Randomly select from filtered questions
 						const shuffled = bankQuestions.sort(() => 0.5 - Math.random());
-						const selected = shuffled.slice(0, Math.min(config.questionCount, shuffled.length));
+						const selected = shuffled.slice(
+							0,
+							Math.min(config.questionCount, shuffled.length)
+						);
 						selectedQuestions.push(...selected);
 					}
-
 				} else if (survey.sourceType === SOURCE_TYPE.MANUAL_SELECTION) {
 					// Manual question selection - use pre-selected questions
 					if (!survey.selectedQuestions || survey.selectedQuestions.length === 0) {
-						throw new AppError('No questions selected for this survey', HTTP_STATUS.BAD_REQUEST);
+						throw new AppError(
+							'No questions selected for this survey',
+							HTTP_STATUS.BAD_REQUEST
+						);
 					}
 
 					// Load the actual question data from snapshots
-					selectedQuestions = survey.selectedQuestions.map(selection => 
-						selection.questionSnapshot || {
-							text: 'Question data not available',
-							type: 'single_choice',
-							options: ['Option 1', 'Option 2'],
-							correctAnswer: 0,
-							points: 1,
-						}
+					selectedQuestions = survey.selectedQuestions.map(
+						selection =>
+							selection.questionSnapshot || {
+								text: 'Question data not available',
+								type: 'single_choice',
+								options: ['Option 1', 'Option 2'],
+								correctAnswer: 0,
+								points: 1,
+							}
 					);
 				}
 

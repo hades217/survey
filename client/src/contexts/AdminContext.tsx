@@ -397,14 +397,14 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 			setLoading(true);
 			const response = await api.get('/admin/profile');
 			setProfileData(response.data);
-			
+
 			// Update forms with current data
 			setProfileForm({
 				name: response.data.user.name,
 				email: response.data.user.email,
 				avatarUrl: response.data.user.avatarUrl || '',
 			});
-			
+
 			setCompanyForm({
 				name: response.data.company.name,
 				industry: response.data.company.industry || '',
@@ -424,7 +424,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		try {
 			setLoading(true);
 			const response = await api.put('/admin/profile', profileForm);
-			
+
 			// Update profile data
 			if (profileData) {
 				setProfileData({
@@ -432,7 +432,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 					user: response.data.user,
 				});
 			}
-			
+
 			setError('');
 			alert('Profile updated successfully!');
 		} catch (err: any) {
@@ -447,13 +447,13 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		try {
 			setLoading(true);
 			await api.put('/admin/profile/password', passwordForm);
-			
+
 			// Clear password form
 			setPasswordForm({
 				currentPassword: '',
 				newPassword: '',
 			});
-			
+
 			setError('');
 			alert('Password updated successfully!');
 		} catch (err: any) {
@@ -468,7 +468,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		try {
 			setLoading(true);
 			const response = await api.put('/admin/company', companyForm);
-			
+
 			// Update profile data
 			if (profileData) {
 				setProfileData({
@@ -476,7 +476,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 					company: response.data.company,
 				});
 			}
-			
+
 			setError('');
 			alert('Company information updated successfully!');
 		} catch (err: any) {

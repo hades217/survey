@@ -23,17 +23,20 @@ This project uses a **multi-container Docker setup** with separate frontend and 
 ## Quick Start
 
 ### 1. Build and Run All Services
+
 ```bash
 # Build and start both frontend and backend
 docker-compose up --build -d
 ```
 
 ### 2. Access the Application
+
 - **Frontend**: http://localhost:5173
 - **Admin Dashboard**: http://localhost:5173/admin
 - **Backend API**: http://localhost:5050/api
 
 ### 3. Stop All Services
+
 ```bash
 docker-compose down
 ```
@@ -41,6 +44,7 @@ docker-compose down
 ## Individual Services
 
 ### Backend Service
+
 - **Port**: 5050
 - **Dockerfile**: `Dockerfile.backend`
 - **Purpose**: Express.js API server
@@ -55,6 +59,7 @@ docker run -p 5050:5050 survey-backend
 ```
 
 ### Frontend Service
+
 - **Port**: 5173
 - **Dockerfile**: `Dockerfile.frontend`
 - **Purpose**: React + Vite development server
@@ -71,31 +76,35 @@ docker run -p 5173:5173 survey-frontend
 ## Docker Compose Configuration
 
 ### Services
+
 - **backend**: Express.js API server
 - **frontend**: React development server
 - **survey-network**: Internal Docker network
 
 ### Environment Variables
+
 ```yaml
 backend:
-  - MONGODB_URI: MongoDB connection string
-  - ADMIN_USERNAME: admin
-  - ADMIN_PASSWORD: password
-  - PORT: 5050
-  - NODE_ENV: production
+    - MONGODB_URI: MongoDB connection string
+    - ADMIN_USERNAME: admin
+    - ADMIN_PASSWORD: password
+    - PORT: 5050
+    - NODE_ENV: production
 
 frontend:
-  - VITE_BASE_URL: http://localhost:5050
+    - VITE_BASE_URL: http://localhost:5050
 ```
 
 ## Development Workflow
 
 ### 1. Start Development Environment
+
 ```bash
 docker-compose up -d
 ```
 
 ### 2. View Logs
+
 ```bash
 # All services
 docker-compose logs -f
@@ -106,6 +115,7 @@ docker-compose logs -f frontend
 ```
 
 ### 3. Access Containers
+
 ```bash
 # Backend container
 docker-compose exec backend sh
@@ -115,6 +125,7 @@ docker-compose exec frontend sh
 ```
 
 ### 4. Rebuild After Changes
+
 ```bash
 # Rebuild specific service
 docker-compose build backend
@@ -127,6 +138,7 @@ docker-compose up --build -d
 ## API Testing
 
 ### Public Endpoints
+
 ```bash
 # List surveys
 curl http://localhost:5050/api/surveys
@@ -141,6 +153,7 @@ curl -X POST http://localhost:5050/api/surveys/{id}/responses \
 ```
 
 ### Admin Endpoints
+
 ```bash
 # Login
 curl -X POST http://localhost:5050/api/admin/login \
@@ -165,6 +178,7 @@ curl -X POST http://localhost:5050/api/admin/surveys \
 ### Common Issues
 
 #### 1. Port Already in Use
+
 ```bash
 # Check what's using the port
 lsof -i :5050
@@ -175,16 +189,19 @@ docker-compose down
 ```
 
 #### 2. Frontend Can't Connect to Backend
+
 - Check if backend is running: `docker-compose ps`
 - Check backend logs: `docker-compose logs backend`
 - Verify Vite proxy configuration in `client/vite.config.ts`
 
 #### 3. MongoDB Connection Issues
+
 - Verify `MONGODB_URI` environment variable
 - Check network connectivity
 - Review backend logs for connection errors
 
 #### 4. Build Failures
+
 ```bash
 # Clean build
 docker-compose down
@@ -215,6 +232,7 @@ docker stats
 ## Production Deployment
 
 ### For Production, consider:
+
 1. **Build frontend for production** (not dev server)
 2. **Use Nginx** to serve static files
 3. **Add SSL/TLS** certificates
@@ -222,6 +240,7 @@ docker stats
 5. **Use environment-specific** configurations
 
 ### Production Dockerfile Example
+
 ```dockerfile
 # Build frontend for production
 FROM node:20-alpine AS frontend-builder
@@ -260,6 +279,7 @@ survey/
 ## Environment Variables
 
 Create a `.env` file for local development:
+
 ```env
 MONGODB_URI=mongodb+srv://...
 ADMIN_USERNAME=admin
