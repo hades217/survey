@@ -6,8 +6,9 @@ export interface Survey {
 	type: 'survey' | 'assessment' | 'quiz' | 'iq';
 	questions: {
 		text: string;
+		imageUrl?: string;
 		type?: 'single_choice' | 'multiple_choice' | 'short_text';
-		options?: string[];
+		options?: string[] | { text?: string; imageUrl?: string; }[];
 		correctAnswer?: number | number[] | string;
 		points?: number;
 	}[];
@@ -72,8 +73,9 @@ export interface QuestionBank {
 export interface Question {
 	_id: string;
 	text: string;
+	imageUrl?: string;
 	type: 'single_choice' | 'multiple_choice' | 'short_text';
-	options?: string[];
+	options?: string[] | { text?: string; imageUrl?: string; }[];
 	correctAnswer?: number | number[] | string;
 	explanation?: string;
 	points?: number;
@@ -111,7 +113,8 @@ export type StatsViewType = 'aggregated' | 'individual';
 
 export interface QuestionForm {
 	text: string;
-	options?: string[];
+	imageUrl?: string;
+	options?: string[] | { text?: string; imageUrl?: string; }[];
 	type: 'single_choice' | 'multiple_choice' | 'short_text';
 	correctAnswer?: number | number[] | string;
 	points?: number;
@@ -140,8 +143,9 @@ export interface NewSurveyForm {
 	type: 'survey' | 'assessment' | 'quiz' | 'iq';
 	questions: {
 		text: string;
+		imageUrl?: string;
 		type?: 'single_choice' | 'multiple_choice' | 'short_text';
-		options?: string[];
+		options?: string[] | { text?: string; imageUrl?: string; }[];
 		correctAnswer?: number | number[] | string;
 		points?: number;
 	}[];

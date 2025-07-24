@@ -13,6 +13,7 @@ const AppError = require('../utils/AppError');
 const { ERROR_MESSAGES, DATA_TYPES, HTTP_STATUS } = require('../shared/constants');
 const { JWT_SECRET, jwtAuth } = require('../middlewares/jwtAuth');
 const QuestionBank = require('../models/QuestionBank');
+const imageUpload = require('../middlewares/imageUpload');
 
 const router = express.Router();
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
@@ -292,7 +293,7 @@ router.put(
 	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { id } = req.params;
-		const { text, options, correctAnswer, points, type } = req.body;
+		const { text, imageUrl, options, correctAnswer, points, type } = req.body;
 
 		// Debug: Log the received data
 		console.log('Add question request body:', req.body);
@@ -316,16 +317,32 @@ router.put(
 
 		// For choice questions, validate options
 		if (type !== 'short_text') {
-			if (
-				!options ||
-				!Array.isArray(options) ||
-				!options.every(o => typeof o === DATA_TYPES.STRING)
-			) {
-				console.log('Validation failed: options validation failed for choice question');
+			if (!options || !Array.isArray(options) || options.length < 2) {
+				console.log('Validation failed: insufficient options for choice question');
 				console.log('Options:', options);
 				return res
 					.status(HTTP_STATUS.BAD_REQUEST)
-					.json({ error: 'Choice questions require valid options array' });
+					.json({ error: 'At least 2 options are required for choice questions' });
+			}
+
+			// Validate option format: each option should have either text or imageUrl
+			const validOptions = options.every(option => {
+				if (typeof option === 'string') {
+					// Legacy format: plain string
+					return option.trim().length > 0;
+				} else if (typeof option === 'object' && option !== null) {
+					// New format: object with text/imageUrl
+					return (option.text && option.text.trim()) || option.imageUrl;
+				}
+				return false;
+			});
+
+			if (!validOptions) {
+				console.log('Validation failed: invalid option format');
+				console.log('Options:', options);
+				return res
+					.status(HTTP_STATUS.BAD_REQUEST)
+					.json({ error: 'Each option must have either text or image' });
 			}
 		}
 
@@ -409,9 +426,26 @@ router.put(
 			type: questionType,
 		};
 
+		// Add question image if provided
+		if (imageUrl) {
+			question.imageUrl = imageUrl;
+		}
+
 		// Only add options for non-short_text questions
 		if (questionType !== 'short_text') {
-			question.options = options;
+			// Normalize options to the new format
+			question.options = options.map(option => {
+				if (typeof option === 'string') {
+					// Legacy format: convert string to object
+					return { text: option, imageUrl: null };
+				} else {
+					// New format: ensure structure
+					return {
+						text: option.text || '',
+						imageUrl: option.imageUrl || null,
+					};
+				}
+			});
 		}
 
 		if (correctAnswer !== undefined) {
@@ -433,7 +467,7 @@ router.patch(
 	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { id, questionIndex } = req.params;
-		const { text, type, options, correctAnswer, points } = req.body;
+		const { text, imageUrl, type, options, correctAnswer, points } = req.body;
 
 		// Validate input - only validate fields that are provided (PATCH method)
 		if (text !== undefined && typeof text !== DATA_TYPES.STRING) {
@@ -447,8 +481,26 @@ router.patch(
 
 		// Validate options only if provided
 		if (options !== undefined) {
-			if (!Array.isArray(options) || !options.every(o => typeof o === DATA_TYPES.STRING)) {
+			if (!Array.isArray(options)) {
 				return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: ERROR_MESSAGES.INVALID_DATA });
+			}
+
+			// Validate option format: each option should have either text or imageUrl
+			const validOptions = options.every(option => {
+				if (typeof option === 'string') {
+					// Legacy format: plain string
+					return option.trim().length > 0;
+				} else if (typeof option === 'object' && option !== null) {
+					// New format: object with text/imageUrl
+					return (option.text && option.text.trim()) || option.imageUrl;
+				}
+				return false;
+			});
+
+			if (!validOptions) {
+				return res
+					.status(HTTP_STATUS.BAD_REQUEST)
+					.json({ error: 'Each option must have either text or image' });
 			}
 		}
 
@@ -534,9 +586,19 @@ router.patch(
 			survey.questions[qIndex].text = text;
 		}
 
+		// Update question image if provided
+		if (imageUrl !== undefined) {
+			if (imageUrl) {
+				survey.questions[qIndex].imageUrl = imageUrl;
+			} else {
+				// Remove image if explicitly set to null/empty
+				delete survey.questions[qIndex].imageUrl;
+			}
+		}
+
 		if (type !== undefined) {
 			survey.questions[qIndex].type = type;
-			
+
 			// Handle type changes - clean up incompatible fields
 			if (type === 'short_text') {
 				// When changing to short_text, remove options
@@ -552,7 +614,19 @@ router.patch(
 		// Update options only if provided and question type allows it
 		if (options !== undefined) {
 			if (effectiveType !== 'short_text') {
-				survey.questions[qIndex].options = options;
+				// Normalize options to the new format
+				survey.questions[qIndex].options = options.map(option => {
+					if (typeof option === 'string') {
+						// Legacy format: convert string to object
+						return { text: option, imageUrl: null };
+					} else {
+						// New format: ensure structure
+						return {
+							text: option.text || '',
+							imageUrl: option.imageUrl || null,
+						};
+					}
+				});
 			}
 		}
 
@@ -683,25 +757,25 @@ router.get(
 	asyncHandler(async (req, res) => {
 		const { surveyId } = req.params;
 		const { name, email, fromDate, toDate, status } = req.query;
-		
+
 		const survey = await Survey.findById(surveyId).lean();
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
 
-		// Build filter query for responses
+				// Build filter query for responses
 		let responseFilter = { surveyId };
-		
+
 		// Filter by name (fuzzy match)
 		if (name) {
 			responseFilter.name = { $regex: name, $options: 'i' };
 		}
-		
+
 		// Filter by email (fuzzy match)
 		if (email) {
 			responseFilter.email = { $regex: email, $options: 'i' };
 		}
-		
+
 		// Filter by date range
 		if (fromDate || toDate) {
 			responseFilter.createdAt = {};
@@ -712,7 +786,7 @@ router.get(
 				responseFilter.createdAt.$lte = new Date(toDate);
 			}
 		}
-		
+
 		// Filter by completion status
 		if (status) {
 			if (status === 'completed') {
@@ -732,7 +806,7 @@ router.get(
 				if (!response.answers || typeof response.answers !== 'object') {
 					return true; // No answers = incomplete
 				}
-				
+
 				// Check if all answers are empty/null/undefined
 				const hasAnswers = Object.values(response.answers).some(answer => {
 					if (answer === null || answer === undefined || answer === '') {
@@ -743,7 +817,7 @@ router.get(
 					}
 					return true;
 				});
-				
+
 				return !hasAnswers; // Return incomplete responses
 			});
 		}
@@ -1478,6 +1552,30 @@ router.put(
 		res.json({
 			message: 'Company information updated successfully',
 			company: company,
+		});
+	})
+);
+
+// Image upload endpoint for questions
+router.post(
+	'/upload/image',
+	jwtAuth,
+	imageUpload.single('image'),
+	asyncHandler(async (req, res) => {
+		if (!req.file) {
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({
+				success: false,
+				error: 'No image file provided',
+			});
+		}
+
+		// Return the image URL
+		const imageUrl = `/uploads/images/${req.file.filename}`;
+		res.json({
+			success: true,
+			imageUrl: imageUrl,
+			originalName: req.file.originalname,
+			size: req.file.size,
 		});
 	})
 );

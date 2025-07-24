@@ -96,7 +96,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		if (tabLocal === TAB_TYPES.STATISTICS && survey._id) {
 			const today = new Date();
 			const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-			
+
 			handleStatisticsFilter({
 				fromDate: thirtyDaysAgo.toISOString().split('T')[0],
 				toDate: today.toISOString().split('T')[0],
@@ -157,6 +157,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	const s = survey;
 	const currentForm = questionForms[s._id] || {
 		text: '',
+		imageUrl: null,
 		options: [],
 		type: QUESTION_TYPE.SINGLE_CHOICE,
 	};
@@ -216,6 +217,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		setQuestionForms(prev => {
 			const currentForm = prev[surveyId] || {
 				text: '',
+				imageUrl: null,
 				options: [],
 				type: QUESTION_TYPE.SINGLE_CHOICE,
 				correctAnswer: undefined,
@@ -249,6 +251,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		setQuestionForms(prev => {
 			const currentForm = prev[surveyId] || {
 				text: '',
+				imageUrl: null,
 				options: [],
 				type: QUESTION_TYPE.SINGLE_CHOICE,
 				correctAnswer: undefined,
@@ -268,6 +271,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		setQuestionForms(prev => {
 			const currentForm = prev[surveyId] || {
 				text: '',
+				imageUrl: null,
 				options: [],
 				type: QUESTION_TYPE.SINGLE_CHOICE,
 				correctAnswer: undefined,
@@ -283,10 +287,11 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		});
 	};
 
-	const handleOptionChange = (surveyId: string, index: number, value: string) => {
+	const handleOptionChange = (surveyId: string, index: number, value: string | { text?: string; imageUrl?: string; }) => {
 		setQuestionForms(prev => {
 			const currentForm = prev[surveyId] || {
 				text: '',
+				imageUrl: null,
 				options: [],
 				type: QUESTION_TYPE.SINGLE_CHOICE,
 				correctAnswer: undefined,
@@ -337,6 +342,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				...prev,
 				[s._id]: {
 					text: '',
+					imageUrl: null,
 					options: ['', ''],
 					type: QUESTION_TYPE.SINGLE_CHOICE,
 					correctAnswer: undefined,
@@ -1523,12 +1529,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 								刷新数据
 							</button>
 						</div>
-						
-						{/* Filter Component */}
-						<StatisticsFilter 
-							onFilter={handleStatisticsFilter}
-							loading={filterLoading}
-						/>
+
 						{stats && stats[s._id] ? (
 							<div className='space-y-4'>
 								{/* Statistics Summary */}
@@ -1556,18 +1557,14 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 									</div>
 								</div>
 
+								{/* Filter Component - moved after overview */}
+								<StatisticsFilter
+									onFilter={handleStatisticsFilter}
+									loading={filterLoading}
+								/>
+
 								{/* Statistics View Toggle */}
 								<div className='flex space-x-4 border-b border-gray-200 pb-2'>
-									<button
-										className={`py-2 px-4 font-medium text-sm transition-colors ${
-											statsView === STATS_VIEW.AGGREGATED
-												? 'text-blue-600 border-b-2 border-blue-600'
-												: 'text-gray-500 hover:text-blue-600'
-										}`}
-										onClick={() => setStatsView(STATS_VIEW.AGGREGATED)}
-									>
-										汇总结果
-									</button>
 									<button
 										className={`py-2 px-4 font-medium text-sm transition-colors ${
 											statsView === STATS_VIEW.INDIVIDUAL
@@ -1578,6 +1575,17 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 									>
 										个人回复 ({stats[s._id]?.userResponses?.length || 0})
 									</button>
+									<button
+										className={`py-2 px-4 font-medium text-sm transition-colors ${
+											statsView === STATS_VIEW.AGGREGATED
+												? 'text-blue-600 border-b-2 border-blue-600'
+												: 'text-gray-500 hover:text-blue-600'
+										}`}
+										onClick={() => setStatsView(STATS_VIEW.AGGREGATED)}
+									>
+										汇总结果
+									</button>
+
 								</div>
 
 								{/* Aggregated Statistics */}
@@ -1647,121 +1655,121 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 														显示第 {((responsePage - 1) * RESPONSE_PAGE_SIZE) + 1} - {Math.min(responsePage * RESPONSE_PAGE_SIZE, stats[s._id].userResponses.length)} 条
 													</div>
 												</div>
-												
+
 												{stats[s._id].userResponses
 													.slice((responsePage - 1) * RESPONSE_PAGE_SIZE, responsePage * RESPONSE_PAGE_SIZE)
 													.map((response, idx) => (
-													<div
-														key={response._id}
-														className='bg-gray-50 rounded-lg p-4'
-													>
-														<div className='flex justify-between items-start mb-3'>
-															<div>
-																<div className='font-semibold text-gray-800'>
-																	{response.name}
-																</div>
-																<div className='text-sm text-gray-500'>
-																	{response.email}
-																</div>
-																{/* Score Information */}
-																{response.score &&
+														<div
+															key={response._id}
+															className='bg-gray-50 rounded-lg p-4'
+														>
+															<div className='flex justify-between items-start mb-3'>
+																<div>
+																	<div className='font-semibold text-gray-800'>
+																		{response.name}
+																	</div>
+																	<div className='text-sm text-gray-500'>
+																		{response.email}
+																	</div>
+																	{/* Score Information */}
+																	{response.score &&
 																	[
 																		'quiz',
 																		'assessment',
 																		'iq',
 																	].includes(s.type) && (
-																	<div className='mt-2 space-y-1'>
-																		<div className='flex items-center gap-2'>
-																			<span className='text-sm font-medium text-blue-600'>
+																		<div className='mt-2 space-y-1'>
+																			<div className='flex items-center gap-2'>
+																				<span className='text-sm font-medium text-blue-600'>
 																				成绩:{' '}
+																					{
+																						response.score
+																							.displayScore
+																					}
+																					{response.score
+																						.scoringMode ===
+																					'percentage'
+																						? '%'
+																						: '分'}
+																				</span>
+																				<span
+																					className={`text-xs px-2 py-1 rounded-full ${
+																						response.score
+																							.passed
+																							? 'bg-green-100 text-green-800'
+																							: 'bg-red-100 text-red-800'
+																					}`}
+																				>
+																					{response.score
+																						.passed
+																						? '通过'
+																						: '未通过'}
+																				</span>
+																			</div>
+																			<div className='text-xs text-gray-500'>
+																			正确:{' '}
 																				{
 																					response.score
-																						.displayScore
-																				}
-																				{response.score
-																					.scoringMode ===
-																					'percentage'
-																					? '%'
-																					: '分'}
-																			</span>
-																			<span
-																				className={`text-xs px-2 py-1 rounded-full ${
-																					response.score
-																						.passed
-																						? 'bg-green-100 text-green-800'
-																						: 'bg-red-100 text-red-800'
-																				}`}
-																			>
-																				{response.score
-																					.passed
-																					? '通过'
-																					: '未通过'}
-																			</span>
-																		</div>
-																		<div className='text-xs text-gray-500'>
-																			正确:{' '}
-																			{
-																				response.score
-																					.correctAnswers
-																			}{' '}
+																						.correctAnswers
+																				}{' '}
 																			/ 错误:{' '}
-																			{
-																				response.score
-																					.wrongAnswers
-																			}
-																			{response.timeSpent && (
-																				<span className='ml-2'>
+																				{
+																					response.score
+																						.wrongAnswers
+																				}
+																				{response.timeSpent && (
+																					<span className='ml-2'>
 																					用时:{' '}
-																					{Math.floor(
-																						response.timeSpent /
+																						{Math.floor(
+																							response.timeSpent /
 																						60
-																					)}
+																						)}
 																					分
-																					{response.timeSpent %
+																						{response.timeSpent %
 																						60}
 																					秒
-																				</span>
-																			)}
+																					</span>
+																				)}
+																			</div>
 																		</div>
-																	</div>
-																)}
-															</div>
-															<div className='text-xs text-gray-500'>
-																{new Date(
-																	response.createdAt
-																).toLocaleDateString()}{' '}
-																{new Date(
-																	response.createdAt
-																).toLocaleTimeString()}
-																{response.isAutoSubmit && (
-																	<div className='text-orange-600 mt-1'>
+																	)}
+																</div>
+																<div className='text-xs text-gray-500'>
+																	{new Date(
+																		response.createdAt
+																	).toLocaleDateString()}{' '}
+																	{new Date(
+																		response.createdAt
+																	).toLocaleTimeString()}
+																	{response.isAutoSubmit && (
+																		<div className='text-orange-600 mt-1'>
 																		(自动提交)
-																	</div>
+																		</div>
+																	)}
+																</div>
+															</div>
+															<div className='space-y-2'>
+																{Object.entries(response.answers).map(
+																	([question, answer]) => (
+																		<div
+																			key={question}
+																			className='border-l-4 border-blue-200 pl-3'
+																		>
+																			<div className='font-medium text-gray-700 text-sm'>
+																				{question}
+																			</div>
+																			<div
+																				className={`text-sm ${answer === 'No answer' ? 'text-gray-400 italic' : 'text-gray-900'}`}
+																			>
+																				{answer}
+																			</div>
+																		</div>
+																	)
 																)}
 															</div>
 														</div>
-														<div className='space-y-2'>
-															{Object.entries(response.answers).map(
-																([question, answer]) => (
-																	<div
-																		key={question}
-																		className='border-l-4 border-blue-200 pl-3'
-																	>
-																		<div className='font-medium text-gray-700 text-sm'>
-																			{question}
-																		</div>
-																		<div
-																			className={`text-sm ${answer === 'No answer' ? 'text-gray-400 italic' : 'text-gray-900'}`}
-																		>
-																			{answer}
-																		</div>
-																	</div>
-																)
-															)}
-														</div>
-													</div>
-												))}
-												
+													))}
+
 												{/* Pagination Controls */}
 												{stats[s._id].userResponses.length > RESPONSE_PAGE_SIZE && (
 													<div className='flex justify-center items-center gap-2 mt-6'>
@@ -1772,7 +1780,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 														>
 															上一页
 														</button>
-														
+
 														<div className='flex gap-1'>
 															{Array.from({ length: Math.ceil(stats[s._id].userResponses.length / RESPONSE_PAGE_SIZE) }, (_, i) => i + 1)
 																.filter(pageNum => {
@@ -1798,7 +1806,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																))
 															}
 														</div>
-														
+
 														<button
 															onClick={() => setResponsePage(prev => Math.min(Math.ceil(stats[s._id].userResponses.length / RESPONSE_PAGE_SIZE), prev + 1))}
 															disabled={responsePage >= Math.ceil(stats[s._id].userResponses.length / RESPONSE_PAGE_SIZE)}

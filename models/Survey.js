@@ -124,6 +124,11 @@ const surveySchema = new mongoose.Schema({
 				type: String,
 				required: true,
 			},
+			// Question image (for visual questions like IQ tests)
+			imageUrl: {
+				type: String,
+				default: null,
+			},
 			type: {
 				type: String,
 				enum: [
@@ -133,9 +138,21 @@ const surveySchema = new mongoose.Schema({
 				],
 				default: QUESTION_TYPE.SINGLE_CHOICE,
 			},
+			// Enhanced options support: can be text, image, or both
 			options: {
-				type: [String],
-				required: false, // Make it always optional
+				type: [
+					{
+						text: {
+							type: String,
+							default: '',
+						},
+						imageUrl: {
+							type: String,
+							default: null,
+						},
+					}
+				],
+				required: false,
 				validate: {
 					validator: function (options) {
 						// For short_text questions, options are optional and can be empty
@@ -143,9 +160,15 @@ const surveySchema = new mongoose.Schema({
 							return true;
 						}
 						// For choice questions, options must exist and have at least 2 items
-						return options && Array.isArray(options) && options.length >= 2;
+						// Each option must have either text or imageUrl
+						if (!options || !Array.isArray(options) || options.length < 2) {
+							return false;
+						}
+						return options.every(option => 
+							(option.text && option.text.trim()) || option.imageUrl
+						);
 					},
-					message: 'At least 2 options are required for choice questions',
+					message: 'At least 2 options are required for choice questions, and each option must have either text or image',
 				},
 			},
 			// For quiz/assessment/iq questions: correct answer(s)

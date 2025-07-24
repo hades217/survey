@@ -6,10 +6,12 @@ import {
 	type QuestionType,
 	type SurveyType,
 } from '../../constants';
+import ImageUpload from '../common/ImageUpload';
 
 interface SurveyQuestionForm {
 	text: string;
-	options?: string[];
+	imageUrl?: string;
+	options?: string[] | { text?: string; imageUrl?: string; }[];
 	type: QuestionType;
 	correctAnswer?: number | number[] | string;
 	points?: number;
@@ -21,7 +23,7 @@ interface AddSurveyQuestionModalProps {
 	onSubmit: (form: SurveyQuestionForm) => void;
 	form: SurveyQuestionForm;
 	onChange: (field: string, value: any) => void;
-	onOptionChange: (index: number, value: string) => void;
+	onOptionChange: (index: number, value: string | { text?: string; imageUrl?: string; }) => void;
 	onAddOption: () => void;
 	onRemoveOption: (index: number) => void;
 	loading?: boolean;
@@ -93,7 +95,20 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 		}
 
 		// For choice questions, need options
-		if (!form.options || form.options.filter(opt => opt.trim()).length < 2) {
+		if (!form.options || form.options.length < 2) {
+			return false;
+		}
+
+		// Check if options have valid content (text or image)
+		const validOptions = form.options.filter(opt => {
+			if (typeof opt === 'string') {
+				return opt.trim().length > 0;
+			} else {
+				return (opt.text && opt.text.trim()) || opt.imageUrl;
+			}
+		});
+
+		if (validOptions.length < 2) {
 			return false;
 		}
 
@@ -137,6 +152,19 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 
 					<div>
 						<label className='block text-sm font-medium text-gray-700 mb-2'>
+							Question Image (Optional)
+						</label>
+						<ImageUpload
+							imageUrl={form.imageUrl}
+							onImageUpload={(url) => onChange('imageUrl', url)}
+							onImageRemove={() => onChange('imageUrl', null)}
+							placeholder='Upload question image for visual questions (IQ tests, etc.)'
+							uploadMethod='cloudinary'
+						/>
+					</div>
+
+					<div>
+						<label className='block text-sm font-medium text-gray-700 mb-2'>
 							Question Type *
 						</label>
 						<select
@@ -173,28 +201,67 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 								</button>
 							</div>
 							{form.options && form.options.length > 0 ? (
-								<div className='space-y-2'>
-									{form.options.map((option, index) => (
-										<div key={index} className='flex items-center gap-2'>
-											<input
-												className='input-field flex-1'
-												placeholder={`Option ${index + 1}`}
-												value={option}
-												onChange={e =>
-													onOptionChange(index, e.target.value)
-												}
-											/>
-											{form.options && form.options.length > 2 && (
-												<button
-													className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
-													onClick={() => onRemoveOption(index)}
-													type='button'
-												>
-													Remove
-												</button>
-											)}
-										</div>
-									))}
+								<div className='space-y-3'>
+									{form.options.map((option, index) => {
+										const isStringOption = typeof option === 'string';
+										const optionText = isStringOption ? option : (option as any)?.text || '';
+										const optionImageUrl = isStringOption ? null : (option as any)?.imageUrl;
+
+										return (
+											<div key={index} className='border border-gray-200 rounded-lg p-3'>
+												<div className='flex items-center gap-2 mb-2'>
+													<span className='text-sm font-medium text-gray-700'>
+														Option {index + 1}
+													</span>
+													{form.options && form.options.length > 2 && (
+														<button
+															className='ml-auto px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors'
+															onClick={() => onRemoveOption(index)}
+															type='button'
+														>
+															Remove
+														</button>
+													)}
+												</div>
+
+												<div className='space-y-2'>
+													<input
+														className='input-field w-full'
+														placeholder={`Option ${index + 1} text`}
+														value={optionText}
+														onChange={e => {
+															const newOption = isStringOption
+																? e.target.value
+																: { text: e.target.value, imageUrl: optionImageUrl };
+															onOptionChange(index, newOption);
+														}}
+													/>
+
+													<div>
+														<label className='block text-xs font-medium text-gray-600 mb-1'>
+															Option Image (Optional)
+														</label>
+														<ImageUpload
+															imageUrl={optionImageUrl}
+															onImageUpload={(url) => {
+																const newOption = { text: optionText, imageUrl: url };
+																onOptionChange(index, newOption);
+															}}
+															onImageRemove={() => {
+																const newOption = isStringOption
+																	? optionText
+																	: { text: optionText, imageUrl: null };
+																onOptionChange(index, newOption);
+															}}
+															placeholder='Upload option image'
+															className='text-xs'
+															uploadMethod='cloudinary'
+														/>
+													</div>
+												</div>
+											</div>
+										);
+									})}
 								</div>
 							) : (
 								<div className='text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center'>
@@ -235,7 +302,11 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 							</label>
 							<div className='space-y-2'>
 								{form.options.map((opt, idx) => {
-									if (!opt.trim()) return null;
+									const optionText = typeof opt === 'string' ? opt : opt?.text || '';
+									const optionImage = typeof opt === 'string' ? null : opt?.imageUrl;
+
+									if (!optionText.trim() && !optionImage) return null;
+
 									const isCorrect = Array.isArray(form.correctAnswer)
 										? form.correctAnswer.includes(idx)
 										: form.correctAnswer === idx;
@@ -264,9 +335,18 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 													</svg>
 												)}
 											</button>
-											<span className='text-sm text-gray-700'>
-												{opt || `Option ${idx + 1}`}
-											</span>
+											<div className='flex items-center gap-2'>
+												<span className='text-sm text-gray-700'>
+													{optionText || `Option ${idx + 1}`}
+												</span>
+												{optionImage && (
+													<img
+														src={optionImage}
+														alt={`Option ${idx + 1}`}
+														className='w-8 h-8 object-cover rounded border'
+													/>
+												)}
+											</div>
 										</div>
 									);
 								})}

@@ -251,7 +251,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 	// UI state
 	const [tab, setTab] = useState<TabType>('list');
 	const [questionBankDetailTab, setQuestionBankDetailTab] = useState('list');
-	const [statsView, setStatsView] = useState<StatsViewType>('aggregated');
+	const [statsView, setStatsView] = useState<StatsViewType>('individual');
 
 	// Modal state
 	const [showCreateModal, setShowCreateModal] = useState(false);

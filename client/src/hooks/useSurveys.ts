@@ -274,10 +274,10 @@ export const useSurveys = () => {
 			if (filters?.fromDate) params.append('fromDate', filters.fromDate);
 			if (filters?.toDate) params.append('toDate', filters.toDate);
 			if (filters?.status) params.append('status', filters.status);
-			
+
 			const queryString = params.toString();
 			const url = `/admin/surveys/${surveyId}/statistics${queryString ? `?${queryString}` : ''}`;
-			
+
 			const response = await api.get(url);
 			setStats(prev => ({
 				...prev,
