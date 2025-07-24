@@ -260,9 +260,25 @@ export const useSurveys = () => {
 		});
 	};
 
-	const loadStats = async (surveyId: string) => {
+	const loadStats = async (surveyId: string, filters?: {
+		name?: string;
+		email?: string;
+		fromDate?: string;
+		toDate?: string;
+		status?: string;
+	}) => {
 		try {
-			const response = await api.get(`/admin/surveys/${surveyId}/statistics`);
+			const params = new URLSearchParams();
+			if (filters?.name) params.append('name', filters.name);
+			if (filters?.email) params.append('email', filters.email);
+			if (filters?.fromDate) params.append('fromDate', filters.fromDate);
+			if (filters?.toDate) params.append('toDate', filters.toDate);
+			if (filters?.status) params.append('status', filters.status);
+			
+			const queryString = params.toString();
+			const url = `/admin/surveys/${surveyId}/statistics${queryString ? `?${queryString}` : ''}`;
+			
+			const response = await api.get(url);
 			setStats(prev => ({
 				...prev,
 				[surveyId]: response.data,

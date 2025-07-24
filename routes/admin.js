@@ -645,12 +645,71 @@ router.get(
 	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { surveyId } = req.params;
+		const { name, email, fromDate, toDate, status } = req.query;
+		
 		const survey = await Survey.findById(surveyId).lean();
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
 
-		const responses = await Response.find({ surveyId }).lean();
+		// Build filter query for responses
+		let responseFilter = { surveyId };
+		
+		// Filter by name (fuzzy match)
+		if (name) {
+			responseFilter.name = { $regex: name, $options: 'i' };
+		}
+		
+		// Filter by email (fuzzy match)
+		if (email) {
+			responseFilter.email = { $regex: email, $options: 'i' };
+		}
+		
+		// Filter by date range
+		if (fromDate || toDate) {
+			responseFilter.createdAt = {};
+			if (fromDate) {
+				responseFilter.createdAt.$gte = new Date(fromDate);
+			}
+			if (toDate) {
+				responseFilter.createdAt.$lte = new Date(toDate);
+			}
+		}
+		
+		// Filter by completion status
+		if (status) {
+			if (status === 'completed') {
+				// Responses with at least one non-empty answer
+				responseFilter.answers = { $exists: true, $ne: {} };
+			} else if (status === 'incomplete') {
+				// This is tricky to filter at DB level, we'll handle it after fetching
+			}
+		}
+
+		let responses = await Response.find(responseFilter).lean();
+
+		// Filter incomplete responses if needed (post-processing)
+		if (status === 'incomplete') {
+			responses = responses.filter(response => {
+				// Check if response has any meaningful answers
+				if (!response.answers || typeof response.answers !== 'object') {
+					return true; // No answers = incomplete
+				}
+				
+				// Check if all answers are empty/null/undefined
+				const hasAnswers = Object.values(response.answers).some(answer => {
+					if (answer === null || answer === undefined || answer === '') {
+						return false;
+					}
+					if (Array.isArray(answer) && answer.length === 0) {
+						return false;
+					}
+					return true;
+				});
+				
+				return !hasAnswers; // Return incomplete responses
+			});
+		}
 
 		// Get questions based on survey type and available snapshots
 		let questions = [];

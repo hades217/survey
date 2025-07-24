@@ -5,6 +5,7 @@ import { Survey, Question, QuestionForm, EnhancedStats } from '../../types/admin
 import QRCodeComponent from '../QRCode';
 import AddSurveyQuestionModal from '../modals/AddSurveyQuestionModal';
 import InviteAssessmentModal from '../modals/InviteAssessmentModal';
+import { StatisticsFilter } from './StatisticsFilter';
 import api from '../../utils/axiosConfig';
 import {
 	SURVEY_TYPE,
@@ -66,7 +67,40 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	const [loadingInvitations, setLoadingInvitations] = useState(false);
 	const [page, setPage] = useState(1);
 	const [search, setSearch] = useState('');
+	const [filterLoading, setFilterLoading] = useState(false);
+	const [responsePage, setResponsePage] = useState(1);
 	const PAGE_SIZE = 10;
+	const RESPONSE_PAGE_SIZE = 5;
+
+	// Handle statistics filter
+	const handleStatisticsFilter = async (filters: {
+		name?: string;
+		email?: string;
+		fromDate?: string;
+		toDate?: string;
+		status?: string;
+	}) => {
+		setFilterLoading(true);
+		setResponsePage(1); // Reset pagination when applying filters
+		try {
+			await loadStats(survey._id, filters);
+		} finally {
+			setFilterLoading(false);
+		}
+	};
+
+	// Load initial statistics with default filter (last 30 days)
+	useEffect(() => {
+		if (tabLocal === TAB_TYPES.STATISTICS && survey._id) {
+			const today = new Date();
+			const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+			
+			handleStatisticsFilter({
+				fromDate: thirtyDaysAgo.toISOString().split('T')[0],
+				toDate: today.toISOString().split('T')[0],
+			});
+		}
+	}, [tabLocal, survey._id]);
 
 	// 加载邀请列表
 	const loadInvitations = async () => {
@@ -1394,6 +1428,12 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 								刷新数据
 							</button>
 						</div>
+						
+						{/* Filter Component */}
+						<StatisticsFilter 
+							onFilter={handleStatisticsFilter}
+							loading={filterLoading}
+						/>
 						{stats && stats[s._id] ? (
 							<div className='space-y-4'>
 								{/* Statistics Summary */}
@@ -1517,8 +1557,18 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 								{statsView === STATS_VIEW.INDIVIDUAL && (
 									<div className='space-y-4'>
 										{stats[s._id]?.userResponses?.length > 0 ? (
-											stats[s._id].userResponses.map(
-												(response, idx) => (
+											<>
+												{/* Pagination info */}
+												<div className='flex justify-between items-center text-sm text-gray-600 mb-4'>
+													<div>
+														共 {stats[s._id].userResponses.length} 条记录，
+														显示第 {((responsePage - 1) * RESPONSE_PAGE_SIZE) + 1} - {Math.min(responsePage * RESPONSE_PAGE_SIZE, stats[s._id].userResponses.length)} 条
+													</div>
+												</div>
+												
+												{stats[s._id].userResponses
+													.slice((responsePage - 1) * RESPONSE_PAGE_SIZE, responsePage * RESPONSE_PAGE_SIZE)
+													.map((response, idx) => (
 													<div
 														key={response._id}
 														className='bg-gray-50 rounded-lg p-4'
@@ -1592,8 +1642,55 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 															))}
 														</div>
 													</div>
-												)
-											)
+												))}
+												
+												{/* Pagination Controls */}
+												{stats[s._id].userResponses.length > RESPONSE_PAGE_SIZE && (
+													<div className='flex justify-center items-center gap-2 mt-6'>
+														<button
+															onClick={() => setResponsePage(prev => Math.max(1, prev - 1))}
+															disabled={responsePage === 1}
+															className='px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+														>
+															上一页
+														</button>
+														
+														<div className='flex gap-1'>
+															{Array.from({ length: Math.ceil(stats[s._id].userResponses.length / RESPONSE_PAGE_SIZE) }, (_, i) => i + 1)
+																.filter(pageNum => {
+																	const totalPages = Math.ceil(stats[s._id].userResponses.length / RESPONSE_PAGE_SIZE);
+																	return pageNum === 1 || pageNum === totalPages || Math.abs(pageNum - responsePage) <= 1;
+																})
+																.map((pageNum, index, array) => (
+																	<React.Fragment key={pageNum}>
+																		{index > 0 && array[index - 1] !== pageNum - 1 && (
+																			<span className='px-2 py-1 text-gray-400'>...</span>
+																		)}
+																		<button
+																			onClick={() => setResponsePage(pageNum)}
+																			className={`px-3 py-1 text-sm border rounded ${
+																				responsePage === pageNum
+																					? 'bg-blue-600 text-white border-blue-600'
+																					: 'hover:bg-gray-50'
+																			}`}
+																		>
+																			{pageNum}
+																		</button>
+																	</React.Fragment>
+																))
+															}
+														</div>
+														
+														<button
+															onClick={() => setResponsePage(prev => Math.min(Math.ceil(stats[s._id].userResponses.length / RESPONSE_PAGE_SIZE), prev + 1))}
+															disabled={responsePage >= Math.ceil(stats[s._id].userResponses.length / RESPONSE_PAGE_SIZE)}
+															className='px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
+														>
+															下一页
+														</button>
+													</div>
+												)}
+											</>
 										) : (
 											<div className='text-center py-8 text-gray-500'>
 												<p>暂无回复数据</p>
