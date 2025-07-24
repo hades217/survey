@@ -1531,6 +1531,32 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																<div className='text-sm text-gray-500'>
 																	{response.email}
 																</div>
+																{/* Score Information */}
+																{response.score && ['quiz', 'assessment', 'iq'].includes(s.type) && (
+																	<div className='mt-2 space-y-1'>
+																		<div className='flex items-center gap-2'>
+																			<span className='text-sm font-medium text-blue-600'>
+																				成绩: {response.score.displayScore}
+																				{response.score.scoringMode === 'percentage' ? '%' : '分'}
+																			</span>
+																			<span className={`text-xs px-2 py-1 rounded-full ${
+																				response.score.passed 
+																					? 'bg-green-100 text-green-800' 
+																					: 'bg-red-100 text-red-800'
+																			}`}>
+																				{response.score.passed ? '通过' : '未通过'}
+																			</span>
+																		</div>
+																		<div className='text-xs text-gray-500'>
+																			正确: {response.score.correctAnswers} / 错误: {response.score.wrongAnswers}
+																			{response.timeSpent && (
+																				<span className='ml-2'>
+																					用时: {Math.floor(response.timeSpent / 60)}分{response.timeSpent % 60}秒
+																				</span>
+																			)}
+																		</div>
+																	</div>
+																)}
 															</div>
 															<div className='text-xs text-gray-500'>
 																{new Date(
@@ -1539,6 +1565,11 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																{new Date(
 																	response.createdAt
 																).toLocaleTimeString()}
+																{response.isAutoSubmit && (
+																	<div className='text-orange-600 mt-1'>
+																		(自动提交)
+																	</div>
+																)}
 															</div>
 														</div>
 														<div className='space-y-2'>

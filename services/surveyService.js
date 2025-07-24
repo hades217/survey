@@ -31,9 +31,13 @@ async function saveSurveyResponse(data) {
 		questionsToProcess = existingResponse.selectedQuestions.map(sq => sq.questionData);
 	}
 
+	// Prepare user answers array for snapshot creation
+	const userAnswersArray = [];
+
 	if (Array.isArray(data.answers)) {
 		// New format: array of answers (string values)
 		data.answers.forEach((answer, index) => {
+			userAnswersArray[index] = answer;
 			if (answer !== null && answer !== undefined && answer !== '') {
 				const question = questionsToProcess[index];
 				if (question) {
@@ -58,6 +62,8 @@ async function saveSurveyResponse(data) {
 	} else {
 		// Old format: object with question IDs as keys
 		Object.entries(data.answers).forEach(([questionId, answer]) => {
+			const index = parseInt(questionId, 10);
+			userAnswersArray[index] = answer;
 			if (answer !== null && answer !== undefined && answer !== '') {
 				processedAnswers.set(questionId, answer);
 			}
@@ -73,6 +79,12 @@ async function saveSurveyResponse(data) {
 		existingResponse.timeSpent = data.timeSpent || 0;
 		existingResponse.isAutoSubmit = data.isAutoSubmit || false;
 		existingResponse.metadata = data.metadata || {};
+
+		// Create question snapshots for the updated response
+		if (questionsToProcess.length > 0) {
+			existingResponse.createQuestionSnapshots(questionsToProcess, userAnswersArray);
+		}
+
 		response = existingResponse;
 	} else {
 		// Create new response
@@ -80,6 +92,11 @@ async function saveSurveyResponse(data) {
 			...data,
 			answers: processedAnswers,
 		});
+
+		// Create question snapshots for the new response
+		if (questionsToProcess.length > 0) {
+			response.createQuestionSnapshots(questionsToProcess, userAnswersArray);
+		}
 	}
 
 	// Calculate score if it's a quiz/assessment/iq

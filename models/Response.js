@@ -12,7 +12,48 @@ const responseSchema = new mongoose.Schema({
 		of: mongoose.Schema.Types.Mixed, // Can be Number or [Number]
 		required: true,
 	},
-	// For question bank submissions: store the selected question IDs
+	// Question snapshots - store complete question data at the time of response
+	// This ensures data consistency even if questions are modified/deleted later
+	questionSnapshots: [
+		{
+			questionId: {
+				type: mongoose.Schema.Types.ObjectId,
+				required: false, // Optional for backward compatibility
+			},
+			questionIndex: {
+				type: Number,
+				required: true,
+			},
+			// Complete question data snapshot
+			questionData: {
+				text: { type: String, required: true },
+				type: {
+					type: String,
+					enum: ['single_choice', 'multiple_choice', 'short_text'],
+					required: true
+				},
+				options: [{ type: String }], // For choice questions
+				correctAnswer: mongoose.Schema.Types.Mixed, // Number, [Number], or String
+				explanation: String,
+				points: { type: Number, default: 1 },
+				tags: [String],
+				difficulty: {
+					type: String,
+					enum: ['easy', 'medium', 'hard'],
+					default: 'medium'
+				},
+			},
+			// User's answer for this question
+			userAnswer: mongoose.Schema.Types.Mixed, // String, [String], or null
+			// Scoring information for this question
+			scoring: {
+				isCorrect: { type: Boolean, default: false },
+				pointsAwarded: { type: Number, default: 0 },
+				maxPoints: { type: Number, default: 1 },
+			},
+		},
+	],
+	// For question bank submissions: store the selected question IDs (legacy support)
 	selectedQuestions: [
 		{
 			originalQuestionId: {
@@ -71,6 +112,63 @@ const responseSchema = new mongoose.Schema({
 	createdAt: { type: Date, default: Date.now },
 });
 
+// Method to create question snapshots from survey questions
+responseSchema.methods.createQuestionSnapshots = function(questions, userAnswers) {
+	this.questionSnapshots = questions.map((question, index) => {
+		const userAnswer = userAnswers[index] || null;
+
+		// Create snapshot of question data
+		const questionSnapshot = {
+			questionId: question._id || null,
+			questionIndex: index,
+			questionData: {
+				text: question.text,
+				type: question.type,
+				options: question.options || [],
+				correctAnswer: question.correctAnswer,
+				explanation: question.explanation || null,
+				points: question.points || 1,
+				tags: question.tags || [],
+				difficulty: question.difficulty || 'medium',
+			},
+			userAnswer: userAnswer,
+			scoring: {
+				isCorrect: false,
+				pointsAwarded: 0,
+				maxPoints: question.points || 1,
+			},
+		};
+
+		// Calculate scoring for this question
+		if (question.correctAnswer !== undefined && question.correctAnswer !== null) {
+			let isCorrect = false;
+
+			if (question.type === 'single_choice') {
+				// For single choice, compare user answer with correct answer
+				const correctOption = question.options[question.correctAnswer];
+				isCorrect = userAnswer === correctOption;
+			} else if (question.type === 'multiple_choice') {
+				// For multiple choice, compare arrays
+				const correctOptions = Array.isArray(question.correctAnswer)
+					? question.correctAnswer.map(idx => question.options[idx])
+					: [question.options[question.correctAnswer]];
+				const userAnswerArray = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
+
+				isCorrect = correctOptions.length === userAnswerArray.length &&
+					correctOptions.every(opt => userAnswerArray.includes(opt));
+			} else if (question.type === 'short_text') {
+				// For short text, exact string comparison
+				isCorrect = userAnswer === question.correctAnswer;
+			}
+
+			questionSnapshot.scoring.isCorrect = isCorrect;
+			questionSnapshot.scoring.pointsAwarded = isCorrect ? (question.points || 1) : 0;
+		}
+
+		return questionSnapshot;
+	});
+};
+
 // Method to calculate score for quiz/assessment/iq
 responseSchema.methods.calculateScore = function (survey) {
 	if (!survey.requiresAnswers) {
@@ -82,47 +180,65 @@ responseSchema.methods.calculateScore = function (survey) {
 	let wrongAnswers = 0;
 	const questionScores = [];
 
-	// Determine the source of questions
-	const isQuestionBank = survey.sourceType === 'question_bank';
-	const questions = isQuestionBank
-		? this.selectedQuestions.map(sq => sq.questionData)
-		: survey.questions;
+	// Use question snapshots if available, otherwise fall back to legacy method
+	let questions = [];
+	if (this.questionSnapshots && this.questionSnapshots.length > 0) {
+		// Use snapshots for scoring
+		questions = this.questionSnapshots.map(snapshot => snapshot.questionData);
+	} else {
+		// Legacy method - determine the source of questions
+		const isQuestionBank = survey.sourceType === 'question_bank';
+		questions = isQuestionBank
+			? this.selectedQuestions.map(sq => sq.questionData)
+			: survey.questions;
+	}
 
 	// Calculate total possible points
 	const maxPossiblePoints = questions.reduce((sum, q) => sum + (q.points || 1), 0);
 
 	// Calculate score for each question
 	questions.forEach((question, index) => {
-		const userAnswer = this.answers.get(index.toString());
-		const correctAnswer = question.correctAnswer;
-		const questionPoints = question.points || 1;
+		let userAnswer, isCorrect, pointsAwarded;
 
-		let isCorrect = false;
-		let pointsAwarded = 0;
-
-		if (userAnswer === undefined || userAnswer === null) {
-			wrongAnswers++;
+		if (this.questionSnapshots && this.questionSnapshots[index]) {
+			// Use snapshot data
+			const snapshot = this.questionSnapshots[index];
+			userAnswer = snapshot.userAnswer;
+			isCorrect = snapshot.scoring.isCorrect;
+			pointsAwarded = snapshot.scoring.pointsAwarded;
 		} else {
-			// Check if answer is correct
-			if (question.type === 'single_choice') {
-				isCorrect = userAnswer === correctAnswer;
-			} else if (question.type === 'multiple_choice') {
-				// For multiple choice, both arrays must have same elements
-				if (Array.isArray(userAnswer) && Array.isArray(correctAnswer)) {
-					const userSet = new Set(userAnswer.sort());
-					const correctSet = new Set(correctAnswer.sort());
-					isCorrect =
-						userSet.size === correctSet.size &&
-						[...userSet].every(val => correctSet.has(val));
-				}
-			}
+			// Legacy method
+			userAnswer = this.answers.get(index.toString());
+			const correctAnswer = question.correctAnswer;
+			const questionPoints = question.points || 1;
 
-			if (isCorrect) {
-				correctAnswers++;
-				pointsAwarded = questionPoints;
-				totalPoints += questionPoints;
-			} else {
+			isCorrect = false;
+			pointsAwarded = 0;
+
+			if (userAnswer === undefined || userAnswer === null) {
 				wrongAnswers++;
+			} else {
+				// Check if answer is correct
+				if (question.type === 'single_choice') {
+					isCorrect = userAnswer === correctAnswer;
+				} else if (question.type === 'multiple_choice') {
+					// For multiple choice, both arrays must have same elements
+					if (Array.isArray(userAnswer) && Array.isArray(correctAnswer)) {
+						const userSet = new Set(userAnswer.sort());
+						const correctSet = new Set(correctAnswer.sort());
+						isCorrect =
+							userSet.size === correctSet.size &&
+							[...userSet].every(val => correctSet.has(val));
+					}
+				}
+
+				if (isCorrect) {
+					correctAnswers++;
+					pointsAwarded = questionPoints;
+					totalPoints += questionPoints;
+				} else {
+					wrongAnswers++;
+				}
 			}
 		}
 
@@ -130,27 +246,37 @@ responseSchema.methods.calculateScore = function (survey) {
 		questionScores.push({
 			questionIndex: index,
 			pointsAwarded,
-			maxPoints: questionPoints,
+			maxPoints: question.points || 1,
 			isCorrect,
 		});
+
+		// Update totals from snapshots
+		if (this.questionSnapshots && this.questionSnapshots[index]) {
+			if (isCorrect) {
+				correctAnswers++;
+				totalPoints += pointsAwarded;
+			} else {
+				wrongAnswers++;
+			}
+		}
 	});
 
 	// Calculate percentage
 	const percentage = maxPossiblePoints > 0 ? (totalPoints / maxPossiblePoints) * 100 : 0;
 
 	// Determine scoring mode and display score
-	const scoringMode = survey.scoringSettings.scoringMode || 'percentage';
+	const scoringMode = survey.scoringSettings?.scoringMode || 'percentage';
 	let displayScore = 0;
 	let passed = false;
 
 	if (scoringMode === 'percentage') {
 		// Percentage mode: score is 0-100
 		displayScore = Math.round(percentage * 100) / 100;
-		passed = percentage >= (survey.scoringSettings.passingThreshold || 60);
+		passed = percentage >= (survey.scoringSettings?.passingThreshold || 60);
 	} else {
 		// Accumulated mode: score is the actual points earned
 		displayScore = totalPoints;
-		passed = totalPoints >= (survey.scoringSettings.passingThreshold || 0);
+		passed = totalPoints >= (survey.scoringSettings?.passingThreshold || 0);
 	}
 
 	// Save all scoring information

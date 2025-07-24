@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 // Check if we need to use a different base URL for API calls
-const API_BASE_URL = window.location.port === '5173' || window.location.port === '5174' 
-	? 'http://localhost:5050' 
+const API_BASE_URL = window.location.port === '5173' || window.location.port === '5174'
+	? 'http://localhost:5050'
 	: '';
 
 const api = axios.create({
@@ -39,12 +39,12 @@ const StudentAssessment = () => {
 		setLoading(true);
 		setError('');
 		setInvitationInfo(null);
-		
+
 		const loadSurveyAndQuestions = async (surveyData, invitationData = null) => {
 			try {
 				setSurvey(surveyData);
 				setInvitationInfo(invitationData);
-				
+
 				if (surveyData.timeLimit) {
 					setTimer({
 						timeLeft: surveyData.timeLimit * 60,
@@ -141,7 +141,7 @@ const StudentAssessment = () => {
 	// Start assessment
 	const startAssessment = async () => {
 		if (!survey) return;
-		
+
 		setLoading(true);
 		try {
 			// For question bank-based surveys, fetch questions first
@@ -152,14 +152,14 @@ const StudentAssessment = () => {
 						attempt: 1
 					}
 				});
-				
+
 				// Update survey with fetched questions
 				setSurvey(prev => ({
 					...prev,
 					questions: questionsResponse.data.questions
 				}));
 			}
-			
+
 			setCurrentStep('questions');
 			setStartTime(new Date());
 			if (survey?.timeLimit) {
@@ -373,9 +373,9 @@ const StudentAssessment = () => {
 									<div className='flex justify-between'>
 										<span className='text-gray-600'>题目数量:</span>
 										<span className='font-medium'>
-											{survey.sourceType === 'manual' 
-												? `${survey.questions.length} 题` 
-												: survey.sourceType === 'question_bank' 
+											{survey.sourceType === 'manual'
+												? `${survey.questions.length} 题`
+												: survey.sourceType === 'question_bank'
 													? `${survey.questionCount || '随机'} 题`
 													: survey.sourceType === 'multi_question_bank'
 														? `${survey.multiQuestionBankConfig?.reduce((sum, config) => sum + config.questionCount, 0) || '多题库'} 题`
@@ -740,8 +740,8 @@ const StudentAssessment = () => {
 																</span>{' '}
 																{Array.isArray(result.correctAnswer)
 																	? result.correctAnswer.join(
-																			', '
-																		)
+																		', '
+																	)
 																	: result.correctAnswer}
 															</div>
 														)}
@@ -758,15 +758,6 @@ const StudentAssessment = () => {
 											</div>
 										</div>
 									))}
-								</div>
-
-								<div className='text-center'>
-									<button
-										onClick={() => navigate('/')}
-										className='bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors'
-									>
-										返回首页
-									</button>
 								</div>
 							</div>
 						)}
