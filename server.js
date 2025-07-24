@@ -2,7 +2,6 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 const mongoose = require('mongoose');
-const cors = require('cors');
 
 const questionsRouter = require('./routes/questions');
 const responsesRouter = require('./routes/responses');
@@ -27,13 +26,7 @@ mongoose
 		process.exit(1);
 	});
 
-// CORS configuration for development
-app.use(cors({
-	origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'],
-	credentials: true,
-	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-	allowedHeaders: ['Content-Type', 'Authorization']
-}));
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
