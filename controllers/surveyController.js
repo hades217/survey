@@ -51,23 +51,23 @@ async function processMultiQuestionBankConfig(config) {
 
 		// Validate that there are enough questions available
 		let availableQuestions = questionBank.questions;
-		
+
 		// Apply filters if provided
 		if (bankConfig.filters) {
 			if (bankConfig.filters.tags && bankConfig.filters.tags.length > 0) {
-				availableQuestions = availableQuestions.filter(q => 
+				availableQuestions = availableQuestions.filter(q =>
 					bankConfig.filters.tags.some(tag => q.tags.includes(tag))
 				);
 			}
-			
+
 			if (bankConfig.filters.difficulty) {
-				availableQuestions = availableQuestions.filter(q => 
-					q.difficulty === bankConfig.filters.difficulty
+				availableQuestions = availableQuestions.filter(
+					q => q.difficulty === bankConfig.filters.difficulty
 				);
 			}
-			
+
 			if (bankConfig.filters.questionTypes && bankConfig.filters.questionTypes.length > 0) {
-				availableQuestions = availableQuestions.filter(q => 
+				availableQuestions = availableQuestions.filter(q =>
 					bankConfig.filters.questionTypes.includes(q.type)
 				);
 			}
@@ -91,7 +91,9 @@ async function processSelectedQuestions(selectedQuestions) {
 
 		const question = questionBank.questions.id(selection.questionId);
 		if (!question) {
-			throw new Error(`Question with ID ${selection.questionId} not found in question bank "${questionBank.name}"`);
+			throw new Error(
+				`Question with ID ${selection.questionId} not found in question bank "${questionBank.name}"`
+			);
 		}
 
 		// Create question snapshot if not provided

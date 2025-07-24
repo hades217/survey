@@ -135,16 +135,15 @@ const surveySchema = new mongoose.Schema({
 			},
 			options: {
 				type: [String],
-				required: function () {
-					return this.type !== QUESTION_TYPE.SHORT_TEXT;
-				},
+				required: false, // Make it always optional
 				validate: {
 					validator: function (options) {
-						// For short_text questions, options are not required
+						// For short_text questions, options are optional and can be empty
 						if (this.type === QUESTION_TYPE.SHORT_TEXT) {
 							return true;
 						}
-						return options && options.length >= 2;
+						// For choice questions, options must exist and have at least 2 items
+						return options && Array.isArray(options) && options.length >= 2;
 					},
 					message: 'At least 2 options are required for choice questions',
 				},

@@ -7,6 +7,7 @@
 ## ✅ 实现的功能
 
 ### 1. 后端功能
+
 - **CSV 文件解析**: 使用 `csv-parser` 库解析上传的 CSV 文件
 - **文件上传处理**: 使用 `multer` 中间件处理文件上传（最大 5MB）
 - **数据验证**: 完整的数据格式验证和错误处理
@@ -14,6 +15,7 @@
 - **模板下载**: 提供标准 CSV 模板下载
 
 ### 2. 前端功能
+
 - **拖拽上传**: 支持拖拽文件上传，用户体验友好
 - **导入向导**: 清晰的 CSV 格式说明和操作指引
 - **进度反馈**: 导入过程中的加载状态显示
@@ -23,21 +25,24 @@
 ## 📄 CSV 文件格式
 
 ### 列结构
+
 ```csv
 questionText,type,options,correctAnswers,tags
 ```
 
 ### 字段说明
+
 - **questionText**: 题干内容（必填）
 - **type**: 题型类型
-  - `single` - 单选题
-  - `multiple` - 多选题  
-  - `text` - 文本题
+    - `single` - 单选题
+    - `multiple` - 多选题
+    - `text` - 文本题
 - **options**: 选项内容，用分号(`;`)分隔（选择题必填）
 - **correctAnswers**: 正确答案索引，从0开始，多个答案用分号分隔
 - **tags**: 题目标签，用逗号(`,`)分隔
 
 ### 示例数据
+
 ```csv
 questionText,type,options,correctAnswers,tags
 你喜欢哪个颜色？,single,红色;绿色;蓝色,1,"颜色,兴趣"
@@ -51,15 +56,16 @@ questionText,type,options,correctAnswers,tags
 ### 后端 API 端点
 
 1. **CSV 导入**
-   ```
-   POST /api/admin/question-banks/:id/import-csv
-   Content-Type: multipart/form-data
-   ```
+
+    ```
+    POST /api/admin/question-banks/:id/import-csv
+    Content-Type: multipart/form-data
+    ```
 
 2. **模板下载**
-   ```
-   GET /api/admin/question-banks/csv-template/download
-   ```
+    ```
+    GET /api/admin/question-banks/csv-template/download
+    ```
 
 ### 核心组件
 
@@ -71,6 +77,7 @@ questionText,type,options,correctAnswers,tags
 ## 🎨 用户界面
 
 ### 导入流程
+
 1. 点击 "📄 导入 CSV" 按钮
 2. 查看格式说明和下载模板
 3. 拖拽或选择 CSV 文件
@@ -78,6 +85,7 @@ questionText,type,options,correctAnswers,tags
 5. 查看导入结果和错误信息
 
 ### 界面特性
+
 - **直观的拖拽区域**: 支持文件拖拽上传
 - **实时文件预览**: 显示选中文件信息
 - **详细的格式说明**: 内置 CSV 格式指南
@@ -87,17 +95,20 @@ questionText,type,options,correctAnswers,tags
 ## ✨ 高级特性
 
 ### 错误处理
+
 - **行级错误定位**: 精确显示错误发生的行号
 - **详细错误描述**: 清楚说明错误原因
 - **部分导入支持**: 跳过错误行，导入有效数据
 
 ### 数据验证
+
 - **格式验证**: 检查 CSV 文件格式
 - **内容验证**: 验证题目内容完整性
 - **答案验证**: 确保正确答案索引有效
 - **类型验证**: 验证题型和选项匹配
 
 ### 用户体验
+
 - **加载状态**: 导入过程中显示进度
 - **成功反馈**: 清楚显示导入成功的题目数量
 - **错误提示**: 友好的错误信息和修复建议
@@ -139,20 +150,20 @@ Parsed questions:
 ## 🚀 使用方法
 
 1. **准备 CSV 文件**
-   - 下载模板文件作为参考
-   - 按照格式要求填写题目数据
-   - 保存为 UTF-8 编码的 CSV 文件
+    - 下载模板文件作为参考
+    - 按照格式要求填写题目数据
+    - 保存为 UTF-8 编码的 CSV 文件
 
 2. **执行导入**
-   - 进入题库详情页面
-   - 点击 "📄 导入 CSV" 按钮
-   - 上传准备好的 CSV 文件
-   - 等待导入完成并查看结果
+    - 进入题库详情页面
+    - 点击 "📄 导入 CSV" 按钮
+    - 上传准备好的 CSV 文件
+    - 等待导入完成并查看结果
 
 3. **处理错误**
-   - 查看错误信息和行号
-   - 修正 CSV 文件中的问题
-   - 重新导入修正后的文件
+    - 查看错误信息和行号
+    - 修正 CSV 文件中的问题
+    - 重新导入修正后的文件
 
 ## 💡 最佳实践
 

@@ -367,7 +367,7 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 			const response = await fetch(`/api/question-banks/${qb._id}/import-csv`, {
 				method: 'POST',
 				headers: {
-					'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+					Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
 				},
 				body: formData,
 			});

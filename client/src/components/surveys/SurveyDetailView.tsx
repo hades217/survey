@@ -61,7 +61,9 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	// Local state for add question modal
 	const [showAddQuestionModal, setShowAddQuestionModal] = useState(false);
 	const [showInviteModal, setShowInviteModal] = useState(false);
-	const [tabLocal, setTabLocal] = useState<'detail' | 'invitations' | 'statistics'>(TAB_TYPES.DETAIL);
+	const [tabLocal, setTabLocal] = useState<'detail' | 'invitations' | 'statistics'>(
+		TAB_TYPES.DETAIL
+	);
 	const [invitations, setInvitations] = useState<any[]>([]);
 	const [loadingInvitations, setLoadingInvitations] = useState(false);
 	const [page, setPage] = useState(1);
@@ -322,11 +324,21 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		const question = s.questions[questionIndex];
 		const formKey = `${surveyId}-${questionIndex}`;
 
+		// Determine question type - if no options exist, it's likely a short text question
+		let questionType = question.type;
+		if (!questionType) {
+			if (!question.options || question.options.length === 0) {
+				questionType = QUESTION_TYPE.SHORT_TEXT;
+			} else {
+				questionType = QUESTION_TYPE.SINGLE_CHOICE;
+			}
+		}
+
 		setQuestionEditForms(prev => ({
 			...prev,
 			[formKey]: {
 				text: question.text,
-				type: question.type || QUESTION_TYPE.SINGLE_CHOICE,
+				type: questionType,
 				options: [...(question.options || [])],
 				correctAnswer: question.correctAnswer,
 				points: question.points,
@@ -353,13 +365,29 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		value: any
 	) => {
 		const formKey = `${surveyId}-${questionIndex}`;
-		setQuestionEditForms(prev => ({
-			...prev,
-			[formKey]: {
-				...prev[formKey],
-				[field]: value,
-			},
-		}));
+		setQuestionEditForms(prev => {
+			const currentForm = prev[formKey];
+			const updatedForm = { ...currentForm, [field]: value };
+
+			// When changing type to short_text, clear options and correctAnswer
+			if (field === 'type' && value === QUESTION_TYPE.SHORT_TEXT) {
+				updatedForm.options = [];
+				updatedForm.correctAnswer = undefined;
+			}
+			// When changing from short_text to choice types, initialize options
+			else if (
+				field === 'type' &&
+				(value === QUESTION_TYPE.SINGLE_CHOICE || value === QUESTION_TYPE.MULTIPLE_CHOICE)
+			) {
+				updatedForm.options = ['', ''];
+				updatedForm.correctAnswer = undefined;
+			}
+
+			return {
+				...prev,
+				[formKey]: updatedForm,
+			};
+		});
 	};
 
 	const handleQuestionEditOptionChange = (
@@ -466,8 +494,33 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		try {
 			setLoading(true);
 
+			// Prepare the data for the API call (PATCH method - only send necessary fields)
+			const updateData: any = {
+				text: editForm.text,
+				type: editForm.type,
+			};
+
+			// Only include options for non-short-text questions
+			if (editForm.type !== QUESTION_TYPE.SHORT_TEXT) {
+				updateData.options = editForm.options || [];
+				// Include correctAnswer if it exists
+				if (editForm.correctAnswer !== undefined) {
+					updateData.correctAnswer = editForm.correctAnswer;
+				}
+			} else {
+				// For short text, only include correctAnswer if it's a non-empty string
+				if (editForm.correctAnswer && typeof editForm.correctAnswer === 'string' && editForm.correctAnswer.trim()) {
+					updateData.correctAnswer = editForm.correctAnswer;
+				}
+			}
+
+			// Include points if defined
+			if (editForm.points !== undefined) {
+				updateData.points = editForm.points;
+			}
+
 			// Update the question via API
-			await updateQuestion(surveyId, questionIndex, editForm);
+			await updateQuestion(surveyId, questionIndex, updateData);
 
 			// Clear editing state
 			setEditingQuestions(prev => ({
@@ -916,79 +969,121 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																	/>
 																</div>
 																<div>
-																	<div className='flex items-center justify-between mb-2'>
-																		<label className='block text-sm font-medium text-gray-700'>
-																			Options
-																		</label>
-																		<button
-																			className='btn-secondary text-sm'
-																			onClick={() =>
-																				addQuestionEditOption(
-																					s._id,
-																					idx
-																				)
-																			}
-																			type='button'
-																		>
-																			+ Add Option
-																		</button>
+																	<label className='block text-sm font-medium text-gray-700 mb-2'>
+																		Question Type *
+																	</label>
+																	<select
+																		className='input-field'
+																		value={editForm?.type || ''}
+																		onChange={e =>
+																			handleQuestionEditChange(
+																				s._id,
+																				idx,
+																				'type',
+																				e.target.value
+																			)
+																		}
+																	>
+																		<option value='single_choice'>
+																			Single Choice
+																		</option>
+																		<option value='multiple_choice'>
+																			Multiple Choice
+																		</option>
+																		<option value='short_text'>
+																			Short Text
+																		</option>
+																	</select>
+																	<div className='text-xs text-gray-500 mt-1'>
+																		{editForm?.type ===
+																			QUESTION_TYPE.SINGLE_CHOICE &&
+																			'Users can select only one answer'}
+																		{editForm?.type ===
+																			QUESTION_TYPE.MULTIPLE_CHOICE &&
+																			'Users can select multiple answers'}
+																		{editForm?.type ===
+																			QUESTION_TYPE.SHORT_TEXT &&
+																			'Users can enter a text response'}
 																	</div>
-																	{editForm?.options &&
-																	editForm.options.length > 0 ? (
-																			<div className='space-y-2'>
-																				{editForm.options.map(
-																					(
-																						option,
-																						optionIndex
-																					) => (
-																						<div
-																							key={
-																								optionIndex
-																							}
-																							className='flex items-center gap-2'
-																						>
-																							<input
-																								className='input-field flex-1'
-																								placeholder={`Option ${optionIndex + 1}`}
-																								value={
-																									option
-																								}
-																								onChange={e =>
-																									handleQuestionEditOptionChange(
-																										s._id,
-																										idx,
-																										optionIndex,
-																										e
-																											.target
-																											.value
-																									)
-																								}
-																							/>
-																							<button
-																								className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
-																								onClick={() =>
-																									removeQuestionEditOption(
-																										s._id,
-																										idx,
-																										optionIndex
-																									)
-																								}
-																								type='button'
-																							>
-																							Remove
-																							</button>
-																						</div>
-																					)
-																				)}
-																			</div>
-																		) : (
-																			<div className='text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center'>
-																			No options added yet.
-																			Click "Add Option" to
-																			start.
-																			</div>
-																		)}
 																</div>
+																{editForm?.type !==
+																	QUESTION_TYPE.SHORT_TEXT && (
+																	<div>
+																		<div className='flex items-center justify-between mb-2'>
+																			<label className='block text-sm font-medium text-gray-700'>
+																				Options
+																			</label>
+																			<button
+																				className='btn-secondary text-sm'
+																				onClick={() =>
+																					addQuestionEditOption(
+																						s._id,
+																						idx
+																					)
+																				}
+																				type='button'
+																			>
+																				+ Add Option
+																			</button>
+																		</div>
+																		{editForm?.options &&
+																		editForm.options.length >
+																			0 ? (
+																				<div className='space-y-2'>
+																					{editForm.options.map(
+																						(
+																							option,
+																							optionIndex
+																						) => (
+																							<div
+																								key={
+																									optionIndex
+																								}
+																								className='flex items-center gap-2'
+																							>
+																								<input
+																									className='input-field flex-1'
+																									placeholder={`Option ${optionIndex + 1}`}
+																									value={
+																										option
+																									}
+																									onChange={e =>
+																										handleQuestionEditOptionChange(
+																											s._id,
+																											idx,
+																											optionIndex,
+																											e
+																												.target
+																												.value
+																										)
+																									}
+																								/>
+																								<button
+																									className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
+																									onClick={() =>
+																										removeQuestionEditOption(
+																											s._id,
+																											idx,
+																											optionIndex
+																										)
+																									}
+																									type='button'
+																								>
+																								Remove
+																								</button>
+																							</div>
+																						)
+																					)}
+																				</div>
+																			) : (
+																				<div className='text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center'>
+																				No options added
+																				yet. Click "Add
+																				Option" to start.
+																				</div>
+																			)}
+																	</div>
+																)}
 																{TYPES_REQUIRING_ANSWERS.includes(
 																	s.type as any
 																) &&
@@ -1398,34 +1493,25 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 							<div className='space-y-4'>
 								{/* Statistics Summary */}
 								<div className='bg-blue-50 rounded-lg p-4'>
-									<h5 className='font-semibold text-gray-800 mb-2'>
-										概览
-									</h5>
+									<h5 className='font-semibold text-gray-800 mb-2'>概览</h5>
 									<div className='grid grid-cols-3 gap-4 text-sm'>
 										<div className='text-center'>
 											<div className='font-bold text-blue-600 text-lg'>
 												{stats[s._id]?.summary?.totalResponses || 0}
 											</div>
-											<div className='text-gray-600'>
-												总回复数
-											</div>
+											<div className='text-gray-600'>总回复数</div>
 										</div>
 										<div className='text-center'>
 											<div className='font-bold text-green-600 text-lg'>
-												{stats[s._id]?.summary?.completionRate || 0}
-												%
+												{stats[s._id]?.summary?.completionRate || 0}%
 											</div>
-											<div className='text-gray-600'>
-												完成率
-											</div>
+											<div className='text-gray-600'>完成率</div>
 										</div>
 										<div className='text-center'>
 											<div className='font-bold text-purple-600 text-lg'>
 												{stats[s._id]?.summary?.totalQuestions || 0}
 											</div>
-											<div className='text-gray-600'>
-												总题目数
-											</div>
+											<div className='text-gray-600'>总题目数</div>
 										</div>
 									</div>
 								</div>
@@ -1458,10 +1544,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 								{statsView === STATS_VIEW.AGGREGATED && (
 									<div className='space-y-4'>
 										{stats[s._id]?.aggregatedStats?.map((st, idx) => (
-											<div
-												key={idx}
-												className='bg-gray-50 rounded-lg p-4'
-											>
+											<div key={idx} className='bg-gray-50 rounded-lg p-4'>
 												<div className='font-semibold text-gray-800 mb-2'>
 													{st.question}
 												</div>
@@ -1473,10 +1556,9 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																	?.totalResponses > 0
 																	? (
 																		(count /
-																			stats[s._id]
-																				.summary
-																				.totalResponses) *
-																		100
+																				stats[s._id].summary
+																					.totalResponses) *
+																			100
 																	).toFixed(1)
 																	: 0;
 															return (
@@ -1517,65 +1599,99 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 								{statsView === STATS_VIEW.INDIVIDUAL && (
 									<div className='space-y-4'>
 										{stats[s._id]?.userResponses?.length > 0 ? (
-											stats[s._id].userResponses.map(
-												(response, idx) => (
-													<div
-														key={response._id}
-														className='bg-gray-50 rounded-lg p-4'
-													>
-														<div className='flex justify-between items-start mb-3'>
-															<div>
-																<div className='font-semibold text-gray-800'>
-																	{response.name}
-																</div>
-																<div className='text-sm text-gray-500'>
-																	{response.email}
-																</div>
-																{/* Score Information */}
-																{response.score && ['quiz', 'assessment', 'iq'].includes(s.type) && (
-																	<div className='mt-2 space-y-1'>
-																		<div className='flex items-center gap-2'>
-																			<span className='text-sm font-medium text-blue-600'>
-																				成绩: {response.score.displayScore}
-																				{response.score.scoringMode === 'percentage' ? '%' : '分'}
-																			</span>
-																			<span className={`text-xs px-2 py-1 rounded-full ${
-																				response.score.passed 
-																					? 'bg-green-100 text-green-800' 
+											stats[s._id].userResponses.map((response, idx) => (
+												<div
+													key={response._id}
+													className='bg-gray-50 rounded-lg p-4'
+												>
+													<div className='flex justify-between items-start mb-3'>
+														<div>
+															<div className='font-semibold text-gray-800'>
+																{response.name}
+															</div>
+															<div className='text-sm text-gray-500'>
+																{response.email}
+															</div>
+															{/* Score Information */}
+															{response.score &&
+																[
+																	'quiz',
+																	'assessment',
+																	'iq',
+																].includes(s.type) && (
+																<div className='mt-2 space-y-1'>
+																	<div className='flex items-center gap-2'>
+																		<span className='text-sm font-medium text-blue-600'>
+																				成绩:{' '}
+																			{
+																				response.score
+																					.displayScore
+																			}
+																			{response.score
+																				.scoringMode ===
+																				'percentage'
+																				? '%'
+																				: '分'}
+																		</span>
+																		<span
+																			className={`text-xs px-2 py-1 rounded-full ${
+																				response.score
+																					.passed
+																					? 'bg-green-100 text-green-800'
 																					: 'bg-red-100 text-red-800'
-																			}`}>
-																				{response.score.passed ? '通过' : '未通过'}
+																			}`}
+																		>
+																			{response.score
+																				.passed
+																				? '通过'
+																				: '未通过'}
+																		</span>
+																	</div>
+																	<div className='text-xs text-gray-500'>
+																			正确:{' '}
+																		{
+																			response.score
+																				.correctAnswers
+																		}{' '}
+																			/ 错误:{' '}
+																		{
+																			response.score
+																				.wrongAnswers
+																		}
+																		{response.timeSpent && (
+																			<span className='ml-2'>
+																					用时:{' '}
+																				{Math.floor(
+																					response.timeSpent /
+																							60
+																				)}
+																					分
+																				{response.timeSpent %
+																						60}
+																					秒
 																			</span>
-																		</div>
-																		<div className='text-xs text-gray-500'>
-																			正确: {response.score.correctAnswers} / 错误: {response.score.wrongAnswers}
-																			{response.timeSpent && (
-																				<span className='ml-2'>
-																					用时: {Math.floor(response.timeSpent / 60)}分{response.timeSpent % 60}秒
-																				</span>
-																			)}
-																		</div>
+																		)}
 																	</div>
-																)}
-															</div>
-															<div className='text-xs text-gray-500'>
-																{new Date(
-																	response.createdAt
-																).toLocaleDateString()}{' '}
-																{new Date(
-																	response.createdAt
-																).toLocaleTimeString()}
-																{response.isAutoSubmit && (
-																	<div className='text-orange-600 mt-1'>
-																		(自动提交)
-																	</div>
-																)}
-															</div>
+																</div>
+															)}
 														</div>
-														<div className='space-y-2'>
-															{Object.entries(
-																response.answers
-															).map(([question, answer]) => (
+														<div className='text-xs text-gray-500'>
+															{new Date(
+																response.createdAt
+															).toLocaleDateString()}{' '}
+															{new Date(
+																response.createdAt
+															).toLocaleTimeString()}
+															{response.isAutoSubmit && (
+																<div className='text-orange-600 mt-1'>
+																	(自动提交)
+																</div>
+															)}
+														</div>
+													</div>
+													<div className='space-y-2'>
+														{Object.entries(response.answers).map(
+															([question, answer]) => (
 																<div
 																	key={question}
 																	className='border-l-4 border-blue-200 pl-3'
@@ -1589,11 +1705,11 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																		{answer}
 																	</div>
 																</div>
-															))}
-														</div>
+															)
+														)}
 													</div>
-												)
-											)
+												</div>
+											))
 										) : (
 											<div className='text-center py-8 text-gray-500'>
 												<p>暂无回复数据</p>

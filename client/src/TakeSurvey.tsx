@@ -661,30 +661,6 @@ const TakeSurvey: React.FC = () => {
 											))}
 										</div>
 									)}
-
-									<div className='text-center'>
-										<button
-											onClick={() => {
-												if (slug) {
-												// If we're on a specific survey page, reset the form
-													setSubmitted(false);
-													setForm({ name: '', email: '', answers: {} });
-													setAssessmentResults([]);
-													setScoringResult(null);
-													setQuestions([]);
-													setQuestionsLoaded(false);
-												} else {
-												// If we're on the home page, go back to survey list
-													navigate('/');
-												}
-											}}
-											className='btn-secondary'
-										>
-											{slug
-												? 'Take This Assessment Again'
-												: 'Choose Another Survey'}
-										</button>
-									</div>
 								</div>
 							) : (
 								<div className='text-center'>
@@ -695,25 +671,6 @@ const TakeSurvey: React.FC = () => {
 									<p className='text-gray-600 text-lg mb-6'>
 									Your survey response has been submitted successfully.
 									</p>
-									<button
-										onClick={() => {
-											if (slug) {
-											// If we're on a specific survey page, reset the form
-												setSubmitted(false);
-												setForm({ name: '', email: '', answers: {} });
-												setAssessmentResults([]);
-												setScoringResult(null);
-												setQuestions([]);
-												setQuestionsLoaded(false);
-											} else {
-											// If we're on the home page, go back to survey list
-												navigate('/');
-											}
-										}}
-										className='btn-secondary'
-									>
-										{slug ? 'Take This Survey Again' : 'Choose Another Survey'}
-									</button>
 								</div>
 							)}
 					</div>

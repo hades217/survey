@@ -1,5 +1,11 @@
 const { z } = require('zod');
-const { SURVEY_TYPE, QUESTION_TYPE, SOURCE_TYPE, TYPES_REQUIRING_ANSWERS, VALID_SOURCE_TYPES } = require('../shared/constants');
+const {
+	SURVEY_TYPE,
+	QUESTION_TYPE,
+	SOURCE_TYPE,
+	TYPES_REQUIRING_ANSWERS,
+	VALID_SOURCE_TYPES,
+} = require('../shared/constants');
 
 // Question schema
 const questionSchema = z
@@ -66,7 +72,9 @@ const selectedQuestionSchema = z.object({
 			text: z.string(),
 			type: z.string(),
 			options: z.array(z.string()).optional(),
-			correctAnswer: z.union([z.number(), z.array(z.number()), z.string(), z.null()]).optional(),
+			correctAnswer: z
+				.union([z.number(), z.array(z.number()), z.string(), z.null()])
+				.optional(),
 			explanation: z.string().optional(),
 			points: z.number().optional(),
 			tags: z.array(z.string()).optional(),
@@ -115,8 +123,14 @@ const surveyCreateSchema = z
 	.refine(
 		data => {
 			// Validate that survey type cannot use question banks
-			if (data.type === SURVEY_TYPE.SURVEY && 
-				[SOURCE_TYPE.QUESTION_BANK, SOURCE_TYPE.MULTI_QUESTION_BANK, SOURCE_TYPE.MANUAL_SELECTION].includes(data.sourceType)) {
+			if (
+				data.type === SURVEY_TYPE.SURVEY &&
+				[
+					SOURCE_TYPE.QUESTION_BANK,
+					SOURCE_TYPE.MULTI_QUESTION_BANK,
+					SOURCE_TYPE.MANUAL_SELECTION,
+				].includes(data.sourceType)
+			) {
 				return false;
 			}
 			return true;

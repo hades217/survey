@@ -30,7 +30,7 @@ const responseSchema = new mongoose.Schema({
 				type: {
 					type: String,
 					enum: ['single_choice', 'multiple_choice', 'short_text'],
-					required: true
+					required: true,
 				},
 				options: [{ type: String }], // For choice questions
 				correctAnswer: mongoose.Schema.Types.Mixed, // Number, [Number], or String
@@ -40,7 +40,7 @@ const responseSchema = new mongoose.Schema({
 				difficulty: {
 					type: String,
 					enum: ['easy', 'medium', 'hard'],
-					default: 'medium'
+					default: 'medium',
 				},
 			},
 			// User's answer for this question
@@ -113,7 +113,7 @@ const responseSchema = new mongoose.Schema({
 });
 
 // Method to create question snapshots from survey questions
-responseSchema.methods.createQuestionSnapshots = function(questions, userAnswers) {
+responseSchema.methods.createQuestionSnapshots = function (questions, userAnswers) {
 	this.questionSnapshots = questions.map((question, index) => {
 		const userAnswer = userAnswers[index] || null;
 
@@ -154,7 +154,8 @@ responseSchema.methods.createQuestionSnapshots = function(questions, userAnswers
 					: [question.options[question.correctAnswer]];
 				const userAnswerArray = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
 
-				isCorrect = correctOptions.length === userAnswerArray.length &&
+				isCorrect =
+					correctOptions.length === userAnswerArray.length &&
 					correctOptions.every(opt => userAnswerArray.includes(opt));
 			} else if (question.type === 'short_text') {
 				// For short text, exact string comparison
@@ -162,7 +163,7 @@ responseSchema.methods.createQuestionSnapshots = function(questions, userAnswers
 			}
 
 			questionSnapshot.scoring.isCorrect = isCorrect;
-			questionSnapshot.scoring.pointsAwarded = isCorrect ? (question.points || 1) : 0;
+			questionSnapshot.scoring.pointsAwarded = isCorrect ? question.points || 1 : 0;
 		}
 
 		return questionSnapshot;

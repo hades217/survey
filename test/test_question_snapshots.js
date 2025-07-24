@@ -2,14 +2,15 @@ const axios = require('axios');
 const mongoose = require('mongoose');
 
 const BASE_URL = 'http://localhost:5050';
-const ADMIN_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MzI0NDE3MywiZXhwIjoxNzUzODQ4OTczfQ.uxFrtqbGpJGUaYgOr5xSRjCby7dakdUrh3LAiyx-Yiw';
+const ADMIN_TOKEN =
+	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MzI0NDE3MywiZXhwIjoxNzUzODQ4OTczfQ.uxFrtqbGpJGUaYgOr5xSRjCby7dakdUrh3LAiyx-Yiw';
 
 const api = axios.create({
 	baseURL: BASE_URL,
 	headers: {
-		'Authorization': `Bearer ${ADMIN_TOKEN}`,
-		'Content-Type': 'application/json'
-	}
+		Authorization: `Bearer ${ADMIN_TOKEN}`,
+		'Content-Type': 'application/json',
+	},
 });
 
 async function testQuestionSnapshots() {
@@ -30,7 +31,7 @@ async function testQuestionSnapshots() {
 					explanation: '2 + 2 equals 4',
 					points: 1,
 					tags: ['math', 'basic'],
-					difficulty: 'easy'
+					difficulty: 'easy',
 				},
 				{
 					text: 'Which are even numbers?',
@@ -40,10 +41,10 @@ async function testQuestionSnapshots() {
 					explanation: 'Even numbers are divisible by 2',
 					points: 2,
 					tags: ['math', 'even'],
-					difficulty: 'medium'
-				}
+					difficulty: 'medium',
+				},
 			],
-			createdBy: 'admin'
+			createdBy: 'admin',
 		});
 
 		const questionBankId = questionBank.data._id;
@@ -64,8 +65,8 @@ async function testQuestionSnapshots() {
 				passingThreshold: 60,
 				showScore: true,
 				showCorrectAnswers: true,
-				showScoreBreakdown: true
-			}
+				showScoreBreakdown: true,
+			},
 		});
 
 		const surveyId = survey.data._id;
@@ -77,7 +78,7 @@ async function testQuestionSnapshots() {
 			name: 'Test User',
 			email: 'test@example.com',
 			answers: ['4', ['2', '4']], // Correct answers
-			timeSpent: 120
+			timeSpent: 120,
 		});
 
 		console.log('✅ Response submitted successfully\n');
@@ -90,7 +91,9 @@ async function testQuestionSnapshots() {
 		if (testResponse.questionSnapshots && testResponse.questionSnapshots.length > 0) {
 			console.log('✅ Question snapshots found!');
 			console.log(`   - Number of snapshots: ${testResponse.questionSnapshots.length}`);
-			console.log(`   - First question: "${testResponse.questionSnapshots[0].questionData.text}"`);
+			console.log(
+				`   - First question: "${testResponse.questionSnapshots[0].questionData.text}"`
+			);
 			console.log(`   - User answer: ${testResponse.questionSnapshots[0].userAnswer}`);
 			console.log(`   - Is correct: ${testResponse.questionSnapshots[0].scoring.isCorrect}`);
 		} else {
@@ -111,7 +114,7 @@ async function testQuestionSnapshots() {
 					explanation: '2 + 2 equals 4 (updated)',
 					points: 2,
 					tags: ['math', 'basic', 'modified'],
-					difficulty: 'medium'
+					difficulty: 'medium',
 				},
 				{
 					text: 'Which are even numbers? (MODIFIED)',
@@ -121,9 +124,9 @@ async function testQuestionSnapshots() {
 					explanation: 'Even numbers are divisible by 2 (updated)',
 					points: 3,
 					tags: ['math', 'even', 'modified'],
-					difficulty: 'hard'
-				}
-			]
+					difficulty: 'hard',
+				},
+			],
 		});
 
 		console.log('✅ Question bank modified\n');
@@ -140,7 +143,9 @@ async function testQuestionSnapshots() {
 		if (statistics.data.aggregatedStats.length > 0) {
 			console.log('   - First question in stats:');
 			console.log(`     "${statistics.data.aggregatedStats[0].question}"`);
-			console.log(`     Options: ${Object.keys(statistics.data.aggregatedStats[0].options).join(', ')}`);
+			console.log(
+				`     Options: ${Object.keys(statistics.data.aggregatedStats[0].options).join(', ')}`
+			);
 		}
 
 		// Step 7: Submit another response with modified questions
@@ -149,7 +154,7 @@ async function testQuestionSnapshots() {
 			name: 'Test User 2',
 			email: 'test2@example.com',
 			answers: ['4', ['2', '4', '6']], // Correct answers for modified questions
-			timeSpent: 150
+			timeSpent: 150,
 		});
 
 		console.log('✅ Second response submitted\n');
@@ -179,7 +184,9 @@ async function testQuestionSnapshots() {
 			console.log(`     - Has snapshots: ${resp.questionSnapshots ? 'Yes' : 'No'}`);
 			if (resp.questionSnapshots) {
 				console.log(`     - Snapshot count: ${resp.questionSnapshots.length}`);
-				console.log(`     - First question: "${resp.questionSnapshots[0].questionData.text}"`);
+				console.log(
+					`     - First question: "${resp.questionSnapshots[0].questionData.text}"`
+				);
 			}
 			if (resp.score) {
 				console.log(`     - Score: ${resp.score.displayScore} (${resp.score.percentage}%)`);
@@ -193,7 +200,6 @@ async function testQuestionSnapshots() {
 		console.log('✅ Statistics use snapshots instead of current question bank state');
 		console.log('✅ Historical data remains consistent even when questions are modified');
 		console.log('✅ Both old and new responses maintain their original question context');
-
 	} catch (error) {
 		console.error('❌ Test failed:', error.response?.data || error.message);
 		console.error('Stack trace:', error.stack);
@@ -201,10 +207,12 @@ async function testQuestionSnapshots() {
 }
 
 // Run the test
-testQuestionSnapshots().then(() => {
-	console.log('\n🏁 Test script finished');
-	process.exit(0);
-}).catch(error => {
-	console.error('💥 Test script crashed:', error);
-	process.exit(1);
-});
+testQuestionSnapshots()
+	.then(() => {
+		console.log('\n🏁 Test script finished');
+		process.exit(0);
+	})
+	.catch(error => {
+		console.error('💥 Test script crashed:', error);
+		process.exit(1);
+	});

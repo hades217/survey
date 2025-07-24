@@ -8,16 +8,17 @@
 
 ### 后端 API 路由
 
-| 方法 | 路径 | 描述 |
-|------|------|------|
-| `GET` | `/api/admin/profile` | 获取当前管理员与公司信息 |
-| `PUT` | `/api/admin/profile` | 更新个人信息（不含密码） |
-| `PUT` | `/api/admin/profile/password` | 修改密码 |
-| `PUT` | `/api/admin/company` | 更新公司信息 |
+| 方法  | 路径                          | 描述                     |
+| ----- | ----------------------------- | ------------------------ |
+| `GET` | `/api/admin/profile`          | 获取当前管理员与公司信息 |
+| `PUT` | `/api/admin/profile`          | 更新个人信息（不含密码） |
+| `PUT` | `/api/admin/profile/password` | 修改密码                 |
+| `PUT` | `/api/admin/company`          | 更新公司信息             |
 
 ### 数据模型
 
 #### 新增 Company 模型 (`models/Company.js`)
+
 ```javascript
 {
   name: String (required),     // 公司名称
@@ -31,6 +32,7 @@
 ```
 
 #### 扩展 User 模型 (`models/User.js`)
+
 ```javascript
 {
   // 原有字段...
@@ -43,24 +45,28 @@
 ## 🎨 前端界面实现
 
 ### 路由配置
+
 - 页面路径：`/admin/profile`
 - 集成到现有管理员导航系统中
 
 ### 组件结构
 
 #### ProfileView 组件 (`client/src/components/profile/ProfileView.tsx`)
+
 - **双标签页设计**：
-  - "Personal Information" - 个人信息管理
-  - "Company Information" - 公司信息管理
+    - "Personal Information" - 个人信息管理
+    - "Company Information" - 公司信息管理
 
 #### 个人信息部分
+
 - ✅ 姓名（name）
 - ✅ 邮箱（email）
 - ✅ 头像上传（支持图片预览）
 - ✅ 密码修改（需验证旧密码）
 
 #### 公司信息部分
-- ✅ 公司名称（companyName）*必填
+
+- ✅ 公司名称（companyName）\*必填
 - ✅ 所属行业（industry）
 - ✅ 公司 Logo 上传（logoUrl）
 - ✅ 公司介绍 / 简介（description）
@@ -78,20 +84,23 @@
 ## 🔧 技术实现细节
 
 ### 状态管理
+
 - 使用 AdminContext 进行状态管理
 - 新增类型定义：
-  - `AdminUser`
-  - `Company`
-  - `ProfileData`
-  - `ProfileForm`
-  - `PasswordForm`
-  - `CompanyForm`
+    - `AdminUser`
+    - `Company`
+    - `ProfileData`
+    - `ProfileForm`
+    - `PasswordForm`
+    - `CompanyForm`
 
 ### 文件上传
+
 - 当前实现：使用 FileReader API 转换为 Data URL
 - 生产环境建议：集成云存储服务（如 AWS S3、阿里云OSS等）
 
 ### 安全性
+
 - JWT 认证保护所有 API 端点
 - 密码验证（当前基于环境变量，可扩展为数据库存储）
 - 输入验证和清理
@@ -99,28 +108,29 @@
 ## 📱 使用流程
 
 1. **访问个人资料页面**
-   - 在管理员头部点击 "Profile" 按钮
-   - 或直接访问 `/admin/profile`
+    - 在管理员头部点击 "Profile" 按钮
+    - 或直接访问 `/admin/profile`
 
 2. **编辑个人信息**
-   - 在 "Personal Information" 标签页中
-   - 更新姓名、邮箱、上传头像
-   - 点击 "Update Profile" 保存
+    - 在 "Personal Information" 标签页中
+    - 更新姓名、邮箱、上传头像
+    - 点击 "Update Profile" 保存
 
 3. **修改密码**
-   - 在 "Personal Information" 标签页右侧
-   - 输入当前密码和新密码
-   - 点击 "Change Password" 保存
+    - 在 "Personal Information" 标签页右侧
+    - 输入当前密码和新密码
+    - 点击 "Change Password" 保存
 
 4. **编辑公司信息**
-   - 切换到 "Company Information" 标签页
-   - 填写公司名称、行业、上传 Logo
-   - 添加公司描述和网址
-   - 点击 "Update Company Information" 保存
+    - 切换到 "Company Information" 标签页
+    - 填写公司名称、行业、上传 Logo
+    - 添加公司描述和网址
+    - 点击 "Update Company Information" 保存
 
 ## 🚀 部署说明
 
 ### 环境要求
+
 - Node.js 20+
 - MongoDB 数据库
 - 现有的管理员认证系统
@@ -128,31 +138,35 @@
 ### 安装步骤
 
 1. **安装依赖**
-   ```bash
-   npm install bcrypt  # 已添加到项目依赖
-   ```
+
+    ```bash
+    npm install bcrypt  # 已添加到项目依赖
+    ```
 
 2. **数据库迁移**
-   - Company 模型会自动创建
-   - User 模型会自动扩展新字段
+    - Company 模型会自动创建
+    - User 模型会自动扩展新字段
 
 3. **启动服务**
-   ```bash
-   # 后端
-   npm start
-   
-   # 前端 (开发模式)
-   cd client && npm run dev
-   ```
+
+    ```bash
+    # 后端
+    npm start
+
+    # 前端 (开发模式)
+    cd client && npm run dev
+    ```
 
 ## 🔄 扩展建议
 
 ### 短期优化
+
 1. **文件上传服务**：集成云存储替代 Data URL
 2. **头像裁剪**：添加图片裁剪功能
 3. **密码强度**：添加密码强度指示器
 
 ### 长期扩展
+
 1. **多租户支持**：支持多个公司管理
 2. **权限管理**：细粒度的公司信息编辑权限
 3. **审核流程**：公司信息变更审核机制

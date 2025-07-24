@@ -33,7 +33,7 @@ const companySchema = new mongoose.Schema({
 });
 
 // 更新时自动设置 updatedAt
-companySchema.pre('save', function(next) {
+companySchema.pre('save', function (next) {
 	this.updatedAt = new Date();
 	next();
 });

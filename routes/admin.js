@@ -48,167 +48,173 @@ router.get('/check-auth', (req, res) => {
 	}
 });
 
-router.post('/login', asyncHandler(async (req, res) => {
-	const { username, password } = req.body;
+router.post(
+	'/login',
+	asyncHandler(async (req, res) => {
+		const { username, password } = req.body;
 
-	// First try legacy admin login
-	if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-		const token = jwt.sign(
-			{
-				id: 'admin',
-				username: username,
-				role: 'admin',
-			},
-			JWT_SECRET,
-			{ expiresIn: '7d' }
-		);
-		return res.json({
-			success: true,
-			token,
-			user: {
-				id: 'admin',
-				username: username,
-				role: 'admin',
-			},
-		});
-	}
-
-	// Try database user login (using email as username)
-	try {
-		const user = await User.findOne({
-			email: username.toLowerCase(),
-			role: 'admin'
-		}).select('+password');
-
-		if (!user) {
-			return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-				success: false,
-				error: 'Invalid credentials'
+		// First try legacy admin login
+		if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+			const token = jwt.sign(
+				{
+					id: 'admin',
+					username: username,
+					role: 'admin',
+				},
+				JWT_SECRET,
+				{ expiresIn: '7d' }
+			);
+			return res.json({
+				success: true,
+				token,
+				user: {
+					id: 'admin',
+					username: username,
+					role: 'admin',
+				},
 			});
 		}
 
-		const isPasswordValid = await bcrypt.compare(password, user.password);
-		if (!isPasswordValid) {
-			return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+		// Try database user login (using email as username)
+		try {
+			const user = await User.findOne({
+				email: username.toLowerCase(),
+				role: 'admin',
+			}).select('+password');
+
+			if (!user) {
+				return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+					success: false,
+					error: 'Invalid credentials',
+				});
+			}
+
+			const isPasswordValid = await bcrypt.compare(password, user.password);
+			if (!isPasswordValid) {
+				return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+					success: false,
+					error: 'Invalid credentials',
+				});
+			}
+
+			// Update last login time
+			user.lastLoginAt = new Date();
+			await user.save();
+
+			const token = jwt.sign(
+				{
+					id: user._id,
+					email: user.email,
+					role: user.role,
+				},
+				JWT_SECRET,
+				{ expiresIn: '7d' }
+			);
+
+			res.json({
+				success: true,
+				token,
+				user: {
+					id: user._id,
+					name: user.name,
+					email: user.email,
+					role: user.role,
+				},
+			});
+		} catch (error) {
+			console.error('Login error:', error);
+			res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
 				success: false,
-				error: 'Invalid credentials'
+				error: 'Login failed. Please try again.',
 			});
 		}
-
-		// Update last login time
-		user.lastLoginAt = new Date();
-		await user.save();
-
-		const token = jwt.sign(
-			{
-				id: user._id,
-				email: user.email,
-				role: user.role,
-			},
-			JWT_SECRET,
-			{ expiresIn: '7d' }
-		);
-
-		res.json({
-			success: true,
-			token,
-			user: {
-				id: user._id,
-				name: user.name,
-				email: user.email,
-				role: user.role,
-			},
-		});
-	} catch (error) {
-		console.error('Login error:', error);
-		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-			success: false,
-			error: 'Login failed. Please try again.',
-		});
-	}
-}));
+	})
+);
 
 // Register a new admin user
-router.post('/register', asyncHandler(async (req, res) => {
-	const { name, email, password, companyName } = req.body;
+router.post(
+	'/register',
+	asyncHandler(async (req, res) => {
+		const { name, email, password, companyName } = req.body;
 
-	// Validation
-	if (!name || !email || !password) {
-		return res.status(HTTP_STATUS.BAD_REQUEST).json({
-			success: false,
-			error: 'Name, email, and password are required',
-		});
-	}
-
-	if (password.length < 8) {
-		return res.status(HTTP_STATUS.BAD_REQUEST).json({
-			success: false,
-			error: 'Password must be at least 8 characters long',
-		});
-	}
-
-	// Check if user already exists
-	const existingUser = await User.findOne({ email: email.toLowerCase() });
-	if (existingUser) {
-		return res.status(HTTP_STATUS.BAD_REQUEST).json({
-			success: false,
-			error: 'An account with this email already exists',
-		});
-	}
-
-	try {
-		// Hash password
-		const hashedPassword = await bcrypt.hash(password, 12);
-
-		// Create company if provided
-		let company = null;
-		if (companyName) {
-			company = new Company({
-				name: companyName,
+		// Validation
+		if (!name || !email || !password) {
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({
+				success: false,
+				error: 'Name, email, and password are required',
 			});
-			await company.save();
 		}
 
-		// Create user
-		const user = new User({
-			name,
-			email: email.toLowerCase(),
-			password: hashedPassword,
-			role: 'admin',
-			companyId: company ? company._id : undefined,
-		});
+		if (password.length < 8) {
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({
+				success: false,
+				error: 'Password must be at least 8 characters long',
+			});
+		}
 
-		await user.save();
+		// Check if user already exists
+		const existingUser = await User.findOne({ email: email.toLowerCase() });
+		if (existingUser) {
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({
+				success: false,
+				error: 'An account with this email already exists',
+			});
+		}
 
-		// Generate JWT token
-		const token = jwt.sign(
-			{
-				id: user._id,
-				email: user.email,
-				role: user.role,
-			},
-			JWT_SECRET,
-			{ expiresIn: '7d' }
-		);
+		try {
+			// Hash password
+			const hashedPassword = await bcrypt.hash(password, 12);
 
-		res.status(HTTP_STATUS.CREATED).json({
-			success: true,
-			token,
-			user: {
-				id: user._id,
-				name: user.name,
-				email: user.email,
-				role: user.role,
-			},
-		});
-	} catch (error) {
-		console.error('Registration error:', error);
-		res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-			success: false,
-			error: 'Registration failed. Please try again.',
-		});
-	}
-}));
+			// Create company if provided
+			let company = null;
+			if (companyName) {
+				company = new Company({
+					name: companyName,
+				});
+				await company.save();
+			}
+
+			// Create user
+			const user = new User({
+				name,
+				email: email.toLowerCase(),
+				password: hashedPassword,
+				role: 'admin',
+				companyId: company ? company._id : undefined,
+			});
+
+			await user.save();
+
+			// Generate JWT token
+			const token = jwt.sign(
+				{
+					id: user._id,
+					email: user.email,
+					role: user.role,
+				},
+				JWT_SECRET,
+				{ expiresIn: '7d' }
+			);
+
+			res.status(HTTP_STATUS.CREATED).json({
+				success: true,
+				token,
+				user: {
+					id: user._id,
+					name: user.name,
+					email: user.email,
+					role: user.role,
+				},
+			});
+		} catch (error) {
+			console.error('Registration error:', error);
+			res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+				success: false,
+				error: 'Registration failed. Please try again.',
+			});
+		}
+	})
+);
 
 // Create a new survey
 router.post(
@@ -421,21 +427,29 @@ router.put(
 	})
 );
 
-// Update a question in an existing survey
-router.put(
+// Update a question in an existing survey (PATCH for partial updates)
+router.patch(
 	'/surveys/:id/questions/:questionIndex',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { id, questionIndex } = req.params;
-		const { text, options, correctAnswer, points } = req.body;
+		const { text, type, options, correctAnswer, points } = req.body;
 
-		// Validate input
-		if (
-			typeof text !== DATA_TYPES.STRING ||
-			!Array.isArray(options) ||
-			!options.every(o => typeof o === DATA_TYPES.STRING)
-		) {
+		// Validate input - only validate fields that are provided (PATCH method)
+		if (text !== undefined && typeof text !== DATA_TYPES.STRING) {
 			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: ERROR_MESSAGES.INVALID_DATA });
+		}
+
+		// Validate type if provided
+		if (type && !['single_choice', 'multiple_choice', 'short_text'].includes(type)) {
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Invalid question type' });
+		}
+
+		// Validate options only if provided
+		if (options !== undefined) {
+			if (!Array.isArray(options) || !options.every(o => typeof o === DATA_TYPES.STRING)) {
+				return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: ERROR_MESSAGES.INVALID_DATA });
+			}
 		}
 
 		// Validate correctAnswer if provided (same logic as add question)
@@ -511,25 +525,48 @@ router.put(
 			}
 		}
 
-		// Determine question type and normalize correctAnswer format (same logic as add question)
-		let questionType, normalizedCorrectAnswer;
+		// Get current question and determine effective type
+		const currentQuestion = survey.questions[qIndex];
+		const effectiveType = type || currentQuestion.type || 'single_choice';
 
-		if (Array.isArray(correctAnswer) && correctAnswer.length > 1) {
-			questionType = 'multiple_choice';
-			normalizedCorrectAnswer = correctAnswer;
-		} else if (Array.isArray(correctAnswer) && correctAnswer.length === 1) {
-			questionType = 'single_choice';
-			normalizedCorrectAnswer = correctAnswer[0];
-		} else {
-			questionType = 'single_choice';
-			normalizedCorrectAnswer = correctAnswer;
+		// PATCH method: only update provided fields
+		if (text !== undefined) {
+			survey.questions[qIndex].text = text;
 		}
 
-		// Update the question
-		survey.questions[qIndex].text = text;
-		survey.questions[qIndex].options = options;
-		survey.questions[qIndex].type = questionType;
-		survey.questions[qIndex].correctAnswer = normalizedCorrectAnswer;
+		if (type !== undefined) {
+			survey.questions[qIndex].type = type;
+			
+			// Handle type changes - clean up incompatible fields
+			if (type === 'short_text') {
+				// When changing to short_text, remove options
+				delete survey.questions[qIndex].options;
+			} else if (currentQuestion.type === 'short_text' && type !== 'short_text') {
+				// When changing from short_text to choice type, initialize options if not provided
+				if (options === undefined) {
+					survey.questions[qIndex].options = ['', ''];
+				}
+			}
+		}
+
+		// Update options only if provided and question type allows it
+		if (options !== undefined) {
+			if (effectiveType !== 'short_text') {
+				survey.questions[qIndex].options = options;
+			}
+		}
+
+		// Update correctAnswer only if provided
+		if (correctAnswer !== undefined) {
+			if (correctAnswer === null && effectiveType === 'short_text') {
+				// For short_text questions, null correctAnswer means remove it
+				delete survey.questions[qIndex].correctAnswer;
+			} else {
+				survey.questions[qIndex].correctAnswer = correctAnswer;
+			}
+		}
+
+		// Update points only if provided
 		if (points !== undefined) {
 			survey.questions[qIndex].points = points;
 		}
@@ -657,7 +694,9 @@ router.get(
 		let useSnapshots = false;
 
 		// Check if we have responses with question snapshots
-		const responsesWithSnapshots = responses.filter(r => r.questionSnapshots && r.questionSnapshots.length > 0);
+		const responsesWithSnapshots = responses.filter(
+			r => r.questionSnapshots && r.questionSnapshots.length > 0
+		);
 
 		if (responsesWithSnapshots.length > 0) {
 			// Use snapshots from the first response to get question structure
@@ -677,10 +716,17 @@ router.get(
 				if (questionBank) {
 					questions = questionBank.questions || [];
 				}
-			} else if (survey.sourceType === 'multi_question_bank' && survey.multiQuestionBankConfig) {
+			} else if (
+				survey.sourceType === 'multi_question_bank' &&
+				survey.multiQuestionBankConfig
+			) {
 				// Multiple question banks
-				const questionBankIds = survey.multiQuestionBankConfig.map(config => config.questionBankId);
-				const questionBanks = await QuestionBank.find({ _id: { $in: questionBankIds } }).lean();
+				const questionBankIds = survey.multiQuestionBankConfig.map(
+					config => config.questionBankId
+				);
+				const questionBanks = await QuestionBank.find({
+					_id: { $in: questionBankIds },
+				}).lean();
 				questions = questionBanks.reduce((allQuestions, qb) => {
 					return allQuestions.concat(qb.questions || []);
 				}, []);
@@ -713,7 +759,9 @@ router.get(
 
 				if (useSnapshots && r.questionSnapshots && r.questionSnapshots.length > 0) {
 					// Use snapshot data
-					const snapshot = r.questionSnapshots.find(s => s.questionIndex === questionIndex);
+					const snapshot = r.questionSnapshots.find(
+						s => s.questionIndex === questionIndex
+					);
 					if (snapshot) {
 						userAnswer = snapshot.userAnswer;
 						// Convert user answer to option index for counting
@@ -765,7 +813,10 @@ router.get(
 
 					if (ans !== undefined && ans !== null) {
 						// Handle different answer value formats
-						if (typeof ans === 'number' || (typeof ans === 'string' && /^\d+$/.test(ans))) {
+						if (
+							typeof ans === 'number' ||
+							(typeof ans === 'string' && /^\d+$/.test(ans))
+						) {
 							const idx = typeof ans === 'number' ? ans : parseInt(ans, 10);
 							if (idx >= 0 && idx < (q.options || []).length) {
 								counts[q.options[idx]] += 1;
@@ -812,10 +863,17 @@ router.get(
 					.sort((a, b) => a.questionIndex - b.questionIndex)
 					.map(snapshot => snapshot.questionData);
 				useResponseSnapshots = true;
-			} else if (['question_bank', 'multi_question_bank', 'manual_selection'].includes(survey.sourceType) &&
-			    response.selectedQuestions && response.selectedQuestions.length > 0) {
+			} else if (
+				['question_bank', 'multi_question_bank', 'manual_selection'].includes(
+					survey.sourceType
+				) &&
+				response.selectedQuestions &&
+				response.selectedQuestions.length > 0
+			) {
 				// Legacy method for question bank surveys
-				responseQuestions = response.selectedQuestions.map(sq => sq.questionData).filter(Boolean);
+				responseQuestions = response.selectedQuestions
+					.map(sq => sq.questionData)
+					.filter(Boolean);
 			}
 
 			responseQuestions.forEach((q, questionIndex) => {
@@ -823,7 +881,9 @@ router.get(
 
 				if (useResponseSnapshots) {
 					// Use snapshot data
-					const snapshot = response.questionSnapshots.find(s => s.questionIndex === questionIndex);
+					const snapshot = response.questionSnapshots.find(
+						s => s.questionIndex === questionIndex
+					);
 					if (snapshot) {
 						ans = snapshot.userAnswer;
 					}
@@ -862,7 +922,10 @@ router.get(
 						}
 					} else {
 						// Legacy formatting
-						if (typeof ans === 'number' || (typeof ans === 'string' && /^\d+$/.test(ans))) {
+						if (
+							typeof ans === 'number' ||
+							(typeof ans === 'string' && /^\d+$/.test(ans))
+						) {
 							const idx = typeof ans === 'number' ? ans : parseInt(ans, 10);
 							if (idx >= 0 && idx < (q.options || []).length) {
 								formattedAnswer = q.options[idx];
@@ -875,11 +938,14 @@ router.get(
 										: parseInt(optionIndex, 10)
 								)
 								.filter(
-									optionIndex => optionIndex >= 0 && optionIndex < (q.options || []).length
+									optionIndex =>
+										optionIndex >= 0 && optionIndex < (q.options || []).length
 								)
 								.map(optionIndex => q.options[optionIndex]);
 							formattedAnswer =
-								selectedOptions.length > 0 ? selectedOptions.join(', ') : 'No answer';
+								selectedOptions.length > 0
+									? selectedOptions.join(', ')
+									: 'No answer';
 						} else if (typeof ans === 'string') {
 							formattedAnswer = ans;
 						}
@@ -911,7 +977,7 @@ router.get(
 					scoringMode: response.score.scoringMode || 'percentage',
 					maxPossiblePoints: response.score.maxPossiblePoints || 0,
 					passed: response.score.passed || false,
-					formattedScore: response.formattedScore
+					formattedScore: response.formattedScore,
 				};
 			}
 
