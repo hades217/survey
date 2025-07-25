@@ -351,22 +351,22 @@ const EditSurveyModal: React.FC = () => {
 							<div className='border border-gray-300 rounded-lg p-4 bg-white'>
 								{editForm.multiQuestionBankConfig &&
 								editForm.multiQuestionBankConfig.length > 0 ? (
-										<div className='space-y-2'>
-											{editForm.multiQuestionBankConfig.map(
-												(config: any, index: number) => {
-													const bank = questionBanks?.find(
-														b => b._id === config.questionBankId
-													);
-													return (
-														<div
-															key={index}
-															className='text-sm text-gray-700'
-														>
-															<strong>
-																{bank?.name || 'Unknown Bank'}
-															</strong>
+									<div className='space-y-2'>
+										{editForm.multiQuestionBankConfig.map(
+											(config: any, index: number) => {
+												const bank = questionBanks?.find(
+													b => b._id === config.questionBankId
+												);
+												return (
+													<div
+														key={index}
+														className='text-sm text-gray-700'
+													>
+														<strong>
+															{bank?.name || 'Unknown Bank'}
+														</strong>
 														: {config.questionCount} questions
-															{config.filters &&
+														{config.filters &&
 															Object.keys(config.filters).length >
 																0 && (
 																<span className='text-gray-500'>
@@ -374,25 +374,25 @@ const EditSurveyModal: React.FC = () => {
 																	(with filters)
 																</span>
 															)}
-														</div>
-													);
-												}
-											)}
-											<div className='text-xs text-gray-500 mt-2'>
+													</div>
+												);
+											}
+										)}
+										<div className='text-xs text-gray-500 mt-2'>
 											Total:{' '}
-												{editForm.multiQuestionBankConfig.reduce(
-													(sum: number, config: any) =>
-														sum + config.questionCount,
-													0
-												)}{' '}
+											{editForm.multiQuestionBankConfig.reduce(
+												(sum: number, config: any) =>
+													sum + config.questionCount,
+												0
+											)}{' '}
 											questions
-											</div>
 										</div>
-									) : (
-										<div className='text-sm text-gray-500'>
+									</div>
+								) : (
+									<div className='text-sm text-gray-500'>
 										No configurations set
-										</div>
-									)}
+									</div>
+								)}
 								<button
 									type='button'
 									onClick={() => setShowMultiBankModal(true)}
@@ -413,20 +413,20 @@ const EditSurveyModal: React.FC = () => {
 							<div className='border border-gray-300 rounded-lg p-4 bg-white'>
 								{editForm.selectedQuestions &&
 								editForm.selectedQuestions.length > 0 ? (
-										<div className='space-y-2'>
-											<div className='text-sm text-gray-700'>
-												<strong>{editForm.selectedQuestions.length}</strong>{' '}
+									<div className='space-y-2'>
+										<div className='text-sm text-gray-700'>
+											<strong>{editForm.selectedQuestions.length}</strong>{' '}
 											questions selected
-											</div>
-											<div className='text-xs text-gray-500'>
+										</div>
+										<div className='text-xs text-gray-500'>
 											Questions selected from various question banks
-											</div>
 										</div>
-									) : (
-										<div className='text-sm text-gray-500'>
+									</div>
+								) : (
+									<div className='text-sm text-gray-500'>
 										No questions selected
-										</div>
-									)}
+									</div>
+								)}
 								<button
 									type='button'
 									onClick={() => setShowManualSelectionModal(true)}

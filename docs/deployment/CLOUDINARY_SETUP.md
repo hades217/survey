@@ -3,6 +3,7 @@
 ## 📋 概述
 
 本项目已集成 Cloudinary 图片上传功能，支持在题目和选项中上传图片。系统现在支持两种上传方式：
+
 - **后端上传**（原有方式）
 - **Cloudinary 上传**（新增方式）
 
@@ -13,8 +14,8 @@
 1. 访问 [Cloudinary 控制台](https://cloudinary.com/console)
 2. 创建账户或登录现有账户
 3. 在控制台主页获取以下信息：
-   - **Cloud Name** - 您的云存储名称
-   - **Upload Preset** - 需要创建一个无签名的上传预设
+    - **Cloud Name** - 您的云存储名称
+    - **Upload Preset** - 需要创建一个无签名的上传预设
 
 ### 2. 创建 Upload Preset
 
@@ -22,11 +23,11 @@
 2. 滚动到 **Upload presets** 部分
 3. 点击 **Add upload preset**
 4. 配置预设：
-   - **Preset name**: 给预设命名（如 `survey-images`）
-   - **Signing Mode**: 选择 **Unsigned** ⚠️ 重要
-   - **Folder**: 可选，设置上传文件夹（如 `survey-app/`）
-   - **Allowed formats**: 设置允许的图片格式
-   - **Transformation**: 可选，设置图片处理选项
+    - **Preset name**: 给预设命名（如 `survey-images`）
+    - **Signing Mode**: 选择 **Unsigned** ⚠️ 重要
+    - **Folder**: 可选，设置上传文件夹（如 `survey-app/`）
+    - **Allowed formats**: 设置允许的图片格式
+    - **Transformation**: 可选，设置图片处理选项
 5. 保存预设
 
 ### 3. 配置环境变量
@@ -78,12 +79,12 @@ import ImageUpload from '../components/common/ImageUpload';
 ```tsx
 <ImageUpload
 	imageUrl={imageUrl}
-	onImageUpload={(url) => setImageUrl(url)}
+	onImageUpload={url => setImageUrl(url)}
 	onImageRemove={() => setImageUrl(null)}
 	uploadMethod="cloudinary"
 	cloudinaryConfig={{
 		maxFileSize: 5 * 1024 * 1024, // 5MB
-		allowedFormats: ['jpg', 'png', 'webp']
+		allowedFormats: ['jpg', 'png', 'webp'],
 	}}
 />
 ```
@@ -105,6 +106,7 @@ client/src/
 ## 🔧 功能特性
 
 ### ImageUpload 组件特性
+
 - ✅ 支持文件拖拽上传
 - ✅ 支持点击选择文件
 - ✅ 支持粘贴上传（Ctrl+V）
@@ -115,6 +117,7 @@ client/src/
 - ✅ 错误处理和用户友好提示
 
 ### Cloudinary 上传特性
+
 - ✅ 无签名上传（安全）
 - ✅ 自动图片优化
 - ✅ CDN 加速访问
@@ -127,32 +130,36 @@ client/src/
 Cloudinary 上传已集成到以下位置：
 
 1. **Survey 问题编辑器**
-   - 题干图片上传 ✅
-   - 选项图片上传 ✅
+    - 题干图片上传 ✅
+    - 选项图片上传 ✅
 
 2. **未来扩展**
-   - Question Bank 问题编辑器（可扩展）
-   - 其他需要图片上传的组件
+    - Question Bank 问题编辑器（可扩展）
+    - 其他需要图片上传的组件
 
 ## 🛠️ 故障排除
 
 ### 常见问题
 
 **1. 上传失败 - "Upload preset not found"**
+
 - 检查 `VITE_CLOUDINARY_UPLOAD_PRESET` 是否正确
 - 确认预设在 Cloudinary 控制台中存在
 - 确认预设的 Signing Mode 设置为 "Unsigned"
 
 **2. 上传失败 - "Invalid cloud name"**
+
 - 检查 `VITE_CLOUDINARY_CLOUD_NAME` 是否正确
 - 确认云名称与 Cloudinary 控制台中显示的完全一致
 
 **3. 环境变量不生效**
+
 - 确认 `.env` 文件位于 `/client` 目录下
 - 重启开发服务器
 - 检查变量名前缀必须是 `VITE_`
 
 **4. 图片显示问题**
+
 - 检查 Cloudinary 账户配额是否已用完
 - 检查返回的 URL 是否有效
 - 确认图片格式在允许范围内
@@ -163,17 +170,18 @@ Cloudinary 上传已集成到以下位置：
 
 ```javascript
 // 在浏览器开发者工具中查看网络请求
-// 上传请求将发送到: 
+// 上传请求将发送到:
 // https://api.cloudinary.com/v1_1/{cloud-name}/image/upload
 ```
 
 ## 📞 支持
 
 如有问题，请检查：
+
 1. [Cloudinary 官方文档](https://cloudinary.com/documentation)
 2. [Upload Preset 配置指南](https://cloudinary.com/documentation/upload_presets)
 3. 项目的 GitHub Issues
 
 ---
 
-*最后更新: 2025-01-24*
+_最后更新: 2025-01-24_

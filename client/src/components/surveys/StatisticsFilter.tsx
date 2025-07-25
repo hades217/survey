@@ -11,7 +11,10 @@ interface StatisticsFilterProps {
 	loading?: boolean;
 }
 
-export const StatisticsFilter: React.FC<StatisticsFilterProps> = ({ onFilter, loading = false }) => {
+export const StatisticsFilter: React.FC<StatisticsFilterProps> = ({
+	onFilter,
+	loading = false,
+}) => {
 	const [name, setName] = useState('');
 	const [email, setEmail] = useState('');
 	const [fromDate, setFromDate] = useState('');
@@ -77,7 +80,12 @@ export const StatisticsFilter: React.FC<StatisticsFilterProps> = ({ onFilter, lo
 						stroke='currentColor'
 						viewBox='0 0 24 24'
 					>
-						<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+						<path
+							strokeLinecap='round'
+							strokeLinejoin='round'
+							strokeWidth={2}
+							d='M19 9l-7 7-7-7'
+						/>
 					</svg>
 				</button>
 			</div>
@@ -85,17 +93,16 @@ export const StatisticsFilter: React.FC<StatisticsFilterProps> = ({ onFilter, lo
 			{/* Expandable content */}
 			{isExpanded && (
 				<div className='space-y-4'>
-
 					{/* Search inputs row */}
 					<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 						<div>
 							<label className='block text-sm font-medium text-gray-700 mb-1'>
-						用户名搜索
+								用户名搜索
 							</label>
 							<input
 								type='text'
 								value={name}
-								onChange={(e) => setName(e.target.value)}
+								onChange={e => setName(e.target.value)}
 								onKeyPress={handleKeyPress}
 								placeholder='输入用户名进行模糊搜索'
 								className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
@@ -104,12 +111,12 @@ export const StatisticsFilter: React.FC<StatisticsFilterProps> = ({ onFilter, lo
 
 						<div>
 							<label className='block text-sm font-medium text-gray-700 mb-1'>
-						邮箱搜索
+								邮箱搜索
 							</label>
 							<input
 								type='email'
 								value={email}
-								onChange={(e) => setEmail(e.target.value)}
+								onChange={e => setEmail(e.target.value)}
 								onKeyPress={handleKeyPress}
 								placeholder='输入邮箱进行模糊搜索'
 								className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
@@ -121,35 +128,35 @@ export const StatisticsFilter: React.FC<StatisticsFilterProps> = ({ onFilter, lo
 					<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
 						<div>
 							<label className='block text-sm font-medium text-gray-700 mb-1'>
-						开始时间
+								开始时间
 							</label>
 							<input
 								type='date'
 								value={fromDate}
-								onChange={(e) => setFromDate(e.target.value)}
+								onChange={e => setFromDate(e.target.value)}
 								className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
 							/>
 						</div>
 
 						<div>
 							<label className='block text-sm font-medium text-gray-700 mb-1'>
-						结束时间
+								结束时间
 							</label>
 							<input
 								type='date'
 								value={toDate}
-								onChange={(e) => setToDate(e.target.value)}
+								onChange={e => setToDate(e.target.value)}
 								className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
 							/>
 						</div>
 
 						<div>
 							<label className='block text-sm font-medium text-gray-700 mb-1'>
-						答题状态
+								答题状态
 							</label>
 							<select
 								value={status}
-								onChange={(e) => setStatus(e.target.value)}
+								onChange={e => setStatus(e.target.value)}
 								className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
 							>
 								<option value=''>全部状态</option>
@@ -171,7 +178,7 @@ export const StatisticsFilter: React.FC<StatisticsFilterProps> = ({ onFilter, lo
 							{loading ? (
 								<div className='flex items-center'>
 									<div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>
-							查询中...
+									查询中...
 								</div>
 							) : (
 								'查询'
@@ -183,7 +190,7 @@ export const StatisticsFilter: React.FC<StatisticsFilterProps> = ({ onFilter, lo
 							disabled={loading}
 							className='px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors'
 						>
-					重置
+							重置
 						</button>
 					</div>
 				</div>

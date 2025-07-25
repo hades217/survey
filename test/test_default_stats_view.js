@@ -1,7 +1,8 @@
 const axios = require('axios');
 
 const BASE_URL = 'http://localhost:5050';
-const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MzM2Njk0NywiZXhwIjoxNzUzOTcxNzQ3fQ.KSDOGnrSuseMeyQbQmWuQVb2VFdDb6lgatlLKeOc8Ok';
+const JWT_TOKEN =
+	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MzM2Njk0NywiZXhwIjoxNzUzOTcxNzQ3fQ.KSDOGnrSuseMeyQbQmWuQVb2VFdDb6lgatlLKeOc8Ok';
 
 async function testDefaultStatsView() {
 	try {
@@ -42,7 +43,6 @@ async function testDefaultStatsView() {
 		console.log('✅ 用户点击"统计数据"tab时，默认显示个人回复');
 		console.log('✅ 按钮顺序已调整为：个人回复 | 汇总结果');
 		console.log('✅ API功能正常工作');
-
 	} catch (error) {
 		console.error('❌ 测试失败:', error.response?.data || error.message);
 	}

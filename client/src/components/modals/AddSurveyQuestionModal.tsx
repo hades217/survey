@@ -11,7 +11,7 @@ import ImageUpload from '../common/ImageUpload';
 interface SurveyQuestionForm {
 	text: string;
 	imageUrl?: string;
-	options?: string[] | { text?: string; imageUrl?: string; }[];
+	options?: string[] | { text?: string; imageUrl?: string }[];
 	type: QuestionType;
 	correctAnswer?: number | number[] | string;
 	points?: number;
@@ -23,7 +23,7 @@ interface AddSurveyQuestionModalProps {
 	onSubmit: (form: SurveyQuestionForm) => void;
 	form: SurveyQuestionForm;
 	onChange: (field: string, value: any) => void;
-	onOptionChange: (index: number, value: string | { text?: string; imageUrl?: string; }) => void;
+	onOptionChange: (index: number, value: string | { text?: string; imageUrl?: string }) => void;
 	onAddOption: () => void;
 	onRemoveOption: (index: number) => void;
 	loading?: boolean;
@@ -156,7 +156,7 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 						</label>
 						<ImageUpload
 							imageUrl={form.imageUrl}
-							onImageUpload={(url) => onChange('imageUrl', url)}
+							onImageUpload={url => onChange('imageUrl', url)}
 							onImageRemove={() => onChange('imageUrl', null)}
 							placeholder='Upload question image for visual questions (IQ tests, etc.)'
 							uploadMethod='cloudinary'
@@ -204,11 +204,18 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 								<div className='space-y-3'>
 									{form.options.map((option, index) => {
 										const isStringOption = typeof option === 'string';
-										const optionText = isStringOption ? option : (option as any)?.text || '';
-										const optionImageUrl = isStringOption ? null : (option as any)?.imageUrl;
+										const optionText = isStringOption
+											? option
+											: (option as any)?.text || '';
+										const optionImageUrl = isStringOption
+											? null
+											: (option as any)?.imageUrl;
 
 										return (
-											<div key={index} className='border border-gray-200 rounded-lg p-3'>
+											<div
+												key={index}
+												className='border border-gray-200 rounded-lg p-3'
+											>
 												<div className='flex items-center gap-2 mb-2'>
 													<span className='text-sm font-medium text-gray-700'>
 														Option {index + 1}
@@ -232,7 +239,10 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 														onChange={e => {
 															const newOption = isStringOption
 																? e.target.value
-																: { text: e.target.value, imageUrl: optionImageUrl };
+																: {
+																		text: e.target.value,
+																		imageUrl: optionImageUrl,
+																	};
 															onOptionChange(index, newOption);
 														}}
 													/>
@@ -243,14 +253,20 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 														</label>
 														<ImageUpload
 															imageUrl={optionImageUrl}
-															onImageUpload={(url) => {
-																const newOption = { text: optionText, imageUrl: url };
+															onImageUpload={url => {
+																const newOption = {
+																	text: optionText,
+																	imageUrl: url,
+																};
 																onOptionChange(index, newOption);
 															}}
 															onImageRemove={() => {
 																const newOption = isStringOption
 																	? optionText
-																	: { text: optionText, imageUrl: null };
+																	: {
+																			text: optionText,
+																			imageUrl: null,
+																		};
 																onOptionChange(index, newOption);
 															}}
 															placeholder='Upload option image'
@@ -296,68 +312,70 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 						isAssessmentType &&
 						form.options &&
 						form.options.filter(opt => opt.trim()).length >= 2 && (
-						<div>
-							<label className='block text-sm font-medium text-gray-700 mb-2'>
+							<div>
+								<label className='block text-sm font-medium text-gray-700 mb-2'>
 									Select Correct Answer(s) *
-							</label>
-							<div className='space-y-2'>
-								{form.options.map((opt, idx) => {
-									const optionText = typeof opt === 'string' ? opt : opt?.text || '';
-									const optionImage = typeof opt === 'string' ? null : opt?.imageUrl;
+								</label>
+								<div className='space-y-2'>
+									{form.options.map((opt, idx) => {
+										const optionText =
+											typeof opt === 'string' ? opt : opt?.text || '';
+										const optionImage =
+											typeof opt === 'string' ? null : opt?.imageUrl;
 
-									if (!optionText.trim() && !optionImage) return null;
+										if (!optionText.trim() && !optionImage) return null;
 
-									const isCorrect = Array.isArray(form.correctAnswer)
-										? form.correctAnswer.includes(idx)
-										: form.correctAnswer === idx;
-									return (
-										<div key={idx} className='flex items-center gap-2'>
-											<button
-												type='button'
-												onClick={() => toggleCorrectAnswer(idx)}
-												className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-													isCorrect
-														? 'bg-green-500 border-green-500 text-white'
-														: 'border-gray-300 hover:border-green-400'
-												}`}
-											>
-												{isCorrect && (
-													<svg
-														className='w-3 h-3'
-														fill='currentColor'
-														viewBox='0 0 20 20'
-													>
-														<path
-															fillRule='evenodd'
-															d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-															clipRule='evenodd'
+										const isCorrect = Array.isArray(form.correctAnswer)
+											? form.correctAnswer.includes(idx)
+											: form.correctAnswer === idx;
+										return (
+											<div key={idx} className='flex items-center gap-2'>
+												<button
+													type='button'
+													onClick={() => toggleCorrectAnswer(idx)}
+													className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+														isCorrect
+															? 'bg-green-500 border-green-500 text-white'
+															: 'border-gray-300 hover:border-green-400'
+													}`}
+												>
+													{isCorrect && (
+														<svg
+															className='w-3 h-3'
+															fill='currentColor'
+															viewBox='0 0 20 20'
+														>
+															<path
+																fillRule='evenodd'
+																d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+																clipRule='evenodd'
+															/>
+														</svg>
+													)}
+												</button>
+												<div className='flex items-center gap-2'>
+													<span className='text-sm text-gray-700'>
+														{optionText || `Option ${idx + 1}`}
+													</span>
+													{optionImage && (
+														<img
+															src={optionImage}
+															alt={`Option ${idx + 1}`}
+															className='w-8 h-8 object-cover rounded border'
 														/>
-													</svg>
-												)}
-											</button>
-											<div className='flex items-center gap-2'>
-												<span className='text-sm text-gray-700'>
-													{optionText || `Option ${idx + 1}`}
-												</span>
-												{optionImage && (
-													<img
-														src={optionImage}
-														alt={`Option ${idx + 1}`}
-														className='w-8 h-8 object-cover rounded border'
-													/>
-												)}
+													)}
+												</div>
 											</div>
-										</div>
-									);
-								})}
+										);
+									})}
+								</div>
+								<div className='text-xs text-gray-500 mt-1'>
+									{form.type === QUESTION_TYPE.SINGLE_CHOICE
+										? 'Click to select the single correct answer'
+										: 'Click the checkboxes to select multiple correct answers'}
+								</div>
 							</div>
-							<div className='text-xs text-gray-500 mt-1'>
-								{form.type === QUESTION_TYPE.SINGLE_CHOICE
-									? 'Click to select the single correct answer'
-									: 'Click the checkboxes to select multiple correct answers'}
-							</div>
-						</div>
-					)}
+						)}
 
 					{isAssessmentType && isCustomScoringEnabled && (
 						<div>

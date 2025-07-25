@@ -208,22 +208,22 @@ const CreateSurveyModal: React.FC = () => {
 								<div className='border border-gray-300 rounded-lg p-4 bg-gray-50'>
 									{newSurvey.multiQuestionBankConfig &&
 									newSurvey.multiQuestionBankConfig.length > 0 ? (
-											<div className='space-y-2'>
-												{newSurvey.multiQuestionBankConfig.map(
-													(config: any, index: number) => {
-														const bank = questionBanks.find(
-															b => b._id === config.questionBankId
-														);
-														return (
-															<div
-																key={index}
-																className='text-sm text-gray-700'
-															>
-																<strong>
-																	{bank?.name || 'Unknown Bank'}
-																</strong>
+										<div className='space-y-2'>
+											{newSurvey.multiQuestionBankConfig.map(
+												(config: any, index: number) => {
+													const bank = questionBanks.find(
+														b => b._id === config.questionBankId
+													);
+													return (
+														<div
+															key={index}
+															className='text-sm text-gray-700'
+														>
+															<strong>
+																{bank?.name || 'Unknown Bank'}
+															</strong>
 															: {config.questionCount} questions
-																{config.filters &&
+															{config.filters &&
 																Object.keys(config.filters).length >
 																	0 && (
 																	<span className='text-gray-500'>
@@ -231,25 +231,25 @@ const CreateSurveyModal: React.FC = () => {
 																		(with filters)
 																	</span>
 																)}
-															</div>
-														);
-													}
-												)}
-												<div className='text-xs text-gray-500 mt-2'>
+														</div>
+													);
+												}
+											)}
+											<div className='text-xs text-gray-500 mt-2'>
 												Total:{' '}
-													{newSurvey.multiQuestionBankConfig.reduce(
-														(sum: number, config: any) =>
-															sum + config.questionCount,
-														0
-													)}{' '}
+												{newSurvey.multiQuestionBankConfig.reduce(
+													(sum: number, config: any) =>
+														sum + config.questionCount,
+													0
+												)}{' '}
 												questions
-												</div>
 											</div>
-										) : (
-											<div className='text-sm text-gray-500'>
+										</div>
+									) : (
+										<div className='text-sm text-gray-500'>
 											No configurations set
-											</div>
-										)}
+										</div>
+									)}
 									<button
 										type='button'
 										onClick={() => setShowMultiBankModal(true)}
@@ -270,22 +270,22 @@ const CreateSurveyModal: React.FC = () => {
 								<div className='border border-gray-300 rounded-lg p-4 bg-gray-50'>
 									{newSurvey.selectedQuestions &&
 									newSurvey.selectedQuestions.length > 0 ? (
-											<div className='space-y-2'>
-												<div className='text-sm text-gray-700'>
-													<strong>
-														{newSurvey.selectedQuestions.length}
-													</strong>{' '}
+										<div className='space-y-2'>
+											<div className='text-sm text-gray-700'>
+												<strong>
+													{newSurvey.selectedQuestions.length}
+												</strong>{' '}
 												questions selected
-												</div>
-												<div className='text-xs text-gray-500'>
+											</div>
+											<div className='text-xs text-gray-500'>
 												Questions selected from various question banks
-												</div>
 											</div>
-										) : (
-											<div className='text-sm text-gray-500'>
+										</div>
+									) : (
+										<div className='text-sm text-gray-500'>
 											No questions selected
-											</div>
-										)}
+										</div>
+									)}
 									<button
 										type='button'
 										onClick={() => setShowManualSelectionModal(true)}

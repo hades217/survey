@@ -52,6 +52,18 @@ A modern, full-stack survey application built with Node.js, Express, MongoDB, Re
 - **QRCode** library for QR code generation
 - **React Hook Form** for form handling
 
+## 📚 Documentation
+
+详细的系统文档请查看 [docs/](./docs/) 目录：
+
+- **📖 [文档索引](./docs/README.md)** - 完整的文档导航和分类
+- **🔐 [管理员功能](./docs/admin/)** - 管理员注册、个人资料等功能
+- **⚡ [功能特性](./docs/features/)** - 调查类型、评估系统等功能
+- **🔧 [实现细节](./docs/implementation/)** - 技术实现和架构说明
+- **🧪 [测试相关](./docs/testing/)** - 测试用例和结果
+- **🚀 [部署相关](./docs/deployment/)** - Docker部署和云服务配置
+- **💻 [开发相关](./docs/development/)** - 开发规范和AI助手配置
+
 ## Getting Started
 
 ### Prerequisites

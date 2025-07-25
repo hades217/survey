@@ -87,21 +87,21 @@ pipeline {
 
                             # Create .env file with actual environment variable values
                             cat > .env << EOF
-# Database Configuration
-MONGODB_URI=${MONGO_URI}
+							# Database Configuration
+							MONGODB_URI=${MONGO_URI}
 
-# Application Configuration
-BACKEND_PORT=${BACKEND_PORT}
-FRONTEND_PORT=${FRONTEND_PORT}
-NODE_ENV=production
+							# Application Configuration
+							BACKEND_PORT=${BACKEND_PORT}
+							FRONTEND_PORT=${FRONTEND_PORT}
+							NODE_ENV=production
 
-# Admin Configuration
-ADMIN_USERNAME=${ADMIN_USERNAME}
-ADMIN_PASSWORD=${ADMIN_PASSWORD}
+							# Admin Configuration
+							ADMIN_USERNAME=${ADMIN_USERNAME}
+							ADMIN_PASSWORD=${ADMIN_PASSWORD}
 
-# Frontend Configuration
-VITE_BASE_URL=http://localhost:${BACKEND_PORT}
-EOF
+							# Frontend Configuration
+							VITE_BASE_URL=http://localhost:${BACKEND_PORT}
+							EOF
 
                             # Show the complete .env file for debugging
                             echo "Complete .env file content:"

@@ -150,7 +150,7 @@ const surveySchema = new mongoose.Schema({
 							type: String,
 							default: null,
 						},
-					}
+					},
 				],
 				required: false,
 				validate: {
@@ -164,11 +164,12 @@ const surveySchema = new mongoose.Schema({
 						if (!options || !Array.isArray(options) || options.length < 2) {
 							return false;
 						}
-						return options.every(option => 
-							(option.text && option.text.trim()) || option.imageUrl
+						return options.every(
+							option => (option.text && option.text.trim()) || option.imageUrl
 						);
 					},
-					message: 'At least 2 options are required for choice questions, and each option must have either text or image',
+					message:
+						'At least 2 options are required for choice questions, and each option must have either text or image',
 				},
 			},
 			// For quiz/assessment/iq questions: correct answer(s)

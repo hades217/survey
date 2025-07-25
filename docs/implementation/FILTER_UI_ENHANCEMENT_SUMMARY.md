@@ -14,11 +14,13 @@
 **文件**: `client/src/components/surveys/StatisticsFilter.tsx`
 
 #### 新增功能
+
 - 添加了 `isExpanded` 状态来控制展开/收起
 - 添加了toggle按钮，包含展开/收起文字和箭头图标
 - 使用条件渲染来控制筛选条件内容的显示
 
 #### 代码变更
+
 ```typescript
 // 新增状态
 const [isExpanded, setIsExpanded] = useState(false);
@@ -55,10 +57,12 @@ const [isExpanded, setIsExpanded] = useState(false);
 **文件**: `client/src/components/surveys/SurveyDetailView.tsx`
 
 #### 位置调整
+
 - 将 `StatisticsFilter` 组件从概览模块上方移动到下方
 - 保持了原有的功能逻辑不变
 
 #### 代码变更
+
 ```typescript
 // 原来的位置（已移除）
 {/* Filter Component */}
@@ -84,23 +88,27 @@ const [isExpanded, setIsExpanded] = useState(false);
 ## 功能特性
 
 ### 1. Toggle功能
+
 - **默认状态**: 收起（不显示筛选条件内容）
 - **展开状态**: 点击"展开"按钮显示所有筛选条件
 - **收起状态**: 点击"收起"按钮隐藏筛选条件内容
 - **视觉反馈**: 箭头图标会根据状态旋转
 
 ### 2. 用户体验
+
 - **节省空间**: 默认收起状态节省页面空间
 - **按需展开**: 用户需要筛选时才展开，减少视觉干扰
 - **平滑过渡**: 使用CSS transition实现平滑的展开/收起动画
 
 ### 3. 布局优化
+
 - **逻辑顺序**: 先显示概览，再显示筛选条件，符合用户阅读习惯
 - **视觉层次**: 概览信息更突出，筛选条件作为辅助功能
 
 ## 界面效果
 
 ### 收起状态
+
 ```
 ┌─────────────────────────────────────┐
 │ 筛选条件                    [展开 ▼] │
@@ -108,6 +116,7 @@ const [isExpanded, setIsExpanded] = useState(false);
 ```
 
 ### 展开状态
+
 ```
 ┌─────────────────────────────────────┐
 │ 筛选条件                    [收起 ▲] │
@@ -125,17 +134,20 @@ const [isExpanded, setIsExpanded] = useState(false);
 ## 测试验证
 
 ### 1. 功能测试
+
 - ✅ Toggle按钮正常工作
 - ✅ 展开/收起状态切换正常
 - ✅ 筛选功能保持正常
 - ✅ API调用正常
 
 ### 2. 布局测试
+
 - ✅ 筛选条件模块正确显示在概览下方
 - ✅ 页面布局美观，无重叠或错位
 - ✅ 响应式设计正常工作
 
 ### 3. 用户体验测试
+
 - ✅ 默认收起状态节省空间
 - ✅ 展开/收起动画流畅
 - ✅ 按钮交互反馈清晰
@@ -143,11 +155,13 @@ const [isExpanded, setIsExpanded] = useState(false);
 ## 技术实现
 
 ### 1. 状态管理
+
 ```typescript
 const [isExpanded, setIsExpanded] = useState(false);
 ```
 
 ### 2. 条件渲染
+
 ```typescript
 {isExpanded && (
     <div className="space-y-4">
@@ -157,6 +171,7 @@ const [isExpanded, setIsExpanded] = useState(false);
 ```
 
 ### 3. 动态样式
+
 ```typescript
 className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
 ```

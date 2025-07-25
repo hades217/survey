@@ -24,7 +24,7 @@ export const uploadToCloudinary = async (
 		cloudName,
 		uploadPreset,
 		maxFileSize = 10 * 1024 * 1024, // 10MB default
-		allowedFormats = ['jpg', 'jpeg', 'png', 'gif', 'webp']
+		allowedFormats = ['jpg', 'jpeg', 'png', 'gif', 'webp'],
 	} = options;
 
 	// Validate file type
@@ -50,19 +50,15 @@ export const uploadToCloudinary = async (
 	formData.append('upload_preset', uploadPreset);
 
 	try {
-		const response = await fetch(
-			`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-			{
-				method: 'POST',
-				body: formData,
-			}
-		);
+		const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+			method: 'POST',
+			body: formData,
+		});
 
 		if (!response.ok) {
 			const errorData = await response.json().catch(() => null);
 			throw new Error(
-				errorData?.error?.message ||
-				`Upload failed with status: ${response.status}`
+				errorData?.error?.message || `Upload failed with status: ${response.status}`
 			);
 		}
 
@@ -99,6 +95,6 @@ export const getCloudinaryConfig = (): CloudinaryUploadOptions => {
 		cloudName,
 		uploadPreset,
 		maxFileSize: 10 * 1024 * 1024, // 10MB
-		allowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']
+		allowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'],
 	};
 };

@@ -11,6 +11,7 @@
 **文件**: `client/src/contexts/AdminContext.tsx`
 
 #### 修改内容
+
 将`statsView`的默认值从`'aggregated'`改为`'individual'`
 
 ```typescript
@@ -26,7 +27,9 @@ const [statsView, setStatsView] = useState<StatsViewType>('individual');
 **文件**: `client/src/components/surveys/SurveyDetailView.tsx`
 
 #### 修改内容
+
 用户已经调整了按钮的顺序，现在按钮顺序为：
+
 1. 个人回复 (默认激活)
 2. 汇总结果
 
@@ -59,16 +62,19 @@ const [statsView, setStatsView] = useState<StatsViewType>('individual');
 ## 功能特性
 
 ### 1. 默认行为
+
 - **页面加载**: 统计数据页面默认显示"个人回复"视图
 - **Tab切换**: 从其他tab切换到"统计数据"时，默认显示个人回复
 - **数据加载**: 自动加载个人回复数据
 
 ### 2. 用户体验
+
 - **直观性**: 个人回复视图更直观，用户可以立即看到具体的回复记录
 - **实用性**: 管理员通常更关心具体的用户回复，而不是汇总统计
 - **一致性**: 按钮顺序与默认视图保持一致
 
 ### 3. 视图切换
+
 - **个人回复**: 显示每个用户的具体回复详情
 - **汇总结果**: 显示问题的统计汇总数据
 - **无缝切换**: 用户可以在两个视图之间自由切换
@@ -76,6 +82,7 @@ const [statsView, setStatsView] = useState<StatsViewType>('individual');
 ## 界面效果
 
 ### 默认状态（个人回复）
+
 ```
 ┌─────────────────────────────────────────────────┐
 │ 统计数据                                [刷新数据] │
@@ -104,6 +111,7 @@ const [statsView, setStatsView] = useState<StatsViewType>('individual');
 ```
 
 ### 切换到汇总结果
+
 ```
 ┌─────────────────────────────────────────────────┐
 │ 统计数据                                [刷新数据] │
@@ -134,18 +142,21 @@ const [statsView, setStatsView] = useState<StatsViewType>('individual');
 ## 测试验证
 
 ### 1. 功能测试
+
 - ✅ 默认显示个人回复视图
 - ✅ 按钮切换正常工作
 - ✅ 数据加载正常
 - ✅ 筛选功能正常
 
 ### 2. 用户体验测试
+
 - ✅ 页面加载时默认显示个人回复
 - ✅ 按钮顺序与默认视图一致
 - ✅ 切换动画流畅
 - ✅ 数据展示清晰
 
 ### 3. API测试
+
 - ✅ 统计数据API调用正常
 - ✅ 个人回复数据正确显示
 - ✅ 汇总数据正确计算
@@ -153,12 +164,14 @@ const [statsView, setStatsView] = useState<StatsViewType>('individual');
 ## 技术实现
 
 ### 1. 状态管理
+
 ```typescript
 // 默认值设置为个人回复
 const [statsView, setStatsView] = useState<StatsViewType>('individual');
 ```
 
 ### 2. 条件渲染
+
 ```typescript
 // 个人回复视图
 {statsView === STATS_VIEW.INDIVIDUAL && (
@@ -176,6 +189,7 @@ const [statsView, setStatsView] = useState<StatsViewType>('individual');
 ```
 
 ### 3. 按钮状态
+
 ```typescript
 // 个人回复按钮（默认激活）
 className={`py-2 px-4 font-medium text-sm transition-colors ${

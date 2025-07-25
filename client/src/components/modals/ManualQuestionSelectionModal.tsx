@@ -432,19 +432,19 @@ const ManualQuestionSelectionModal: React.FC<ManualQuestionSelectionModalProps> 
 
 												{question.options &&
 													question.options.length > 0 && (
-													<ul className='text-xs text-gray-600 mb-2'>
-														{question.options.map(
-															(option, index) => (
-																<li
-																	key={index}
-																	className='ml-4'
-																>
-																	{index + 1}. {option}
-																</li>
-															)
-														)}
-													</ul>
-												)}
+														<ul className='text-xs text-gray-600 mb-2'>
+															{question.options.map(
+																(option, index) => (
+																	<li
+																		key={index}
+																		className='ml-4'
+																	>
+																		{index + 1}. {option}
+																	</li>
+																)
+															)}
+														</ul>
+													)}
 
 												{question.tags && question.tags.length > 0 && (
 													<div className='flex flex-wrap gap-1'>

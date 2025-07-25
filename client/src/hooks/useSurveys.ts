@@ -260,13 +260,16 @@ export const useSurveys = () => {
 		});
 	};
 
-	const loadStats = async (surveyId: string, filters?: {
-		name?: string;
-		email?: string;
-		fromDate?: string;
-		toDate?: string;
-		status?: string;
-	}) => {
+	const loadStats = async (
+		surveyId: string,
+		filters?: {
+			name?: string;
+			email?: string;
+			fromDate?: string;
+			toDate?: string;
+			status?: string;
+		}
+	) => {
 		try {
 			const params = new URLSearchParams();
 			if (filters?.name) params.append('name', filters.name);

@@ -1,12 +1,13 @@
 const axios = require('axios');
 
 const BASE_URL = 'http://localhost:5050';
-const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MzM2Njk0NywiZXhwIjoxNzUzOTcxNzQ3fQ.KSDOGnrSuseMeyQbQmWuQVb2VFdDb6lgatlLKeOc8Ok';
+const JWT_TOKEN =
+	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MzM2Njk0NywiZXhwIjoxNzUzOTcxNzQ3fQ.KSDOGnrSuseMeyQbQmWuQVb2VFdDb6lgatlLKeOc8Ok';
 
 async function testEmailFilter() {
 	console.log('🧪 开始测试Email查询功能...\n');
 
-		try {
+	try {
 		// 1. 设置认证token
 		console.log('1. 设置认证token...');
 		axios.defaults.headers.common['Authorization'] = `Bearer ${JWT_TOKEN}`;
@@ -39,7 +40,7 @@ async function testEmailFilter() {
 			'test2@example.com',
 			'user123@gmail.com',
 			'admin@company.com',
-			'another@test.org'
+			'another@test.org',
 		];
 
 		for (let i = 0; i < testEmails.length; i++) {
@@ -47,7 +48,7 @@ async function testEmailFilter() {
 				name: `测试用户${i + 1}`,
 				email: testEmails[i],
 				surveyId: survey._id,
-				answers: { '0': i % 5 }, // 不同的答案
+				answers: { 0: i % 5 }, // 不同的答案
 				timeSpent: 60 + i * 10,
 			};
 			await axios.post(`${BASE_URL}/api/surveys/${survey._id}/responses`, responseData);
@@ -123,7 +124,9 @@ async function testEmailFilter() {
 		// 验证部分email查询
 		const expectedPartialResults = testEmails.filter(email => email.includes('test'));
 		if (partialEmailResponse.data.userResponses.length !== expectedPartialResults.length) {
-			console.log(`❌ 部分email查询失败：期望${expectedPartialResults.length}条记录，实际${partialEmailResponse.data.userResponses.length}条`);
+			console.log(
+				`❌ 部分email查询失败：期望${expectedPartialResults.length}条记录，实际${partialEmailResponse.data.userResponses.length}条`
+			);
 			allTestsPassed = false;
 		} else {
 			console.log('✅ 部分email查询正常');
@@ -132,7 +135,9 @@ async function testEmailFilter() {
 		// 验证域名查询
 		const expectedDomainResults = testEmails.filter(email => email.includes('example.com'));
 		if (domainResponse.data.userResponses.length !== expectedDomainResults.length) {
-			console.log(`❌ 域名查询失败：期望${expectedDomainResults.length}条记录，实际${domainResponse.data.userResponses.length}条`);
+			console.log(
+				`❌ 域名查询失败：期望${expectedDomainResults.length}条记录，实际${domainResponse.data.userResponses.length}条`
+			);
 			allTestsPassed = false;
 		} else {
 			console.log('✅ 域名查询正常');
@@ -148,7 +153,9 @@ async function testEmailFilter() {
 
 		// 验证空email查询
 		if (allResponse.data.userResponses.length !== testEmails.length) {
-			console.log(`❌ 空email查询失败：期望${testEmails.length}条记录，实际${allResponse.data.userResponses.length}条`);
+			console.log(
+				`❌ 空email查询失败：期望${testEmails.length}条记录，实际${allResponse.data.userResponses.length}条`
+			);
 			allTestsPassed = false;
 		} else {
 			console.log('✅ 空email查询正常');
@@ -167,7 +174,6 @@ async function testEmailFilter() {
 		} else {
 			console.log('❌ 部分Email查询测试失败');
 		}
-
 	} catch (error) {
 		console.error('❌ 测试失败:', error.response?.data || error.message);
 	}

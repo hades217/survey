@@ -287,7 +287,11 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		});
 	};
 
-	const handleOptionChange = (surveyId: string, index: number, value: string | { text?: string; imageUrl?: string; }) => {
+	const handleOptionChange = (
+		surveyId: string,
+		index: number,
+		value: string | { text?: string; imageUrl?: string }
+	) => {
 		setQuestionForms(prev => {
 			const currentForm = prev[surveyId] || {
 				text: '',
@@ -549,7 +553,11 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				}
 			} else {
 				// For short text, only include correctAnswer if it's a non-empty string
-				if (editForm.correctAnswer && typeof editForm.correctAnswer === 'string' && editForm.correctAnswer.trim()) {
+				if (
+					editForm.correctAnswer &&
+					typeof editForm.correctAnswer === 'string' &&
+					editForm.correctAnswer.trim()
+				) {
 					updateData.correctAnswer = editForm.correctAnswer;
 				}
 			}
@@ -740,60 +748,60 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 							{/* Scoring Settings Display */}
 							{TYPES_REQUIRING_ANSWERS.includes(s.type as any) &&
 								s.scoringSettings && (
-								<div className='bg-green-50 rounded-lg p-3 mb-3'>
-									<div className='flex items-center justify-between mb-2'>
-										<h5 className='font-medium text-gray-800'>
+									<div className='bg-green-50 rounded-lg p-3 mb-3'>
+										<div className='flex items-center justify-between mb-2'>
+											<h5 className='font-medium text-gray-800'>
 												Scoring Rules
-										</h5>
-										<button
-											className='text-sm text-blue-600 hover:text-blue-800'
-											onClick={() => setShowScoringModal(true)}
-										>
+											</h5>
+											<button
+												className='text-sm text-blue-600 hover:text-blue-800'
+												onClick={() => setShowScoringModal(true)}
+											>
 												Edit Scoring Rules
-										</button>
-									</div>
-									<div className='grid grid-cols-2 gap-2 text-sm'>
-										<div className='flex justify-between'>
-											<span className='text-gray-600'>Scoring Mode:</span>
-											<span className='font-medium text-green-600'>
-												{s.scoringSettings.scoringMode ===
-													SCORING_MODE.PERCENTAGE
-													? 'Percentage'
-													: 'Accumulated'}
-											</span>
+											</button>
 										</div>
-										<div className='flex justify-between'>
-											<span className='text-gray-600'>
+										<div className='grid grid-cols-2 gap-2 text-sm'>
+											<div className='flex justify-between'>
+												<span className='text-gray-600'>Scoring Mode:</span>
+												<span className='font-medium text-green-600'>
+													{s.scoringSettings.scoringMode ===
+													SCORING_MODE.PERCENTAGE
+														? 'Percentage'
+														: 'Accumulated'}
+												</span>
+											</div>
+											<div className='flex justify-between'>
+												<span className='text-gray-600'>
 													Passing Threshold:
-											</span>
-											<span className='font-medium text-green-600'>
-												{s.scoringSettings.passingThreshold} points
-											</span>
-										</div>
-										<div className='flex justify-between'>
-											<span className='text-gray-600'>Total Score:</span>
-											<span className='font-medium text-green-600'>
-												{s.scoringSettings.scoringMode ===
+												</span>
+												<span className='font-medium text-green-600'>
+													{s.scoringSettings.passingThreshold} points
+												</span>
+											</div>
+											<div className='flex justify-between'>
+												<span className='text-gray-600'>Total Score:</span>
+												<span className='font-medium text-green-600'>
+													{s.scoringSettings.scoringMode ===
 													SCORING_MODE.PERCENTAGE
-													? '100'
-													: s.scoringSettings.totalPoints}{' '}
+														? '100'
+														: s.scoringSettings.totalPoints}{' '}
 													points
-											</span>
-										</div>
-										<div className='flex justify-between'>
-											<span className='text-gray-600'>
+												</span>
+											</div>
+											<div className='flex justify-between'>
+												<span className='text-gray-600'>
 													Custom Points:
-											</span>
-											<span className='font-medium text-green-600'>
-												{s.scoringSettings.customScoringRules
-													?.useCustomPoints
-													? 'Yes'
-													: 'No'}
-											</span>
+												</span>
+												<span className='font-medium text-green-600'>
+													{s.scoringSettings.customScoringRules
+														?.useCustomPoints
+														? 'Yes'
+														: 'No'}
+												</span>
+											</div>
 										</div>
 									</div>
-								</div>
-							)}
+								)}
 
 							{/* Question Source Display */}
 							{s.sourceType === SOURCE_TYPE.QUESTION_BANK && (
@@ -949,9 +957,9 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 											url={
 												s.type === SURVEY_TYPE.ASSESSMENT
 													? getSurveyUrl(s.slug).replace(
-														'/survey/',
-														'/assessment/'
-													)
+															'/survey/',
+															'/assessment/'
+														)
 													: getSurveyUrl(s.slug)
 											}
 										/>
@@ -1069,59 +1077,59 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																		{editForm?.options &&
 																		editForm.options.length >
 																			0 ? (
-																				<div className='space-y-2'>
-																					{editForm.options.map(
-																						(
-																							option,
-																							optionIndex
-																						) => (
-																							<div
-																								key={
-																									optionIndex
+																			<div className='space-y-2'>
+																				{editForm.options.map(
+																					(
+																						option,
+																						optionIndex
+																					) => (
+																						<div
+																							key={
+																								optionIndex
+																							}
+																							className='flex items-center gap-2'
+																						>
+																							<input
+																								className='input-field flex-1'
+																								placeholder={`Option ${optionIndex + 1}`}
+																								value={
+																									option
 																								}
-																								className='flex items-center gap-2'
+																								onChange={e =>
+																									handleQuestionEditOptionChange(
+																										s._id,
+																										idx,
+																										optionIndex,
+																										e
+																											.target
+																											.value
+																									)
+																								}
+																							/>
+																							<button
+																								className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
+																								onClick={() =>
+																									removeQuestionEditOption(
+																										s._id,
+																										idx,
+																										optionIndex
+																									)
+																								}
+																								type='button'
 																							>
-																								<input
-																									className='input-field flex-1'
-																									placeholder={`Option ${optionIndex + 1}`}
-																									value={
-																										option
-																									}
-																									onChange={e =>
-																										handleQuestionEditOptionChange(
-																											s._id,
-																											idx,
-																											optionIndex,
-																											e
-																												.target
-																												.value
-																										)
-																									}
-																								/>
-																								<button
-																									className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
-																									onClick={() =>
-																										removeQuestionEditOption(
-																											s._id,
-																											idx,
-																											optionIndex
-																										)
-																									}
-																									type='button'
-																								>
 																								Remove
-																								</button>
-																							</div>
-																						)
-																					)}
-																				</div>
-																			) : (
-																				<div className='text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center'>
+																							</button>
+																						</div>
+																					)
+																				)}
+																			</div>
+																		) : (
+																			<div className='text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center'>
 																				No options added
 																				yet. Click "Add
 																				Option" to start.
-																				</div>
-																			)}
+																			</div>
+																		)}
 																	</div>
 																)}
 																{TYPES_REQUIRING_ANSWERS.includes(
@@ -1129,131 +1137,131 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																) &&
 																	editForm?.options &&
 																	editForm.options.length > 0 && (
-																	<div className='space-y-4'>
-																		<div>
-																			<label className='block text-sm font-medium text-gray-700 mb-2'>
+																		<div className='space-y-4'>
+																			<div>
+																				<label className='block text-sm font-medium text-gray-700 mb-2'>
 																					Select Correct
 																					Answer(s)
-																			</label>
-																			<div className='space-y-2'>
-																				{editForm.options.map(
-																					(
-																						opt,
-																						optIdx
-																					) => {
-																						const isCorrect =
+																				</label>
+																				<div className='space-y-2'>
+																					{editForm.options.map(
+																						(
+																							opt,
+																							optIdx
+																						) => {
+																							const isCorrect =
 																								Array.isArray(
 																									editForm.correctAnswer
 																								)
 																									? editForm.correctAnswer.includes(
-																										optIdx
-																									)
-																									: editForm.correctAnswer ===
-																										optIdx;
-																						return (
-																							<div
-																								key={
-																									optIdx
-																								}
-																								className='flex items-center gap-2'
-																							>
-																								<button
-																									type='button'
-																									onClick={() =>
-																										toggleCorrectAnswer(
-																											s._id,
-																											idx,
 																											optIdx
 																										)
+																									: editForm.correctAnswer ===
+																										optIdx;
+																							return (
+																								<div
+																									key={
+																										optIdx
 																									}
-																									className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-																										isCorrect
-																											? 'bg-green-500 border-green-500 text-white'
-																											: 'border-gray-300 hover:border-green-400'
-																									}`}
+																									className='flex items-center gap-2'
 																								>
-																									{isCorrect && (
-																										<svg
-																											className='w-3 h-3'
-																											fill='currentColor'
-																											viewBox='0 0 20 20'
-																										>
-																											<path
-																												fillRule='evenodd'
-																												d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-																												clipRule='evenodd'
-																											/>
-																										</svg>
-																									)}
-																								</button>
-																								<span className='text-sm text-gray-700'>
-																									{opt ||
+																									<button
+																										type='button'
+																										onClick={() =>
+																											toggleCorrectAnswer(
+																												s._id,
+																												idx,
+																												optIdx
+																											)
+																										}
+																										className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+																											isCorrect
+																												? 'bg-green-500 border-green-500 text-white'
+																												: 'border-gray-300 hover:border-green-400'
+																										}`}
+																									>
+																										{isCorrect && (
+																											<svg
+																												className='w-3 h-3'
+																												fill='currentColor'
+																												viewBox='0 0 20 20'
+																											>
+																												<path
+																													fillRule='evenodd'
+																													d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+																													clipRule='evenodd'
+																												/>
+																											</svg>
+																										)}
+																									</button>
+																									<span className='text-sm text-gray-700'>
+																										{opt ||
 																											`Option ${optIdx + 1}`}
-																								</span>
-																							</div>
-																						);
-																					}
-																				)}
-																			</div>
-																			<div className='text-xs text-gray-500 mt-1'>
+																									</span>
+																								</div>
+																							);
+																						}
+																					)}
+																				</div>
+																				<div className='text-xs text-gray-500 mt-1'>
 																					Click the
 																					checkboxes to
 																					select multiple
 																					correct answers
+																				</div>
 																			</div>
-																		</div>
-																		{s.scoringSettings
-																			?.customScoringRules
-																			?.useCustomPoints && (
-																			<div>
-																				<label className='block text-sm font-medium text-gray-700 mb-2'>
+																			{s.scoringSettings
+																				?.customScoringRules
+																				?.useCustomPoints && (
+																				<div>
+																					<label className='block text-sm font-medium text-gray-700 mb-2'>
 																						Question
 																						Points
-																				</label>
-																				<input
-																					type='number'
-																					className='input-field w-full'
-																					placeholder={`Default points: ${s.scoringSettings.customScoringRules.defaultQuestionPoints}`}
-																					value={
-																						editForm.points ||
+																					</label>
+																					<input
+																						type='number'
+																						className='input-field w-full'
+																						placeholder={`Default points: ${s.scoringSettings.customScoringRules.defaultQuestionPoints}`}
+																						value={
+																							editForm.points ||
 																							''
-																					}
-																					onChange={e =>
-																						handleQuestionEditChange(
-																							s._id,
-																							idx,
-																							'points',
-																							e
-																								.target
-																								.value
-																								? parseInt(
-																									e
-																										.target
-																										.value
-																								)
-																								: undefined
-																						)
-																					}
-																					min='1'
-																					max='100'
-																				/>
-																				<div className='text-xs text-gray-500 mt-1'>
+																						}
+																						onChange={e =>
+																							handleQuestionEditChange(
+																								s._id,
+																								idx,
+																								'points',
+																								e
+																									.target
+																									.value
+																									? parseInt(
+																											e
+																												.target
+																												.value
+																										)
+																									: undefined
+																							)
+																						}
+																						min='1'
+																						max='100'
+																					/>
+																					<div className='text-xs text-gray-500 mt-1'>
 																						Leave empty
 																						to use
 																						default
 																						points (
-																					{
-																						s
-																							.scoringSettings
-																							.customScoringRules
-																							.defaultQuestionPoints
-																					}{' '}
+																						{
+																							s
+																								.scoringSettings
+																								.customScoringRules
+																								.defaultQuestionPoints
+																						}{' '}
 																						points)
+																					</div>
 																				</div>
-																			</div>
-																		)}
-																	</div>
-																)}
+																			)}
+																		</div>
+																	)}
 																<div className='flex gap-2 pt-2'>
 																	<button
 																		className='btn-primary text-sm'
@@ -1371,13 +1379,13 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																</div>
 																{q.type ===
 																QUESTION_TYPE.SHORT_TEXT ? (
-																		<div className='text-sm text-gray-600 mb-1'>
-																			<div className='font-medium'>
+																	<div className='text-sm text-gray-600 mb-1'>
+																		<div className='font-medium'>
 																			Type: Text Response
-																			</div>
-																			{TYPES_REQUIRING_ANSWERS.includes(
+																		</div>
+																		{TYPES_REQUIRING_ANSWERS.includes(
 																			s.type as any
-																			) &&
+																		) &&
 																			q.correctAnswer &&
 																			typeof q.correctAnswer ===
 																				'string' && (
@@ -1389,12 +1397,12 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																					}
 																				</div>
 																			)}
-																		</div>
-																	) : (
-																		<>
-																			<div className='text-sm text-gray-600 mb-1'>
+																	</div>
+																) : (
+																	<>
+																		<div className='text-sm text-gray-600 mb-1'>
 																			Options:{' '}
-																				{q.options &&
+																			{q.options &&
 																				q.options.map(
 																					(
 																						opt,
@@ -1405,8 +1413,8 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																								q.correctAnswer
 																							)
 																								? q.correctAnswer.includes(
-																									optIdx
-																								)
+																										optIdx
+																									)
 																								: q.correctAnswer ===
 																									optIdx;
 																						return (
@@ -1431,10 +1439,10 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																						);
 																					}
 																				)}
-																			</div>
-																			{TYPES_REQUIRING_ANSWERS.includes(
-																				s.type
-																			) &&
+																		</div>
+																		{TYPES_REQUIRING_ANSWERS.includes(
+																			s.type
+																		) &&
 																			q.correctAnswer !==
 																				undefined &&
 																			q.type &&
@@ -1454,25 +1462,25 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																						q.correctAnswer
 																					)
 																						? q.correctAnswer
-																							.map(
-																								idx =>
-																									q
-																										.options?.[
+																								.map(
+																									idx =>
+																										q
+																											.options?.[
 																											idx
 																										]
-																							)
-																							.join(
-																								', '
-																							)
+																								)
+																								.join(
+																									', '
+																								)
 																						: q
-																							.options?.[
+																								.options?.[
 																								q
 																									.correctAnswer
 																							]}
 																				</div>
 																			)}
-																		</>
-																	)}
+																	</>
+																)}
 															</div>
 														)}
 													</div>
@@ -1585,7 +1593,6 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 									>
 										汇总结果
 									</button>
-
 								</div>
 
 								{/* Aggregated Statistics */}
@@ -1603,11 +1610,11 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																stats[s._id]?.summary
 																	?.totalResponses > 0
 																	? (
-																		(count /
+																			(count /
 																				stats[s._id].summary
 																					.totalResponses) *
 																			100
-																	).toFixed(1)
+																		).toFixed(1)
 																	: 0;
 															return (
 																<div
@@ -1651,13 +1658,24 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 												{/* Pagination info */}
 												<div className='flex justify-between items-center text-sm text-gray-600 mb-4'>
 													<div>
-														共 {stats[s._id].userResponses.length} 条记录，
-														显示第 {((responsePage - 1) * RESPONSE_PAGE_SIZE) + 1} - {Math.min(responsePage * RESPONSE_PAGE_SIZE, stats[s._id].userResponses.length)} 条
+														共 {stats[s._id].userResponses.length}{' '}
+														条记录， 显示第{' '}
+														{(responsePage - 1) * RESPONSE_PAGE_SIZE +
+															1}{' '}
+														-{' '}
+														{Math.min(
+															responsePage * RESPONSE_PAGE_SIZE,
+															stats[s._id].userResponses.length
+														)}{' '}
+														条
 													</div>
 												</div>
 
 												{stats[s._id].userResponses
-													.slice((responsePage - 1) * RESPONSE_PAGE_SIZE, responsePage * RESPONSE_PAGE_SIZE)
+													.slice(
+														(responsePage - 1) * RESPONSE_PAGE_SIZE,
+														responsePage * RESPONSE_PAGE_SIZE
+													)
 													.map((response, idx) => (
 														<div
 															key={response._id}
@@ -1673,66 +1691,72 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																	</div>
 																	{/* Score Information */}
 																	{response.score &&
-																	[
-																		'quiz',
-																		'assessment',
-																		'iq',
-																	].includes(s.type) && (
-																		<div className='mt-2 space-y-1'>
-																			<div className='flex items-center gap-2'>
-																				<span className='text-sm font-medium text-blue-600'>
-																				成绩:{' '}
-																					{
-																						response.score
-																							.displayScore
-																					}
-																					{response.score
-																						.scoringMode ===
-																					'percentage'
-																						? '%'
-																						: '分'}
-																				</span>
-																				<span
-																					className={`text-xs px-2 py-1 rounded-full ${
-																						response.score
-																							.passed
-																							? 'bg-green-100 text-green-800'
-																							: 'bg-red-100 text-red-800'
-																					}`}
-																				>
-																					{response.score
-																						.passed
-																						? '通过'
-																						: '未通过'}
-																				</span>
-																			</div>
-																			<div className='text-xs text-gray-500'>
-																			正确:{' '}
-																				{
-																					response.score
-																						.correctAnswers
-																				}{' '}
-																			/ 错误:{' '}
-																				{
-																					response.score
-																						.wrongAnswers
-																				}
-																				{response.timeSpent && (
-																					<span className='ml-2'>
-																					用时:{' '}
-																						{Math.floor(
-																							response.timeSpent /
-																						60
-																						)}
-																					分
-																						{response.timeSpent %
-																						60}
-																					秒
+																		[
+																			'quiz',
+																			'assessment',
+																			'iq',
+																		].includes(s.type) && (
+																			<div className='mt-2 space-y-1'>
+																				<div className='flex items-center gap-2'>
+																					<span className='text-sm font-medium text-blue-600'>
+																						成绩:{' '}
+																						{
+																							response
+																								.score
+																								.displayScore
+																						}
+																						{response
+																							.score
+																							.scoringMode ===
+																						'percentage'
+																							? '%'
+																							: '分'}
 																					</span>
-																				)}
+																					<span
+																						className={`text-xs px-2 py-1 rounded-full ${
+																							response
+																								.score
+																								.passed
+																								? 'bg-green-100 text-green-800'
+																								: 'bg-red-100 text-red-800'
+																						}`}
+																					>
+																						{response
+																							.score
+																							.passed
+																							? '通过'
+																							: '未通过'}
+																					</span>
+																				</div>
+																				<div className='text-xs text-gray-500'>
+																					正确:{' '}
+																					{
+																						response
+																							.score
+																							.correctAnswers
+																					}{' '}
+																					/ 错误:{' '}
+																					{
+																						response
+																							.score
+																							.wrongAnswers
+																					}
+																					{response.timeSpent && (
+																						<span className='ml-2'>
+																							用时:{' '}
+																							{Math.floor(
+																								response.timeSpent /
+																									60
+																							)}
+																							分
+																							{response.timeSpent %
+																								60}
+																							秒
+																						</span>
+																					)}
+																				</div>
 																			</div>
-																		</div>
-																	)}
+																		)}
 																</div>
 																<div className='text-xs text-gray-500'>
 																	{new Date(
@@ -1743,38 +1767,43 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																	).toLocaleTimeString()}
 																	{response.isAutoSubmit && (
 																		<div className='text-orange-600 mt-1'>
-																		(自动提交)
+																			(自动提交)
 																		</div>
 																	)}
 																</div>
 															</div>
 															<div className='space-y-2'>
-																{Object.entries(response.answers).map(
-																	([question, answer]) => (
-																		<div
-																			key={question}
-																			className='border-l-4 border-blue-200 pl-3'
-																		>
-																			<div className='font-medium text-gray-700 text-sm'>
-																				{question}
-																			</div>
-																			<div
-																				className={`text-sm ${answer === 'No answer' ? 'text-gray-400 italic' : 'text-gray-900'}`}
-																			>
-																				{answer}
-																			</div>
+																{Object.entries(
+																	response.answers
+																).map(([question, answer]) => (
+																	<div
+																		key={question}
+																		className='border-l-4 border-blue-200 pl-3'
+																	>
+																		<div className='font-medium text-gray-700 text-sm'>
+																			{question}
 																		</div>
-																	)
-																)}
+																		<div
+																			className={`text-sm ${answer === 'No answer' ? 'text-gray-400 italic' : 'text-gray-900'}`}
+																		>
+																			{answer}
+																		</div>
+																	</div>
+																))}
 															</div>
 														</div>
 													))}
 
 												{/* Pagination Controls */}
-												{stats[s._id].userResponses.length > RESPONSE_PAGE_SIZE && (
+												{stats[s._id].userResponses.length >
+													RESPONSE_PAGE_SIZE && (
 													<div className='flex justify-center items-center gap-2 mt-6'>
 														<button
-															onClick={() => setResponsePage(prev => Math.max(1, prev - 1))}
+															onClick={() =>
+																setResponsePage(prev =>
+																	Math.max(1, prev - 1)
+																)
+															}
 															disabled={responsePage === 1}
 															className='px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
 														>
@@ -1782,20 +1811,48 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 														</button>
 
 														<div className='flex gap-1'>
-															{Array.from({ length: Math.ceil(stats[s._id].userResponses.length / RESPONSE_PAGE_SIZE) }, (_, i) => i + 1)
+															{Array.from(
+																{
+																	length: Math.ceil(
+																		stats[s._id].userResponses
+																			.length /
+																			RESPONSE_PAGE_SIZE
+																	),
+																},
+																(_, i) => i + 1
+															)
 																.filter(pageNum => {
-																	const totalPages = Math.ceil(stats[s._id].userResponses.length / RESPONSE_PAGE_SIZE);
-																	return pageNum === 1 || pageNum === totalPages || Math.abs(pageNum - responsePage) <= 1;
+																	const totalPages = Math.ceil(
+																		stats[s._id].userResponses
+																			.length /
+																			RESPONSE_PAGE_SIZE
+																	);
+																	return (
+																		pageNum === 1 ||
+																		pageNum === totalPages ||
+																		Math.abs(
+																			pageNum - responsePage
+																		) <= 1
+																	);
 																})
 																.map((pageNum, index, array) => (
 																	<React.Fragment key={pageNum}>
-																		{index > 0 && array[index - 1] !== pageNum - 1 && (
-																			<span className='px-2 py-1 text-gray-400'>...</span>
-																		)}
+																		{index > 0 &&
+																			array[index - 1] !==
+																				pageNum - 1 && (
+																				<span className='px-2 py-1 text-gray-400'>
+																					...
+																				</span>
+																			)}
 																		<button
-																			onClick={() => setResponsePage(pageNum)}
+																			onClick={() =>
+																				setResponsePage(
+																					pageNum
+																				)
+																			}
 																			className={`px-3 py-1 text-sm border rounded ${
-																				responsePage === pageNum
+																				responsePage ===
+																				pageNum
 																					? 'bg-blue-600 text-white border-blue-600'
 																					: 'hover:bg-gray-50'
 																			}`}
@@ -1803,13 +1860,30 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																			{pageNum}
 																		</button>
 																	</React.Fragment>
-																))
-															}
+																))}
 														</div>
 
 														<button
-															onClick={() => setResponsePage(prev => Math.min(Math.ceil(stats[s._id].userResponses.length / RESPONSE_PAGE_SIZE), prev + 1))}
-															disabled={responsePage >= Math.ceil(stats[s._id].userResponses.length / RESPONSE_PAGE_SIZE)}
+															onClick={() =>
+																setResponsePage(prev =>
+																	Math.min(
+																		Math.ceil(
+																			stats[s._id]
+																				.userResponses
+																				.length /
+																				RESPONSE_PAGE_SIZE
+																		),
+																		prev + 1
+																	)
+																)
+															}
+															disabled={
+																responsePage >=
+																Math.ceil(
+																	stats[s._id].userResponses
+																		.length / RESPONSE_PAGE_SIZE
+																)
+															}
 															className='px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
 														>
 															下一页
@@ -1886,15 +1960,15 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 													<td className='px-2 py-1 border'>
 														{inv.createdAt
 															? new Date(
-																inv.createdAt
-															).toLocaleString()
+																	inv.createdAt
+																).toLocaleString()
 															: ''}
 													</td>
 													<td className='px-2 py-1 border'>
 														{inv.expiresAt
 															? new Date(
-																inv.expiresAt
-															).toLocaleDateString()
+																	inv.expiresAt
+																).toLocaleDateString()
 															: '永久'}
 													</td>
 													<td className='px-2 py-1 border'>

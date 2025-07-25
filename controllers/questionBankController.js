@@ -408,17 +408,17 @@ exports.importQuestionsFromCSV = async (req, res) => {
 						// Map CSV type to internal type
 						let questionType;
 						switch (type) {
-						case 'single':
-							questionType = 'single_choice';
-							break;
-						case 'multiple':
-							questionType = 'multiple_choice';
-							break;
-						case 'text':
-							questionType = 'short_text';
-							break;
-						default:
-							questionType = 'single_choice';
+							case 'single':
+								questionType = 'single_choice';
+								break;
+							case 'multiple':
+								questionType = 'multiple_choice';
+								break;
+							case 'text':
+								questionType = 'short_text';
+								break;
+							default:
+								questionType = 'single_choice';
 						}
 
 						const newQuestion = {

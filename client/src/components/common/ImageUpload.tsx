@@ -30,7 +30,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 	placeholder = 'Click to upload image or paste URL',
 	className = '',
 	uploadMethod = 'backend',
-	cloudinaryConfig
+	cloudinaryConfig,
 }) => {
 	const [isUploading, setIsUploading] = useState(false);
 	const [showUrlInput, setShowUrlInput] = useState(false);
@@ -45,9 +45,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
 			if (uploadMethod === 'cloudinary') {
 				// Use Cloudinary upload
-				const config = cloudinaryConfig ?
-					{ ...getCloudinaryConfig(), ...cloudinaryConfig } :
-					getCloudinaryConfig();
+				const config = cloudinaryConfig
+					? { ...getCloudinaryConfig(), ...cloudinaryConfig }
+					: getCloudinaryConfig();
 
 				imageUrl = await uploadToCloudinary(file, config);
 			} else {
@@ -79,7 +79,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 			onImageUpload(imageUrl);
 		} catch (error) {
 			console.error('Image upload error:', error);
-			const errorMessage = error instanceof Error ? error.message : 'Failed to upload image. Please try again.';
+			const errorMessage =
+				error instanceof Error
+					? error.message
+					: 'Failed to upload image. Please try again.';
 			alert(errorMessage);
 		} finally {
 			setIsUploading(false);
@@ -149,7 +152,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
 			// Handle text (URLs)
 			if (item.type === 'text/plain') {
-				item.getAsString((text) => {
+				item.getAsString(text => {
 					try {
 						new URL(text);
 						if (text.match(/\.(jpg|jpeg|png|gif|webp)$/i) || text.includes('image')) {
@@ -170,8 +173,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 					src={imageUrl}
 					alt='Uploaded content'
 					className='w-full h-32 object-cover rounded-lg border border-gray-300'
-					onError={(e) => {
-						e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIxIDlWN0M2IDcgNCA5IDQgOVYxN0M0IDE5IDYgMjEgOSAyMUgxNUMxNyAyMSAxOSAxOSAxOSAxN1YxNUwyMSA5WiIgc3Ryb2tlPSIjOTk5IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNOSA5SDE1VjE1SDlaIiBzdHJva2U9IiM5OTkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjwvcGF0aD4KPC9zdmc+';
+					onError={e => {
+						e.currentTarget.src =
+							'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIxIDlWN0M2IDcgNCA5IDQgOVYxN0M0IDE5IDYgMjEgOSAyMUgxNUMxNyAyMSAxOSAxOSAxOSAxN1YxNUwyMSA5WiIgc3Ryb2tlPSIjOTk5IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNOSA5SDE1VjE1SDlaIiBzdHJva2U9IiM5OTkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjwvcGF0aD4KPC9zdmc+';
 					}}
 				/>
 				<button
@@ -247,8 +251,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 						className='input-field flex-1 text-sm'
 						placeholder='Paste image URL here'
 						value={urlInput}
-						onChange={(e) => setUrlInput(e.target.value)}
-						onKeyPress={(e) => {
+						onChange={e => setUrlInput(e.target.value)}
+						onKeyPress={e => {
 							if (e.key === 'Enter') {
 								handleUrlSubmit();
 							}

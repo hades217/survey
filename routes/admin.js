@@ -482,7 +482,9 @@ router.patch(
 		// Validate options only if provided
 		if (options !== undefined) {
 			if (!Array.isArray(options)) {
-				return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: ERROR_MESSAGES.INVALID_DATA });
+				return res
+					.status(HTTP_STATUS.BAD_REQUEST)
+					.json({ error: ERROR_MESSAGES.INVALID_DATA });
 			}
 
 			// Validate option format: each option should have either text or imageUrl
@@ -763,7 +765,7 @@ router.get(
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
 
-				// Build filter query for responses
+		// Build filter query for responses
 		let responseFilter = { surveyId };
 
 		// Filter by name (fuzzy match)
@@ -1122,8 +1124,8 @@ router.get(
 		const completionRate =
 			questions.length > 0
 				? (userResponses.filter(r =>
-					Object.values(r.answers).some(ans => ans !== 'No answer')
-				).length /
+						Object.values(r.answers).some(ans => ans !== 'No answer')
+					).length /
 						totalResponses) *
 					100
 				: 0;
