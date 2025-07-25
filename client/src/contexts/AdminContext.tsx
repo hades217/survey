@@ -4,7 +4,6 @@ import api from '../utils/axiosConfig';
 import {
 	Survey,
 	QuestionBank,
-	Question,
 	EnhancedStats,
 	TabType,
 	StatsViewType,
@@ -121,7 +120,7 @@ interface AdminContextType {
 	// Utility functions
 	copyToClipboard: (text: string) => void;
 	navigate: (path: string) => void;
-	location: any;
+	location: unknown;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -341,7 +340,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 			} else {
 				setError(response.data.error || 'Login failed');
 			}
-		} catch (err: any) {
+		} catch (err: unknown) {
 			setError(err.response?.data?.error || 'Login failed');
 		} finally {
 			setLoading(false);
@@ -370,7 +369,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 			} else {
 				setError(response.data.error || 'Registration failed');
 			}
-		} catch (err: any) {
+		} catch (err: unknown) {
 			setError(err.response?.data?.error || 'Registration failed');
 		} finally {
 			setLoading(false);
@@ -435,7 +434,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 
 			setError('');
 			alert('Profile updated successfully!');
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Update profile error:', err);
 			setError(err.response?.data?.error || 'Failed to update profile');
 		} finally {
@@ -456,7 +455,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 
 			setError('');
 			alert('Password updated successfully!');
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Update password error:', err);
 			setError(err.response?.data?.error || 'Failed to update password');
 		} finally {
@@ -479,7 +478,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 
 			setError('');
 			alert('Company information updated successfully!');
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Update company error:', err);
 			setError(err.response?.data?.error || 'Failed to update company information');
 		} finally {

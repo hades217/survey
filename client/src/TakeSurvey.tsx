@@ -3,19 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import type { SurveyResponse } from '../../shared/surveyResponse';
 import {
-	SURVEY_TYPE,
-	SURVEY_STATUS,
 	QUESTION_TYPE,
-	NAVIGATION_MODE,
-	SCORING_MODE,
 	SOURCE_TYPE,
 	TYPES_REQUIRING_ANSWERS,
+	type QuestionType,
+	type SourceType,
 	type SurveyType,
 	type SurveyStatus,
-	type QuestionType,
 	type NavigationMode,
 	type ScoringMode,
-	type SourceType,
 } from './constants';
 
 interface Survey {

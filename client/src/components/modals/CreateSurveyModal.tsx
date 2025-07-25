@@ -51,11 +51,11 @@ const CreateSurveyModal: React.FC = () => {
 		newSurvey.type
 	);
 
-	const handleMultiBankSave = (config: any[]) => {
+	const handleMultiBankSave = (config: unknown[]) => {
 		setNewSurvey(prev => ({ ...prev, multiQuestionBankConfig: config }));
 	};
 
-	const handleManualSelectionSave = (selectedQuestions: any[]) => {
+	const handleManualSelectionSave = (selectedQuestions: unknown[]) => {
 		setNewSurvey(prev => ({ ...prev, selectedQuestions }));
 	};
 
@@ -210,7 +210,7 @@ const CreateSurveyModal: React.FC = () => {
 									newSurvey.multiQuestionBankConfig.length > 0 ? (
 										<div className='space-y-2'>
 											{newSurvey.multiQuestionBankConfig.map(
-												(config: any, index: number) => {
+												(config: unknown, index: number) => {
 													const bank = questionBanks.find(
 														b => b._id === config.questionBankId
 													);
@@ -238,7 +238,7 @@ const CreateSurveyModal: React.FC = () => {
 											<div className='text-xs text-gray-500 mt-2'>
 												Total:{' '}
 												{newSurvey.multiQuestionBankConfig.reduce(
-													(sum: number, config: any) =>
+													(sum: number, config: unknown) =>
 														sum + config.questionCount,
 													0
 												)}{' '}

@@ -73,7 +73,7 @@ const InviteAssessmentModal: React.FC<InviteAssessmentModalProps> = ({
 			setResults(res.data.results || []);
 			setEmails('');
 			loadInvitations(); // 发送后刷新列表
-		} catch (err: any) {
+		} catch (err: unknown) {
 			setError(err.response?.data?.error || err.message || '发送失败');
 		} finally {
 			setSending(false);
@@ -106,7 +106,7 @@ const InviteAssessmentModal: React.FC<InviteAssessmentModalProps> = ({
 	const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
 	// 状态判断
-	const getStatus = (inv: any) => {
+	const getStatus = (inv: unknown) => {
 		const now = new Date();
 		if (inv.completedBy && inv.completedBy.length > 0)
 			return { label: '已完成', color: 'green' };

@@ -67,14 +67,14 @@ const MultiQuestionBankModal: React.FC<MultiQuestionBankModalProps> = ({
 	const updateConfiguration = (
 		index: number,
 		field: keyof MultiQuestionBankConfig,
-		value: any
+		value: unknown
 	) => {
 		const updated = [...configurations];
 		updated[index] = { ...updated[index], [field]: value };
 		setConfigurations(updated);
 	};
 
-	const updateFilter = (configIndex: number, filterField: string, value: any) => {
+	const updateFilter = (configIndex: number, filterField: string, value: unknown) => {
 		const updated = [...configurations];
 		updated[configIndex] = {
 			...updated[configIndex],

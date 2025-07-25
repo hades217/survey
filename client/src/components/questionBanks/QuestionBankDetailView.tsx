@@ -68,7 +68,7 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 	const handleQuestionBankQuestionChange = (
 		questionBankId: string,
 		field: string,
-		value: any
+		value: unknown
 	) => {
 		setQuestionBankQuestionForms(prev => {
 			const currentForm = prev[questionBankId] || {
@@ -192,7 +192,7 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 		questionBankId: string,
 		questionIndex: number,
 		field: string,
-		value: any
+		value: unknown
 	) => {
 		const formKey = `${questionBankId}-${questionIndex}`;
 		setQuestionBankQuestionEditForms(prev => ({

@@ -141,7 +141,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
 	// 状态判断
-	const getStatus = (inv: any) => {
+	const getStatus = (inv: unknown) => {
 		const now = new Date();
 		if (inv.completedBy && inv.completedBy.length > 0)
 			return { label: '已完成', color: 'green' };
@@ -213,7 +213,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	};
 
 	// Question management functions
-	const handleQuestionChange = (surveyId: string, field: string, value: any) => {
+	const handleQuestionChange = (surveyId: string, field: string, value: unknown) => {
 		setQuestionForms(prev => {
 			const currentForm = prev[surveyId] || {
 				text: '',
@@ -314,12 +314,12 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	};
 
 	// Add question modal handler
-	const addQuestionModalHandler = async (form: any) => {
+	const addQuestionModalHandler = async (form: unknown) => {
 		try {
 			setLoading(true);
 
 			// Prepare form data - don't send options for short_text
-			const formData: any = {
+			const formData: unknown = {
 				text: form.text,
 				type: form.type,
 			};
@@ -356,7 +356,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			setShowAddQuestionModal(false);
 
 			setLoading(false);
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Add question error:', err);
 			setError(err.response?.data?.error || 'Failed to add question. Please try again.');
 			setLoading(false);
@@ -406,7 +406,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		surveyId: string,
 		questionIndex: number,
 		field: string,
-		value: any
+		value: unknown
 	) => {
 		const formKey = `${surveyId}-${questionIndex}`;
 		setQuestionEditForms(prev => {
@@ -539,7 +539,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			setLoading(true);
 
 			// Prepare the data for the API call (PATCH method - only send necessary fields)
-			const updateData: any = {
+			const updateData: unknown = {
 				text: editForm.text,
 				type: editForm.type,
 			};

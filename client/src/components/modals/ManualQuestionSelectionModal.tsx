@@ -9,7 +9,7 @@ interface Question {
 	text: string;
 	type: string;
 	options?: string[];
-	correctAnswer?: any;
+	correctAnswer?: unknown;
 	explanation?: string;
 	points?: number;
 	tags?: string[];

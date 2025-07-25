@@ -6,7 +6,7 @@ interface AddQuestionModalProps {
 	onClose: () => void;
 	onSubmit: (form: QuestionForm) => void;
 	form: QuestionForm;
-	onChange: (field: string, value: any) => void;
+	onChange: (field: string, value: unknown) => void;
 	onOptionChange: (index: number, value: string) => void;
 	onAddOption: () => void;
 	onRemoveOption: (index: number) => void;

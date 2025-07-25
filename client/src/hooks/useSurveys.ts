@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import api from '../utils/axiosConfig';
 import { useAdmin } from '../contexts/AdminContext';
-import { Survey, EnhancedStats } from '../types/admin';
+import { Survey } from '../types/admin';
 import {
 	SURVEY_TYPE,
 	SURVEY_STATUS,
@@ -126,14 +126,14 @@ export const useSurveys = () => {
 				},
 			});
 			setShowCreateModal(false);
-		} catch (err: any) {
+		} catch (err: unknown) {
 			setError(err.response?.data?.error || 'Failed to create survey');
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	const updateSurvey = async (surveyId: string, surveyData: any) => {
+	const updateSurvey = async (surveyId: string, surveyData: unknown) => {
 		try {
 			// Use status field directly and ensure isActive matches
 			const dataToSend = {
@@ -149,7 +149,7 @@ export const useSurveys = () => {
 				setSelectedSurvey(updatedSurvey);
 			}
 			return updatedSurvey;
-		} catch (err: any) {
+		} catch (err: unknown) {
 			setError(err.response?.data?.error || 'Failed to update survey');
 			throw err;
 		}
@@ -166,7 +166,7 @@ export const useSurveys = () => {
 				setTab('list');
 				navigate('/admin');
 			}
-		} catch (err: any) {
+		} catch (err: unknown) {
 			setError(err.response?.data?.error || 'Failed to delete survey');
 		}
 	};
@@ -179,7 +179,7 @@ export const useSurveys = () => {
 			if (selectedSurvey?._id === surveyId) {
 				setSelectedSurvey(updatedSurvey);
 			}
-		} catch (err: any) {
+		} catch (err: unknown) {
 			setError(err.response?.data?.error || 'Failed to toggle survey status');
 		}
 	};
@@ -286,12 +286,12 @@ export const useSurveys = () => {
 				...prev,
 				[surveyId]: response.data,
 			}));
-		} catch (err: any) {
+		} catch (err: unknown) {
 			setError(err.response?.data?.error || 'Failed to load statistics');
 		}
 	};
 
-	const addQuestion = async (surveyId: string, questionData?: any) => {
+	const addQuestion = async (surveyId: string, questionData?: unknown) => {
 		const form = questionData || questionForms[surveyId];
 		if (!form || !form.text) {
 			setError('Please fill in question text');
@@ -326,12 +326,16 @@ export const useSurveys = () => {
 					points: undefined,
 				},
 			}));
-		} catch (err: any) {
+		} catch (err: unknown) {
 			setError(err.response?.data?.error || 'Failed to add question');
 		}
 	};
 
-	const updateQuestion = async (surveyId: string, questionIndex: number, questionData: any) => {
+	const updateQuestion = async (
+		surveyId: string,
+		questionIndex: number,
+		questionData: unknown
+	) => {
 		try {
 			const response = await api.patch(
 				`/admin/surveys/${surveyId}/questions/${questionIndex}`,
@@ -343,7 +347,7 @@ export const useSurveys = () => {
 				setSelectedSurvey(updatedSurvey);
 			}
 			return updatedSurvey;
-		} catch (err: any) {
+		} catch (err: unknown) {
 			setError(err.response?.data?.error || 'Failed to update question');
 			throw err;
 		}
@@ -361,7 +365,7 @@ export const useSurveys = () => {
 			if (selectedSurvey?._id === surveyId) {
 				setSelectedSurvey(updatedSurvey);
 			}
-		} catch (err: any) {
+		} catch (err: unknown) {
 			setError(err.response?.data?.error || 'Failed to delete question');
 		}
 	};

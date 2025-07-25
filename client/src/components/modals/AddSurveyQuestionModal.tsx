@@ -1,7 +1,6 @@
 import React from 'react';
 import {
 	QUESTION_TYPE,
-	SURVEY_TYPE,
 	TYPES_REQUIRING_ANSWERS,
 	type QuestionType,
 	type SurveyType,
@@ -22,7 +21,7 @@ interface AddSurveyQuestionModalProps {
 	onClose: () => void;
 	onSubmit: (form: SurveyQuestionForm) => void;
 	form: SurveyQuestionForm;
-	onChange: (field: string, value: any) => void;
+	onChange: (field: string, value: unknown) => void;
 	onOptionChange: (index: number, value: string | { text?: string; imageUrl?: string }) => void;
 	onAddOption: () => void;
 	onRemoveOption: (index: number) => void;
@@ -206,10 +205,12 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 										const isStringOption = typeof option === 'string';
 										const optionText = isStringOption
 											? option
-											: (option as any)?.text || '';
+											: (option as { text?: string; imageUrl?: string })
+													?.text || '';
 										const optionImageUrl = isStringOption
 											? null
-											: (option as any)?.imageUrl;
+											: (option as { text?: string; imageUrl?: string })
+													?.imageUrl;
 
 										return (
 											<div

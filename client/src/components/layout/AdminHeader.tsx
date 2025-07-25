@@ -2,7 +2,7 @@ import React from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
 
 const AdminHeader: React.FC = () => {
-	const { logout, setShowCreateModal, navigate, profileData } = useAdmin();
+	const { logout, setShowCreateModal, navigate } = useAdmin();
 
 	return (
 		<div className='flex justify-between items-center mb-8'>

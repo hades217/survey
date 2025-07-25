@@ -38,7 +38,7 @@ export interface Survey {
 			text: string;
 			type: string;
 			options?: string[];
-			correctAnswer?: any;
+			correctAnswer?: unknown;
 			explanation?: string;
 			points?: number;
 			tags?: string[];
@@ -173,7 +173,7 @@ export interface NewSurveyForm {
 			text: string;
 			type: string;
 			options?: string[];
-			correctAnswer?: any;
+			correctAnswer?: unknown;
 			explanation?: string;
 			points?: number;
 			tags?: string[];

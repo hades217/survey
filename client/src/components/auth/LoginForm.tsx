@@ -86,7 +86,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
 								onClick={onSwitchToRegister}
 								className='text-blue-600 hover:text-blue-500 text-sm font-medium'
 							>
-								Don't have an account? Register here
+								Don&apos;t have an account? Register here
 							</button>
 						</div>
 					)}

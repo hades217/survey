@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import api from '../utils/axiosConfig';
 import { useAdmin } from '../contexts/AdminContext';
 import { QuestionBank, Question } from '../types/admin';
@@ -88,7 +88,7 @@ export const useQuestionBanks = () => {
 			setQuestionBanks([...questionBanks, response.data]);
 			setQuestionBankForm({ name: '', description: '' });
 			setShowQuestionBankModal(false);
-		} catch (err: any) {
+		} catch (err: unknown) {
 			setError(err.response?.data?.error || 'Failed to create question bank');
 		} finally {
 			setLoading(false);
@@ -112,7 +112,7 @@ export const useQuestionBanks = () => {
 			if (selectedQuestionBankDetail?._id === questionBankId) {
 				setSelectedQuestionBankDetail(updatedQuestionBank);
 			}
-		} catch (err: any) {
+		} catch (err: unknown) {
 			setError(err.response?.data?.error || 'Failed to update question bank');
 			throw err;
 		} finally {
@@ -131,7 +131,7 @@ export const useQuestionBanks = () => {
 				setTab('question-banks');
 				navigate('/admin/question-banks');
 			}
-		} catch (err: any) {
+		} catch (err: unknown) {
 			setError(err.response?.data?.error || 'Failed to delete question bank');
 		}
 	};
@@ -149,7 +149,7 @@ export const useQuestionBanks = () => {
 		navigate('/admin/question-banks');
 	};
 
-	const addQuestionBankQuestion = async (questionBankId: string, formData?: any) => {
+	const addQuestionBankQuestion = async (questionBankId: string, formData?: unknown) => {
 		const currentForm = formData || questionBankQuestionForms[questionBankId];
 
 		if (!currentForm || !currentForm.text.trim()) {
@@ -179,7 +179,7 @@ export const useQuestionBanks = () => {
 			}
 		}
 
-		const questionData: any = {
+		const questionData: unknown = {
 			text: currentForm.text,
 			type: currentForm.type,
 			points: currentForm.points,
@@ -225,7 +225,7 @@ export const useQuestionBanks = () => {
 				...prev,
 				[questionBankId]: { text: '', options: [], type: 'single_choice' as const },
 			}));
-		} catch (err: any) {
+		} catch (err: unknown) {
 			setError(err.response?.data?.error || 'Failed to add question');
 			throw err;
 		}
@@ -255,7 +255,7 @@ export const useQuestionBanks = () => {
 				...prev,
 				[formKey]: false,
 			}));
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Error updating question bank question:', err);
 			setError(err.response?.data?.error || 'Failed to update question');
 		}
@@ -277,7 +277,7 @@ export const useQuestionBanks = () => {
 			if (selectedQuestionBankDetail?._id === questionBankId) {
 				setSelectedQuestionBankDetail(updatedQuestionBank);
 			}
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Error deleting question bank question:', err);
 			setError(err.response?.data?.error || 'Failed to delete question');
 		}

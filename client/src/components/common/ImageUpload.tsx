@@ -3,11 +3,11 @@ import api from '../../utils/axiosConfig';
 import { uploadToCloudinary, getCloudinaryConfig } from '../../utils/cloudinaryUpload';
 
 interface ImageUploadProps {
-	imageUrl?: string | null;
 	onImageUpload: (imageUrl: string) => void;
 	onImageRemove: () => void;
 	placeholder?: string;
 	className?: string;
+	imageUrl?: string | null;
 	/**
 	 * Upload method: 'backend' (default) or 'cloudinary'
 	 */

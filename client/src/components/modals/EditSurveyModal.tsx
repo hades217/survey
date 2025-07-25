@@ -353,7 +353,7 @@ const EditSurveyModal: React.FC = () => {
 								editForm.multiQuestionBankConfig.length > 0 ? (
 									<div className='space-y-2'>
 										{editForm.multiQuestionBankConfig.map(
-											(config: any, index: number) => {
+											(config: unknown, index: number) => {
 												const bank = questionBanks?.find(
 													b => b._id === config.questionBankId
 												);
@@ -381,7 +381,7 @@ const EditSurveyModal: React.FC = () => {
 										<div className='text-xs text-gray-500 mt-2'>
 											Total:{' '}
 											{editForm.multiQuestionBankConfig.reduce(
-												(sum: number, config: any) =>
+												(sum: number, config: unknown) =>
 													sum + config.questionCount,
 												0
 											)}{' '}

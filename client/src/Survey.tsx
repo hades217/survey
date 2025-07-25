@@ -40,7 +40,7 @@ const Survey: React.FC = () => {
 							className='w-full p-3 border border-gray-200 rounded-lg focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-colors'
 							placeholder='Enter your answer here...'
 							rows={4}
-							value={answers[q.id] || ''}
+							value={formData[q.id] || ''}
 							onChange={e => handleChange(q.id, e.target.value)}
 							required
 						/>
