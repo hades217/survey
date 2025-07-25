@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
+import ImageUpload from '../common/ImageUpload';
 
 const ProfileView: React.FC = () => {
 	const {
@@ -40,40 +41,32 @@ const ProfileView: React.FC = () => {
 		updateCompany();
 	};
 
-	const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0];
-		if (file) {
-			// For demo purposes, we'll use a data URL
-			// In a real application, you'd upload to a file service
-			const reader = new FileReader();
-			reader.onload = event => {
-				if (event.target?.result) {
-					setProfileForm({
-						...profileForm,
-						avatarUrl: event.target.result as string,
-					});
-				}
-			};
-			reader.readAsDataURL(file);
-		}
+	const handleAvatarUpload = (imageUrl: string) => {
+		setProfileForm({
+			...profileForm,
+			avatarUrl: imageUrl,
+		});
 	};
 
-	const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0];
-		if (file) {
-			// For demo purposes, we'll use a data URL
-			// In a real application, you'd upload to a file service
-			const reader = new FileReader();
-			reader.onload = event => {
-				if (event.target?.result) {
-					setCompanyForm({
-						...companyForm,
-						logoUrl: event.target.result as string,
-					});
-				}
-			};
-			reader.readAsDataURL(file);
-		}
+	const handleAvatarRemove = () => {
+		setProfileForm({
+			...profileForm,
+			avatarUrl: '',
+		});
+	};
+
+	const handleLogoUpload = (imageUrl: string) => {
+		setCompanyForm({
+			...companyForm,
+			logoUrl: imageUrl,
+		});
+	};
+
+	const handleLogoRemove = () => {
+		setCompanyForm({
+			...companyForm,
+			logoUrl: '',
+		});
 	};
 
 	if (loading && !profileData) {
@@ -181,27 +174,19 @@ const ProfileView: React.FC = () => {
 									</div>
 
 									<div>
-										<label className='block text-sm font-medium text-gray-700 mb-1'>
+										<label className='block text-sm font-medium text-gray-700 mb-2'>
 											Avatar
 										</label>
-										<div className='flex items-center space-x-4'>
-											{profileForm.avatarUrl && (
-												<img
-													src={profileForm.avatarUrl}
-													alt='Avatar preview'
-													className='w-16 h-16 rounded-full object-cover border-2 border-gray-200'
-												/>
-											)}
-											<input
-												type='file'
-												accept='image/*'
-												onChange={handleAvatarUpload}
-												className='text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'
-											/>
-										</div>
+										<ImageUpload
+											imageUrl={profileForm.avatarUrl}
+											onImageUpload={handleAvatarUpload}
+											onImageRemove={handleAvatarRemove}
+											placeholder="Upload your profile avatar"
+											uploadMethod="cloudinary"
+											className="max-w-sm"
+										/>
 										<p className='text-xs text-gray-500 mt-1'>
-											Upload an image (max 2MB). Supported formats: JPG, PNG,
-											GIF
+											Upload an avatar image. Supported formats: JPG, PNG, GIF, WebP
 										</p>
 									</div>
 
@@ -317,27 +302,19 @@ const ProfileView: React.FC = () => {
 							</div>
 
 							<div>
-								<label className='block text-sm font-medium text-gray-700 mb-1'>
+								<label className='block text-sm font-medium text-gray-700 mb-2'>
 									Company Logo
 								</label>
-								<div className='flex items-center space-x-4'>
-									{companyForm.logoUrl && (
-										<img
-											src={companyForm.logoUrl}
-											alt='Company logo preview'
-											className='w-16 h-16 rounded-lg object-cover border-2 border-gray-200'
-										/>
-									)}
-									<input
-										type='file'
-										accept='image/*'
-										onChange={handleLogoUpload}
-										className='text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'
-									/>
-								</div>
+								<ImageUpload
+									imageUrl={companyForm.logoUrl}
+									onImageUpload={handleLogoUpload}
+									onImageRemove={handleLogoRemove}
+									placeholder="Upload your company logo"
+									uploadMethod="cloudinary"
+									className="max-w-sm"
+								/>
 								<p className='text-xs text-gray-500 mt-1'>
-									Upload a company logo (max 2MB). Supported formats: JPG, PNG,
-									GIF
+									Upload a company logo. Supported formats: JPG, PNG, GIF, WebP
 								</p>
 							</div>
 

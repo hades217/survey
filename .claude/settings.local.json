@@ -27,7 +27,8 @@
       "Bash(rg:*)",
       "Bash(find:*)",
       "Bash(chmod:*)",
-      "Bash(./fix-lint.sh)"
+      "Bash(./fix-lint.sh)",
+      "Bash(touch:*)"
     ],
     "deny": []
   }

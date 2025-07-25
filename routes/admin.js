@@ -1560,7 +1560,7 @@ router.put(
 
 // Image upload endpoint for questions
 router.post(
-	'/upload/image',
+	'/upload-image',
 	jwtAuth,
 	imageUpload.single('image'),
 	asyncHandler(async (req, res) => {
