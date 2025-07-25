@@ -1,0 +1,41 @@
+# Backend Dockerfile for Survey AI
+FROM node:20-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Install backend dependencies
+COPY package.json package-lock.json* ./
+RUN npm ci --only=production
+
+# Production image, copy all the files and run the app
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV production
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy the backend application
+COPY --from=deps /app/node_modules ./node_modules
+COPY server.js ./
+COPY models ./models
+COPY routes ./routes
+COPY middlewares ./middlewares
+COPY schemas ./schemas
+COPY services ./services
+COPY shared ./shared
+COPY utils ./utils
+COPY controllers ./controllers
+
+USER nextjs
+
+EXPOSE 5050
+
+ENV PORT 5050
+
+CMD ["node", "server.js"]
