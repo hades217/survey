@@ -13,10 +13,6 @@ export const useQuestionBanks = () => {
 		setQuestionBankForm,
 		questionBankQuestionForms,
 		setQuestionBankQuestionForms,
-		questionBankQuestionEditForms,
-		setQuestionBankQuestionEditForms,
-		editingQuestionBankQuestions,
-		setEditingQuestionBankQuestions,
 		showQuestionBankModal,
 		setShowQuestionBankModal,
 		questionBankDetailTab,
@@ -164,8 +160,15 @@ export const useQuestionBanks = () => {
 				throw new Error('At least 2 options are required for choice questions');
 			}
 
-			// Filter out empty options
-			const filteredOptions = currentForm.options.filter((opt: string) => opt.trim());
+			// Filter out empty options (handle both string and object formats)
+			const filteredOptions = currentForm.options.filter((opt: unknown) => {
+				if (typeof opt === 'string') {
+					return opt.trim();
+				} else if (typeof opt === 'object' && opt !== null) {
+					return (opt as { text?: string }).text?.trim();
+				}
+				return false;
+			});
 
 			// Additional validation
 			if (filteredOptions.length < 2) {
@@ -196,7 +199,7 @@ export const useQuestionBanks = () => {
 		// For choice questions, add options and correctAnswer
 		if (currentForm.type !== 'short_text') {
 			if (currentForm.options) {
-				const filteredOptions = currentForm.options.filter((opt: string) => opt.trim());
+				// Use the already filtered options from above
 				questionData.options = filteredOptions;
 			}
 			questionData.correctAnswer = currentForm.correctAnswer;
@@ -236,15 +239,15 @@ export const useQuestionBanks = () => {
 		}
 	};
 
-	const updateQuestionBankQuestion = async (questionBankId: string, questionId: string) => {
-		const formKey = `${questionBankId}-${questionId}`;
-		const currentForm = questionBankQuestionEditForms[formKey];
-		if (!currentForm) return;
+	const updateQuestionBankQuestion = async (questionBankId: string, questionIndex: number, formData: unknown) => {
+		if (!selectedQuestionBankDetail) return;
+		const question = selectedQuestionBankDetail.questions[questionIndex];
+		if (!question) return;
 
 		try {
 			const response = await api.put(
-				`/admin/question-banks/${questionBankId}/questions/${questionId}`,
-				currentForm
+				`/admin/question-banks/${questionBankId}/questions/${question._id}`,
+				formData
 			);
 			const updatedQuestionBank = response.data;
 
@@ -255,23 +258,23 @@ export const useQuestionBanks = () => {
 			if (selectedQuestionBankDetail?._id === questionBankId) {
 				setSelectedQuestionBankDetail(updatedQuestionBank);
 			}
-
-			setEditingQuestionBankQuestions(prev => ({
-				...prev,
-				[formKey]: false,
-			}));
 		} catch (err: unknown) {
 			console.error('Error updating question bank question:', err);
 			setError(err.response?.data?.error || 'Failed to update question');
+			throw err;
 		}
 	};
 
-	const deleteQuestionBankQuestion = async (questionBankId: string, questionId: string) => {
+	const deleteQuestionBankQuestion = async (questionBankId: string, questionIndex: number) => {
 		if (!window.confirm('Are you sure you want to delete this question?')) return;
+		
+		if (!selectedQuestionBankDetail) return;
+		const question = selectedQuestionBankDetail.questions[questionIndex];
+		if (!question) return;
 
 		try {
 			const response = await api.delete(
-				`/admin/question-banks/${questionBankId}/questions/${questionId}`
+				`/admin/question-banks/${questionBankId}/questions/${question._id}`
 			);
 			const updatedQuestionBank = response.data;
 
@@ -288,55 +291,6 @@ export const useQuestionBanks = () => {
 		}
 	};
 
-	const startEditQuestionBankQuestion = (
-		questionBankId: string,
-		questionIndex: number,
-		question: Question
-	) => {
-		const formKey = `${questionBankId}-${questionIndex}`;
-		setQuestionBankQuestionEditForms(prev => ({
-			...prev,
-			[formKey]: {
-				text: question.text,
-				options: [...question.options],
-				type: question.type,
-				correctAnswer: question.correctAnswer,
-				points: question.points,
-				explanation: question.explanation,
-				tags: question.tags,
-				difficulty: question.difficulty,
-			},
-		}));
-		setEditingQuestionBankQuestions(prev => ({
-			...prev,
-			[formKey]: true,
-		}));
-	};
-
-	const cancelEditQuestionBankQuestion = (questionBankId: string, questionIndex: number) => {
-		const formKey = `${questionBankId}-${questionIndex}`;
-		setEditingQuestionBankQuestions(prev => ({
-			...prev,
-			[formKey]: false,
-		}));
-		setQuestionBankQuestionEditForms(prev => {
-			const newForms = { ...prev };
-			delete newForms[formKey];
-			return newForms;
-		});
-	};
-
-	const saveQuestionBankQuestionEdit = async (questionBankId: string, questionIndex: number) => {
-		const formKey = `${questionBankId}-${questionIndex}`;
-		const currentForm = questionBankQuestionEditForms[formKey];
-		if (!currentForm) return;
-
-		if (!selectedQuestionBankDetail) return;
-		const question = selectedQuestionBankDetail.questions[questionIndex];
-		if (!question) return;
-
-		await updateQuestionBankQuestion(questionBankId, question._id);
-	};
 
 	return {
 		questionBanks,
@@ -345,10 +299,6 @@ export const useQuestionBanks = () => {
 		setQuestionBankForm,
 		questionBankQuestionForms,
 		setQuestionBankQuestionForms,
-		questionBankQuestionEditForms,
-		setQuestionBankQuestionEditForms,
-		editingQuestionBankQuestions,
-		setEditingQuestionBankQuestions,
 		showQuestionBankModal,
 		setShowQuestionBankModal,
 		questionBankDetailTab,
@@ -365,8 +315,5 @@ export const useQuestionBanks = () => {
 		addQuestionBankQuestion,
 		updateQuestionBankQuestion,
 		deleteQuestionBankQuestion,
-		startEditQuestionBankQuestion,
-		cancelEditQuestionBankQuestion,
-		saveQuestionBankQuestionEdit,
 	};
 };

@@ -2,7 +2,7 @@ import React from 'react';
 import { QuestionForm } from '../../types/admin';
 import ImageUpload from '../common/ImageUpload';
 
-interface AddQuestionModalProps {
+interface EditQuestionModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	onSubmit: (form: QuestionForm) => void;
@@ -12,9 +12,10 @@ interface AddQuestionModalProps {
 	onAddOption: () => void;
 	onRemoveOption: (index: number) => void;
 	loading?: boolean;
+	questionIndex?: number;
 }
 
-const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
+const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
 	isOpen,
 	onClose,
 	onSubmit,
@@ -24,6 +25,7 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 	onAddOption,
 	onRemoveOption,
 	loading = false,
+	questionIndex,
 }) => {
 	if (!isOpen) return null;
 
@@ -87,7 +89,9 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 		<div className='fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50'>
 			<div className='bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto'>
 				<div className='flex justify-between items-center p-6 border-b'>
-					<h2 className='text-xl font-semibold text-gray-800'>Add New Question</h2>
+					<h2 className='text-xl font-semibold text-gray-800'>
+						Edit Question {questionIndex !== undefined ? `#${questionIndex + 1}` : ''}
+					</h2>
 					<button onClick={onClose} className='text-gray-400 hover:text-gray-600 text-xl'>
 						×
 					</button>
@@ -345,7 +349,7 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 							className='btn-primary'
 							disabled={!isFormValid() || loading}
 						>
-							{loading ? 'Adding...' : 'Add Question'}
+							{loading ? 'Saving...' : 'Save Changes'}
 						</button>
 					</div>
 				</form>
@@ -354,4 +358,4 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 	);
 };
 
-export default AddQuestionModal;
+export default EditQuestionModal;

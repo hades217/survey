@@ -282,10 +282,14 @@ export const useSurveys = () => {
 			const url = `/admin/surveys/${surveyId}/statistics${queryString ? `?${queryString}` : ''}`;
 
 			const response = await api.get(url);
-			setStats(prev => ({
-				...prev,
-				[surveyId]: response.data,
-			}));
+			setStats(prev => {
+				const surveyKey = String(surveyId); // Ensure key is a string
+				const newStats = {
+					...prev,
+					[surveyKey]: response.data,
+				};
+				return newStats;
+			});
 		} catch (err: unknown) {
 			setError(err.response?.data?.error || 'Failed to load statistics');
 		}
