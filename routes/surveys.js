@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const Survey = require('../models/Survey');
 const QuestionBank = require('../models/QuestionBank');
 const Response = require('../models/Response');
+const User = require('../models/User');
+const Company = require('../models/Company');
 const asyncHandler = require('../middlewares/asyncHandler');
 const AppError = require('../utils/AppError');
 const {
@@ -51,6 +53,29 @@ router.get(
 		}
 
 		if (!survey) throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+
+		// Get company information from admin user
+		let companyInfo = null;
+		try {
+			const adminUser = await User.findOne({ role: 'admin' }).populate('companyId');
+			if (adminUser && adminUser.companyId) {
+				companyInfo = {
+					name: adminUser.companyId.name,
+					logoUrl: adminUser.companyId.logoUrl,
+					industry: adminUser.companyId.industry,
+					website: adminUser.companyId.website,
+					description: adminUser.companyId.description,
+				};
+			}
+		} catch (error) {
+			console.error('Error fetching company info:', error);
+			// Continue without company info if there's an error
+		}
+
+		// Add company information to survey response
+		if (companyInfo) {
+			survey.company = companyInfo;
+		}
 
 		// For question bank surveys, don't include actual questions in the initial response
 		// Questions will be fetched separately when the user starts the survey

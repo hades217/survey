@@ -355,6 +355,21 @@ const StudentAssessment = () => {
 			<div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8'>
 				<div className='max-w-4xl mx-auto px-4'>
 					<div className='bg-white rounded-lg shadow-lg p-8'>
+						{/* Company Logo */}
+						{survey.company && survey.company.logoUrl && (
+							<div className='text-center mb-6'>
+								<img
+									src={survey.company.logoUrl}
+									alt={survey.company.name || 'Company Logo'}
+									className='mx-auto max-h-20 max-w-48 object-contain'
+									onError={(e) => {
+										console.error('Company logo failed to load:', survey.company.logoUrl);
+										e.currentTarget.style.display = 'none';
+									}}
+								/>
+							</div>
+						)}
+
 						<div className='text-center mb-8'>
 							<h1 className='text-3xl font-bold text-gray-800 mb-2'>
 								{survey.title}
@@ -543,6 +558,21 @@ const StudentAssessment = () => {
 				{/* Timer and progress */}
 				{currentStep === 'questions' && (
 					<div className='bg-white rounded-lg shadow-lg p-4 mb-6'>
+						{/* Company Logo */}
+						{survey.company && survey.company.logoUrl && (
+							<div className='text-center mb-4'>
+								<img
+									src={survey.company.logoUrl}
+									alt={survey.company.name || 'Company Logo'}
+									className='mx-auto max-h-12 max-w-32 object-contain'
+									onError={(e) => {
+										console.error('Company logo failed to load:', survey.company.logoUrl);
+										e.currentTarget.style.display = 'none';
+									}}
+								/>
+							</div>
+						)}
+
 						<div className='flex justify-between items-center'>
 							<div className='flex items-center gap-4'>
 								<h2 className='text-lg font-semibold text-gray-800'>
@@ -590,7 +620,7 @@ const StudentAssessment = () => {
 							<h3 className='text-xl font-semibold text-gray-800 mb-4'>
 								{currentQuestionIndex + 1}. {currentQuestion.text}
 							</h3>
-							
+
 							{/* Main question image */}
 							{currentQuestion.imageUrl && (
 								<div className='mb-4'>
@@ -609,7 +639,7 @@ const StudentAssessment = () => {
 									/>
 								</div>
 							)}
-							
+
 							{/* Description image */}
 							{currentQuestion.descriptionImage && (
 								<div className='mb-4'>
@@ -782,6 +812,21 @@ const StudentAssessment = () => {
 				{/* Results */}
 				{currentStep === 'results' && (
 					<div className='bg-white rounded-lg shadow-lg p-8'>
+						{/* Company Logo */}
+						{survey.company && survey.company.logoUrl && (
+							<div className='text-center mb-6'>
+								<img
+									src={survey.company.logoUrl}
+									alt={survey.company.name || 'Company Logo'}
+									className='mx-auto max-h-16 max-w-40 object-contain'
+									onError={(e) => {
+										console.error('Company logo failed to load:', survey.company.logoUrl);
+										e.currentTarget.style.display = 'none';
+									}}
+								/>
+							</div>
+						)}
+
 						{survey.type === 'survey' ? (
 							// Survey thank you page
 							<div className='text-center'>
@@ -853,10 +898,10 @@ const StudentAssessment = () => {
 																您的答案:
 															</span>{' '}
 															{Array.isArray(result.userAnswer)
-																? result.userAnswer.map(ans => 
+																? result.userAnswer.map(ans =>
 																	typeof ans === 'object' ? ans.text || ans.value || JSON.stringify(ans) : ans
 																  ).join(', ')
-																: typeof result.userAnswer === 'object' 
+																: typeof result.userAnswer === 'object'
 																	? result.userAnswer?.text || result.userAnswer?.value || JSON.stringify(result.userAnswer)
 																	: result.userAnswer || '未作答'}
 														</div>
@@ -866,10 +911,10 @@ const StudentAssessment = () => {
 																	正确答案:
 																</span>{' '}
 																{Array.isArray(result.correctAnswer)
-																	? result.correctAnswer.map(ans => 
+																	? result.correctAnswer.map(ans =>
 																		typeof ans === 'object' ? ans.text || ans.value || JSON.stringify(ans) : ans
 																	  ).join(', ')
-																	: typeof result.correctAnswer === 'object' 
+																	: typeof result.correctAnswer === 'object'
 																		? result.correctAnswer?.text || result.correctAnswer?.value || JSON.stringify(result.correctAnswer)
 																		: result.correctAnswer}
 															</div>

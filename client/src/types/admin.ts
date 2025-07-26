@@ -58,6 +58,13 @@ export interface Survey {
 			defaultQuestionPoints: number;
 		};
 	};
+	company?: {
+		name: string;
+		logoUrl?: string;
+		industry?: string;
+		website?: string;
+		description?: string;
+	};
 }
 
 export interface QuestionBank {
