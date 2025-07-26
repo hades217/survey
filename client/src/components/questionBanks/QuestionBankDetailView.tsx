@@ -569,116 +569,116 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 														</div>
 														{editForm?.options &&
 															editForm.options.length > 0 && (
-																<div className='space-y-2'>
-																	{editForm.options.map(
-																		(option, optionIndex) => (
-																			<div
-																				key={optionIndex}
-																				className='flex items-center gap-2'
-																			>
-																				<input
-																					className='input-field flex-1'
-																					placeholder={`Option ${optionIndex + 1}`}
-																					value={option}
-																					onChange={e =>
-																						handleQuestionBankQuestionEditOptionChange(
+															<div className='space-y-2'>
+																{editForm.options.map(
+																	(option, optionIndex) => (
+																		<div
+																			key={optionIndex}
+																			className='flex items-center gap-2'
+																		>
+																			<input
+																				className='input-field flex-1'
+																				placeholder={`Option ${optionIndex + 1}`}
+																				value={option}
+																				onChange={e =>
+																					handleQuestionBankQuestionEditOptionChange(
+																						qb._id,
+																						idx,
+																						optionIndex,
+																						e.target
+																							.value
+																					)
+																				}
+																			/>
+																			{editForm.options
+																				.length > 2 && (
+																				<button
+																					className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
+																					onClick={() =>
+																						removeQuestionBankQuestionEditOption(
 																							qb._id,
 																							idx,
-																							optionIndex,
-																							e.target
-																								.value
+																							optionIndex
 																						)
 																					}
-																				/>
-																				{editForm.options
-																					.length > 2 && (
-																					<button
-																						className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
-																						onClick={() =>
-																							removeQuestionBankQuestionEditOption(
-																								qb._id,
-																								idx,
-																								optionIndex
-																							)
-																						}
-																						type='button'
-																					>
+																					type='button'
+																				>
 																						Remove
-																					</button>
-																				)}
-																			</div>
-																		)
-																	)}
-																</div>
-															)}
+																				</button>
+																			)}
+																		</div>
+																	)
+																)}
+															</div>
+														)}
 													</div>
 
 													{editForm?.options &&
 														editForm.options.filter(opt => opt.trim())
 															.length >= 2 && (
-															<div>
-																<label className='block text-sm font-medium text-gray-700 mb-2'>
+														<div>
+															<label className='block text-sm font-medium text-gray-700 mb-2'>
 																	Select Correct Answer(s)
-																</label>
-																<div className='space-y-2'>
-																	{editForm.options.map(
-																		(opt, optIdx) => {
-																			if (!opt.trim())
-																				return null;
-																			const isCorrect =
+															</label>
+															<div className='space-y-2'>
+																{editForm.options.map(
+																	(opt, optIdx) => {
+																		if (!opt.trim())
+																			return null;
+																		const isCorrect =
 																				Array.isArray(
 																					editForm.correctAnswer
 																				)
 																					? editForm.correctAnswer.includes(
-																							optIdx
-																						)
+																						optIdx
+																					)
 																					: editForm.correctAnswer ===
 																						optIdx;
-																			return (
-																				<div
-																					key={optIdx}
-																					className='flex items-center gap-2'
+																		return (
+																			<div
+																				key={optIdx}
+																				className='flex items-center gap-2'
+																			>
+																				<button
+																					type='button'
+																					onClick={() =>
+																						toggleQuestionBankCorrectAnswer(
+																							qb._id,
+																							idx,
+																							optIdx
+																						)
+																					}
+																					className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+																						isCorrect
+																							? 'bg-green-500 border-green-500 text-white'
+																							: 'border-gray-300 hover:border-green-400'
+																					}`}
 																				>
-																					<button
-																						type='button'
-																						onClick={() =>
-																							toggleQuestionBankCorrectAnswer(
-																								qb._id,
-																								idx,
-																								optIdx
-																							)
-																						}
-																						className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-																							isCorrect
-																								? 'bg-green-500 border-green-500 text-white'
-																								: 'border-gray-300 hover:border-green-400'
-																						}`}
-																					>
-																						{isCorrect && (
-																							<svg
-																								className='w-3 h-3'
-																								fill='currentColor'
-																								viewBox='0 0 20 20'
-																							>
-																								<path
-																									fillRule='evenodd'
-																									d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-																									clipRule='evenodd'
-																								/>
-																							</svg>
-																						)}
-																					</button>
-																					<span className='text-sm text-gray-700'>
-																						{opt ||
+																					{isCorrect && (
+																						<svg
+																							className='w-3 h-3'
+																							fill='currentColor'
+																							viewBox='0 0 20 20'
+																						>
+																							<path
+																								fillRule='evenodd'
+																								d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+																								clipRule='evenodd'
+																							/>
+																						</svg>
+																					)}
+																				</button>
+																				<span className='text-sm text-gray-700'>
+																					{opt ||
 																							`Option ${optIdx + 1}`}
-																					</span>
-																				</div>
-																			);
-																		}
-																	)}
-																</div>
+																				</span>
+																			</div>
+																		);
+																	}
+																)}
 															</div>
-														)}
+														</div>
+													)}
 
 													<div>
 														<label className='block text-sm font-medium text-gray-700 mb-2'>
@@ -795,11 +795,11 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 																{q.correctAnswer &&
 																	typeof q.correctAnswer ===
 																		'string' && (
-																		<div className='pl-4 text-green-600 font-semibold'>
+																	<div className='pl-4 text-green-600 font-semibold'>
 																			Expected Answer:{' '}
-																			{q.correctAnswer}
-																		</div>
-																	)}
+																		{q.correctAnswer}
+																	</div>
+																)}
 															</div>
 														) : (
 															<div>
@@ -813,8 +813,8 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 																				q.correctAnswer
 																			)
 																				? q.correctAnswer.includes(
-																						optIdx
-																					)
+																					optIdx
+																				)
 																				: q.correctAnswer ===
 																					optIdx;
 																		return (

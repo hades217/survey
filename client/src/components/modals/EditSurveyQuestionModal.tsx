@@ -17,7 +17,7 @@ interface SurveyQuestionForm {
 	points?: number;
 }
 
-interface AddSurveyQuestionModalProps {
+interface EditSurveyQuestionModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	onSubmit: (form: SurveyQuestionForm) => void;
@@ -30,9 +30,10 @@ interface AddSurveyQuestionModalProps {
 	surveyType: SurveyType;
 	isCustomScoringEnabled?: boolean;
 	defaultQuestionPoints?: number;
+	questionIndex: number;
 }
 
-const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
+const EditSurveyQuestionModal: React.FC<EditSurveyQuestionModalProps> = ({
 	isOpen,
 	onClose,
 	onSubmit,
@@ -45,8 +46,9 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 	surveyType,
 	isCustomScoringEnabled = false,
 	defaultQuestionPoints = 1,
+	questionIndex,
 }) => {
-	if (!isOpen) return null;
+	const isAssessmentType = TYPES_REQUIRING_ANSWERS.includes(surveyType as any);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -54,82 +56,44 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 	};
 
 	const toggleCorrectAnswer = (optionIndex: number) => {
-		let newCorrectAnswer;
-		const isCorrect = Array.isArray(form.correctAnswer)
-			? form.correctAnswer.includes(optionIndex)
-			: form.correctAnswer === optionIndex;
-
 		if (form.type === QUESTION_TYPE.SINGLE_CHOICE) {
-			// Single choice: only one correct answer
-			newCorrectAnswer = isCorrect ? undefined : optionIndex;
-		} else {
-			// Multiple choice: allow multiple correct answers
-			if (isCorrect) {
-				// Remove from correct answers
-				if (Array.isArray(form.correctAnswer)) {
-					newCorrectAnswer = form.correctAnswer.filter(i => i !== optionIndex);
-					if (newCorrectAnswer.length === 0) newCorrectAnswer = undefined;
-				} else {
-					newCorrectAnswer = undefined;
-				}
-			} else {
-				// Add to correct answers
-				if (Array.isArray(form.correctAnswer)) {
-					newCorrectAnswer = [...form.correctAnswer, optionIndex].sort((a, b) => a - b);
-				} else if (form.correctAnswer !== undefined) {
-					newCorrectAnswer = [form.correctAnswer, optionIndex].sort((a, b) => a - b);
-				} else {
-					newCorrectAnswer = [optionIndex];
-				}
-			}
+			onChange('correctAnswer', optionIndex);
+		} else if (form.type === QUESTION_TYPE.MULTIPLE_CHOICE) {
+			const currentAnswers = Array.isArray(form.correctAnswer) ? form.correctAnswer : [];
+			const newAnswers = currentAnswers.includes(optionIndex)
+				? currentAnswers.filter(idx => idx !== optionIndex)
+				: [...currentAnswers, optionIndex];
+			onChange('correctAnswer', newAnswers);
 		}
-
-		onChange('correctAnswer', newCorrectAnswer);
 	};
 
 	const isFormValid = () => {
 		if (!form.text.trim()) return false;
 
 		if (form.type === QUESTION_TYPE.SHORT_TEXT) {
-			return true; // Short text questions only need question text
+			return true;
 		}
 
-		// For choice questions, need options
-		if (!form.options || form.options.length < 2) {
-			return false;
-		}
+		if (!form.options || form.options.length < 2) return false;
 
-		// Check if options have valid content (text or image)
+		// Check if each option has either text or image
 		const validOptions = form.options.filter(opt => {
 			if (typeof opt === 'string') {
 				return opt.trim().length > 0;
-			} else {
-				return (opt.text && opt.text.trim()) || opt.imageUrl;
 			}
+			return (opt.text && opt.text.trim()) || opt.imageUrl;
 		});
 
-		if (validOptions.length < 2) {
-			return false;
-		}
-
-		// For assessment/quiz/iq types, need correct answer for choice questions
-		if (
-			TYPES_REQUIRING_ANSWERS.includes(surveyType) &&
-			form.type !== QUESTION_TYPE.SHORT_TEXT
-		) {
-			return form.correctAnswer !== undefined;
-		}
-
-		return true;
+		return validOptions.length >= 2;
 	};
 
-	const isAssessmentType = TYPES_REQUIRING_ANSWERS.includes(surveyType);
+	if (!isOpen) return null;
 
 	return (
 		<div className='fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50'>
 			<div className='bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto'>
 				<div className='flex justify-between items-center p-6 border-b'>
-					<h2 className='text-xl font-semibold text-gray-800'>Add Question</h2>
+					<h2 className='text-xl font-semibold text-gray-800'>Edit Question {questionIndex + 1}</h2>
 					<button onClick={onClose} className='text-gray-400 hover:text-gray-600 text-xl'>
 						×
 					</button>
@@ -185,13 +149,14 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 							Question Type *
 						</label>
 						<select
-							className='input-field'
+							className='input-field w-full'
 							value={form.type}
 							onChange={e => onChange('type', e.target.value)}
+							required
 						>
-							<option value='single_choice'>Single Choice</option>
-							<option value='multiple_choice'>Multiple Choice</option>
-							<option value='short_text'>Short Text</option>
+							<option value={QUESTION_TYPE.SINGLE_CHOICE}>Single Choice</option>
+							<option value={QUESTION_TYPE.MULTIPLE_CHOICE}>Multiple Choice</option>
+							<option value={QUESTION_TYPE.SHORT_TEXT}>Short Text</option>
 						</select>
 						<div className='text-xs text-gray-500 mt-1'>
 							{form.type === QUESTION_TYPE.SINGLE_CHOICE &&
@@ -260,7 +225,7 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 																? e.target.value
 																: {
 																	text: e.target.value,
-																	imageUrl: optionImageUrl,
+																	imageUrl: optionImageUrl || undefined,
 																};
 															onOptionChange(index, newOption);
 														}}
@@ -284,7 +249,7 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 																	? optionText
 																	: {
 																		text: optionText,
-																		imageUrl: null,
+																		imageUrl: undefined,
 																	};
 																onOptionChange(index, newOption);
 															}}
@@ -330,7 +295,7 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 					{form.type !== QUESTION_TYPE.SHORT_TEXT &&
 						isAssessmentType &&
 						form.options &&
-						form.options.filter(opt => opt.trim()).length >= 2 && (
+						form.options.filter(opt => typeof opt === 'string' ? opt.trim() : (opt.text && opt.text.trim())).length >= 2 && (
 						<div>
 							<label className='block text-sm font-medium text-gray-700 mb-2'>
 									Select Correct Answer(s) *
@@ -430,7 +395,7 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 							className='btn-primary'
 							disabled={!isFormValid() || loading}
 						>
-							{loading ? 'Adding...' : 'Add Question'}
+							{loading ? 'Saving...' : 'Save Changes'}
 						</button>
 					</div>
 				</form>
@@ -439,4 +404,4 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 	);
 };
 
-export default AddSurveyQuestionModal;
+export default EditSurveyQuestionModal;

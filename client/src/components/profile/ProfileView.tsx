@@ -181,9 +181,9 @@ const ProfileView: React.FC = () => {
 											imageUrl={profileForm.avatarUrl}
 											onImageUpload={handleAvatarUpload}
 											onImageRemove={handleAvatarRemove}
-											placeholder="Upload your profile avatar"
-											uploadMethod="cloudinary"
-											className="max-w-sm"
+											placeholder='Upload your profile avatar'
+											uploadMethod='cloudinary'
+											className='max-w-sm'
 										/>
 										<p className='text-xs text-gray-500 mt-1'>
 											Upload an avatar image. Supported formats: JPG, PNG, GIF, WebP
@@ -309,9 +309,9 @@ const ProfileView: React.FC = () => {
 									imageUrl={companyForm.logoUrl}
 									onImageUpload={handleLogoUpload}
 									onImageRemove={handleLogoRemove}
-									placeholder="Upload your company logo"
-									uploadMethod="cloudinary"
-									className="max-w-sm"
+									placeholder='Upload your company logo'
+									uploadMethod='cloudinary'
+									className='max-w-sm'
 								/>
 								<p className='text-xs text-gray-500 mt-1'>
 									Upload a company logo. Supported formats: JPG, PNG, GIF, WebP

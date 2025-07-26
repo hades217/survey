@@ -293,7 +293,7 @@ router.put(
 	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { id } = req.params;
-		const { text, imageUrl, options, correctAnswer, points, type } = req.body;
+		const { text, imageUrl, descriptionImage, options, correctAnswer, points, type } = req.body;
 
 		// Debug: Log the received data
 		console.log('Add question request body:', req.body);
@@ -431,6 +431,11 @@ router.put(
 			question.imageUrl = imageUrl;
 		}
 
+		// Add description image if provided
+		if (descriptionImage) {
+			question.descriptionImage = descriptionImage;
+		}
+
 		// Only add options for non-short_text questions
 		if (questionType !== 'short_text') {
 			// Normalize options to the new format
@@ -456,6 +461,29 @@ router.put(
 		}
 
 		survey.questions.push(question);
+		
+		// Fix: Normalize ALL questions' options to the new object format before saving
+		// This prevents validation errors when some questions have legacy string array format
+		survey.questions.forEach((q) => {
+			if (q.type !== 'short_text' && q.options && Array.isArray(q.options)) {
+				q.options = q.options.map(option => {
+					if (typeof option === 'string') {
+						const text = option.trim();
+						return { text: text || 'Option', imageUrl: null };
+					} else if (typeof option === 'object' && option !== null) {
+						const text = (option.text || '').trim();
+						const imageUrl = option.imageUrl || null;
+						return {
+							text: text || (imageUrl ? '' : 'Option'),
+							imageUrl: imageUrl,
+						};
+					} else {
+						return { text: 'Option', imageUrl: null };
+					}
+				});
+			}
+		});
+		
 		await survey.save();
 		res.json(survey);
 	})
@@ -467,7 +495,7 @@ router.patch(
 	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { id, questionIndex } = req.params;
-		const { text, imageUrl, type, options, correctAnswer, points } = req.body;
+		const { text, imageUrl, descriptionImage, type, options, correctAnswer, points } = req.body;
 
 		// Validate input - only validate fields that are provided (PATCH method)
 		if (text !== undefined && typeof text !== DATA_TYPES.STRING) {
@@ -598,6 +626,16 @@ router.patch(
 			}
 		}
 
+		// Update description image if provided
+		if (descriptionImage !== undefined) {
+			if (descriptionImage) {
+				survey.questions[qIndex].descriptionImage = descriptionImage;
+			} else {
+				// Remove description image if explicitly set to null/empty
+				delete survey.questions[qIndex].descriptionImage;
+			}
+		}
+
 		if (type !== undefined) {
 			survey.questions[qIndex].type = type;
 
@@ -647,7 +685,62 @@ router.patch(
 			survey.questions[qIndex].points = points;
 		}
 
-		await survey.save();
+		// Fix: Normalize ALL questions' options to the new object format before saving
+		// This is needed because Mongoose validates the entire document, not just the updated question
+		console.log('Before normalization - questions with options:', survey.questions.map((q, idx) => ({
+			index: idx,
+			type: q.type,
+			optionsCount: q.options?.length || 0,
+			firstOptionType: typeof q.options?.[0],
+			firstOption: q.options?.[0]
+		})));
+
+		survey.questions.forEach((question, idx) => {
+			if (question.type !== 'short_text' && question.options && Array.isArray(question.options)) {
+				console.log(`Normalizing question ${idx} options:`, question.options);
+				question.options = question.options.map(option => {
+					if (typeof option === 'string') {
+						// Legacy format: convert string to object
+						console.log(`Converting string option "${option}" to object`);
+						// Ensure we have non-empty text for validation
+						const text = option.trim();
+						return { text: text || 'Option', imageUrl: null };
+					} else if (typeof option === 'object' && option !== null) {
+						// Already in new format: ensure structure
+						console.log(`Option already object:`, option);
+						// Ensure we have either non-empty text or imageUrl for validation
+						const text = (option.text || '').trim();
+						const imageUrl = option.imageUrl || null;
+						return {
+							text: text || (imageUrl ? '' : 'Option'),
+							imageUrl: imageUrl,
+						};
+					} else {
+						// Invalid option: convert to placeholder
+						console.log(`Invalid option, converting to placeholder:`, option);
+						return { text: 'Option', imageUrl: null };
+					}
+				});
+				console.log(`Question ${idx} options after normalization:`, question.options);
+			}
+		});
+
+		console.log('After normalization - questions with options:', survey.questions.map((q, idx) => ({
+			index: idx,
+			type: q.type,
+			optionsCount: q.options?.length || 0,
+			firstOptionType: typeof q.options?.[0],
+			firstOption: q.options?.[0]
+		})));
+
+		try {
+			await survey.save();
+			console.log('Survey saved successfully');
+		} catch (saveError) {
+			console.error('Survey save error:', saveError.message);
+			console.error('Full error:', saveError);
+			throw saveError;
+		}
 		res.json(survey);
 	})
 );

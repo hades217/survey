@@ -72,7 +72,7 @@ const StudentAssessment = () => {
 
 		if (isInvitationCode(slug)) {
 			// 通过邀请码获取 survey
-			api.get(`/api/invitations/access/${slug}`)
+			api.get(`/invitations/access/${slug}`)
 				.then(res => {
 					loadSurveyAndQuestions(res.data.survey, res.data.invitation);
 				})
@@ -83,7 +83,7 @@ const StudentAssessment = () => {
 				.finally(() => setLoading(false));
 		} else {
 			// 兼容原有 slug 逻辑
-			api.get(`/api/survey/${slug}`)
+			api.get(`/survey/${slug}`)
 				.then(res => {
 					loadSurveyAndQuestions(res.data);
 				})
@@ -157,7 +157,7 @@ const StudentAssessment = () => {
 					survey.sourceType
 				)
 			) {
-				const questionsResponse = await api.get(`/api/survey/${slug}/questions`, {
+				const questionsResponse = await api.get(`/survey/${slug}/questions`, {
 					params: {
 						email: form.email,
 						attempt: 1,
@@ -265,9 +265,9 @@ const StudentAssessment = () => {
 			if (isInvitationCode(slug)) {
 				payload.invitationCode = slug;
 			}
-			await api.post(`/api/surveys/${survey._id}/responses`, payload);
+			await api.post(`/surveys/${survey._id}/responses`, payload);
 			if (isInvitationCode(slug)) {
-				await api.post(`/api/invitations/complete/${slug}`, {
+				await api.post(`/invitations/complete/${slug}`, {
 					userId: null,
 					email: form.email || null,
 				});
@@ -291,6 +291,7 @@ const StudentAssessment = () => {
 					return {
 						questionId: q._id,
 						questionText: q.text,
+						descriptionImage: q.descriptionImage,
 						userAnswer: userAnswer || '',
 						correctAnswer,
 						isCorrect,
@@ -586,6 +587,18 @@ const StudentAssessment = () => {
 							<h3 className='text-xl font-semibold text-gray-800 mb-4'>
 								{currentQuestionIndex + 1}. {currentQuestion.text}
 							</h3>
+							{currentQuestion.descriptionImage && (
+								<div className='mb-4'>
+									<img
+										src={currentQuestion.descriptionImage}
+										alt='Question illustration'
+										className='max-w-full h-auto rounded-lg border border-gray-300'
+										onError={(e) => {
+											e.currentTarget.style.display = 'none';
+										}}
+									/>
+								</div>
+							)}
 
 							<div className='space-y-3'>
 								{currentQuestion.type === 'short_text' ? (
@@ -604,7 +617,10 @@ const StudentAssessment = () => {
 									/>
 								) : currentQuestion.type === 'single_choice' ? (
 									// Single choice options
-									currentQuestion.options.map((option, index) => (
+									currentQuestion.options.map((option, index) => {
+										const optionValue = typeof option === 'string' ? option : option.text;
+										const optionText = typeof option === 'string' ? option : option.text;
+										return (
 										<label
 											key={index}
 											className='flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition-colors'
@@ -612,46 +628,51 @@ const StudentAssessment = () => {
 											<input
 												type='radio'
 												name={currentQuestion._id}
-												value={option}
+												value={optionValue}
 												checked={
-													form.answers[currentQuestion._id] === option
+													form.answers[currentQuestion._id] === optionValue
 												}
 												onChange={() =>
 													handleSingleChoiceChange(
 														currentQuestion._id,
-														option
+														optionValue
 													)
 												}
 												className='mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300'
 											/>
-											<span className='text-gray-700'>{option}</span>
+											<span className='text-gray-700'>{optionText}</span>
 										</label>
-									))
+										);
+									})
 								) : (
 									// Multiple choice options
-									currentQuestion.options.map((option, index) => (
+									currentQuestion.options.map((option, index) => {
+										const optionValue = typeof option === 'string' ? option : option.text;
+										const optionText = typeof option === 'string' ? option : option.text;
+										return (
 										<label
 											key={index}
 											className='flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition-colors'
 										>
 											<input
 												type='checkbox'
-												value={option}
+												value={optionValue}
 												checked={(
 													form.answers[currentQuestion._id] || []
-												).includes(option)}
+												).includes(optionValue)}
 												onChange={e =>
 													handleMultipleChoiceChange(
 														currentQuestion._id,
-														option,
+														optionValue,
 														e.target.checked
 													)
 												}
 												className='mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
 											/>
-											<span className='text-gray-700'>{option}</span>
+											<span className='text-gray-700'>{optionText}</span>
 										</label>
-									))
+										);
+									})
 								)}
 							</div>
 						</div>
@@ -744,6 +765,18 @@ const StudentAssessment = () => {
 													<div className='font-semibold text-gray-800 mb-2'>
 														{index + 1}. {result.questionText}
 													</div>
+													{result.descriptionImage && (
+														<div className='mb-2'>
+															<img
+																src={result.descriptionImage}
+																alt='Question illustration'
+																className='max-w-full h-auto rounded-lg border border-gray-300'
+																onError={(e) => {
+																	e.currentTarget.style.display = 'none';
+																}}
+															/>
+														</div>
+													)}
 													<div className='space-y-1 text-sm'>
 														<div className='text-gray-700'>
 															<span className='font-medium'>

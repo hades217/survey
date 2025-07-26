@@ -129,6 +129,11 @@ const surveySchema = new mongoose.Schema({
 				type: String,
 				default: null,
 			},
+			// Description image (embedded in question text for context)
+			descriptionImage: {
+				type: String,
+				default: null,
+			},
 			type: {
 				type: String,
 				enum: [

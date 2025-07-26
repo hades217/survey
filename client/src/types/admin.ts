@@ -7,6 +7,7 @@ export interface Survey {
 	questions: {
 		text: string;
 		imageUrl?: string;
+		descriptionImage?: string;
 		type?: 'single_choice' | 'multiple_choice' | 'short_text';
 		options?: string[] | { text?: string; imageUrl?: string }[];
 		correctAnswer?: number | number[] | string;
@@ -74,6 +75,7 @@ export interface Question {
 	_id: string;
 	text: string;
 	imageUrl?: string;
+	descriptionImage?: string;
 	type: 'single_choice' | 'multiple_choice' | 'short_text';
 	options?: string[] | { text?: string; imageUrl?: string }[];
 	correctAnswer?: number | number[] | string;
@@ -114,6 +116,7 @@ export type StatsViewType = 'aggregated' | 'individual';
 export interface QuestionForm {
 	text: string;
 	imageUrl?: string;
+	descriptionImage?: string;
 	options?: string[] | { text?: string; imageUrl?: string }[];
 	type: 'single_choice' | 'multiple_choice' | 'short_text';
 	correctAnswer?: number | number[] | string;
@@ -144,6 +147,7 @@ export interface NewSurveyForm {
 	questions: {
 		text: string;
 		imageUrl?: string;
+		descriptionImage?: string;
 		type?: 'single_choice' | 'multiple_choice' | 'short_text';
 		options?: string[] | { text?: string; imageUrl?: string }[];
 		correctAnswer?: number | number[] | string;

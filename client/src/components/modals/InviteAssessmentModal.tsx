@@ -237,8 +237,8 @@ const InviteAssessmentModal: React.FC<InviteAssessmentModalProps> = ({
 												<td className='px-2 py-1 border'>
 													{inv.expiresAt
 														? new Date(
-																inv.expiresAt
-															).toLocaleDateString()
+															inv.expiresAt
+														).toLocaleDateString()
 														: '永久'}
 												</td>
 												<td className='px-2 py-1 border'>

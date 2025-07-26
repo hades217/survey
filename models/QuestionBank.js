@@ -89,6 +89,11 @@ const questionBankSchema = new mongoose.Schema({
 				type: String,
 				default: null,
 			},
+			// Optional: description image URL (embedded in question text)
+			descriptionImage: {
+				type: String,
+				default: null,
+			},
 			// Points for scoring
 			points: {
 				type: Number,

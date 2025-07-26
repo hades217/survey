@@ -1,5 +1,6 @@
 import React from 'react';
 import { QuestionForm } from '../../types/admin';
+import ImageUpload from '../common/ImageUpload';
 
 interface AddQuestionModalProps {
 	isOpen: boolean;
@@ -102,6 +103,23 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 							rows={3}
 							required
 						/>
+					</div>
+
+					<div>
+						<label className='block text-sm font-medium text-gray-700 mb-2'>
+							Description Image (Optional)
+						</label>
+						<ImageUpload
+							imageUrl={form.descriptionImage || null}
+							onImageUpload={(url) => onChange('descriptionImage', url)}
+							onImageRemove={() => onChange('descriptionImage', '')}
+							placeholder='Upload image to illustrate question content'
+							uploadMethod='cloudinary'
+							className='w-full'
+						/>
+						<div className='text-xs text-gray-500 mt-1'>
+							Add an image to help explain the question context (charts, diagrams, scenarios, etc.)
+						</div>
 					</div>
 
 					<div>

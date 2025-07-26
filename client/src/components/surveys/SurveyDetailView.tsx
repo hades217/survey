@@ -4,6 +4,7 @@ import { useSurveys } from '../../hooks/useSurveys';
 import { Survey, Question, QuestionForm, EnhancedStats } from '../../types/admin';
 import QRCodeComponent from '../QRCode';
 import AddSurveyQuestionModal from '../modals/AddSurveyQuestionModal';
+import EditSurveyQuestionModal from '../modals/EditSurveyQuestionModal';
 import InviteAssessmentModal from '../modals/InviteAssessmentModal';
 import { StatisticsFilter } from './StatisticsFilter';
 import api from '../../utils/axiosConfig';
@@ -61,6 +62,9 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	const [questionEditForms, setQuestionEditForms] = useState<Record<string, QuestionForm>>({});
 	// Local state for add question modal
 	const [showAddQuestionModal, setShowAddQuestionModal] = useState(false);
+	// Local state for edit question modal
+	const [showEditQuestionModal, setShowEditQuestionModal] = useState(false);
+	const [editingQuestionIndex, setEditingQuestionIndex] = useState<number>(-1);
 	const [showInviteModal, setShowInviteModal] = useState(false);
 	const [tabLocal, setTabLocal] = useState<'detail' | 'invitations' | 'statistics'>(
 		TAB_TYPES.DETAIL
@@ -158,6 +162,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	const currentForm = questionForms[s._id] || {
 		text: '',
 		imageUrl: null,
+		descriptionImage: null,
 		options: [],
 		type: QUESTION_TYPE.SINGLE_CHOICE,
 	};
@@ -218,6 +223,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			const currentForm = prev[surveyId] || {
 				text: '',
 				imageUrl: null,
+				descriptionImage: null,
 				options: [],
 				type: QUESTION_TYPE.SINGLE_CHOICE,
 				correctAnswer: undefined,
@@ -252,6 +258,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			const currentForm = prev[surveyId] || {
 				text: '',
 				imageUrl: null,
+				descriptionImage: null,
 				options: [],
 				type: QUESTION_TYPE.SINGLE_CHOICE,
 				correctAnswer: undefined,
@@ -272,6 +279,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			const currentForm = prev[surveyId] || {
 				text: '',
 				imageUrl: null,
+				descriptionImage: null,
 				options: [],
 				type: QUESTION_TYPE.SINGLE_CHOICE,
 				correctAnswer: undefined,
@@ -296,6 +304,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			const currentForm = prev[surveyId] || {
 				text: '',
 				imageUrl: null,
+				descriptionImage: null,
 				options: [],
 				type: QUESTION_TYPE.SINGLE_CHOICE,
 				correctAnswer: undefined,
@@ -324,6 +333,11 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				type: form.type,
 			};
 
+			// Add description image if provided
+			if (form.descriptionImage) {
+				formData.descriptionImage = form.descriptionImage;
+			}
+
 			// Only add options for choice questions
 			if (form.type !== QUESTION_TYPE.SHORT_TEXT && form.options) {
 				formData.options = form.options;
@@ -347,6 +361,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				[s._id]: {
 					text: '',
 					imageUrl: null,
+					descriptionImage: null,
 					options: ['', ''],
 					type: QUESTION_TYPE.SINGLE_CHOICE,
 					correctAnswer: undefined,
@@ -365,7 +380,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 
 	// Question editing functions
 	const startEditQuestion = (surveyId: string, questionIndex: number) => {
-		const question = s.questions[questionIndex];
+		const question = survey.questions[questionIndex];
 		const formKey = `${surveyId}-${questionIndex}`;
 
 		// Determine question type - if no options exist, it's likely a short text question
@@ -382,6 +397,8 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			...prev,
 			[formKey]: {
 				text: question.text,
+				imageUrl: question.imageUrl || null,
+				descriptionImage: question.descriptionImage || null,
 				type: questionType,
 				options: [...(question.options || [])],
 				correctAnswer: question.correctAnswer,
@@ -389,17 +406,73 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			},
 		}));
 
-		setEditingQuestions(prev => ({
-			...prev,
-			[surveyId]: questionIndex,
-		}));
+		setEditingQuestionIndex(questionIndex);
+		setShowEditQuestionModal(true);
 	};
 
-	const cancelEditQuestion = (surveyId: string) => {
-		setEditingQuestions(prev => ({
-			...prev,
-			[surveyId]: undefined,
-		}));
+	const cancelEditQuestion = () => {
+		setShowEditQuestionModal(false);
+		setEditingQuestionIndex(-1);
+	};
+
+	const handleEditQuestionSubmit = async (form: SurveyQuestionForm) => {
+		if (editingQuestionIndex === -1) return;
+
+		try {
+			setLoading(true);
+
+			// Prepare the data for the API call
+			const updateData = {
+				text: form.text,
+				type: form.type,
+			};
+
+			// Add description image if provided
+			if (form.descriptionImage !== undefined) {
+				updateData.descriptionImage = form.descriptionImage;
+			}
+
+			// Add image URL if provided
+			if (form.imageUrl !== undefined) {
+				updateData.imageUrl = form.imageUrl;
+			}
+
+			// Only include options for non-short-text questions
+			if (form.type !== QUESTION_TYPE.SHORT_TEXT) {
+				updateData.options = form.options || [];
+				// Include correctAnswer if it exists
+				if (form.correctAnswer !== undefined) {
+					updateData.correctAnswer = form.correctAnswer;
+				}
+			} else {
+				// For short text, only include correctAnswer if it's a non-empty string
+				if (
+					form.correctAnswer &&
+					typeof form.correctAnswer === 'string' &&
+					form.correctAnswer.trim()
+				) {
+					updateData.correctAnswer = form.correctAnswer;
+				}
+			}
+
+			// Include points if defined
+			if (form.points !== undefined) {
+				updateData.points = form.points;
+			}
+
+			// Use the updateQuestion function from useSurveys hook
+			await updateQuestion(survey._id, editingQuestionIndex, updateData);
+
+			// Close modal
+			setShowEditQuestionModal(false);
+			setEditingQuestionIndex(-1);
+
+		} catch (error) {
+			console.error('Error updating question:', error);
+			setError('Failed to update question. Please try again.');
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	const handleQuestionEditChange = (
@@ -543,6 +616,11 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				text: editForm.text,
 				type: editForm.type,
 			};
+
+			// Include description image if provided
+			if (editForm.descriptionImage !== undefined) {
+				updateData.descriptionImage = editForm.descriptionImage;
+			}
 
 			// Only include options for non-short-text questions
 			if (editForm.type !== QUESTION_TYPE.SHORT_TEXT) {
@@ -748,60 +826,60 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 							{/* Scoring Settings Display */}
 							{TYPES_REQUIRING_ANSWERS.includes(s.type as any) &&
 								s.scoringSettings && (
-									<div className='bg-green-50 rounded-lg p-3 mb-3'>
-										<div className='flex items-center justify-between mb-2'>
-											<h5 className='font-medium text-gray-800'>
+								<div className='bg-green-50 rounded-lg p-3 mb-3'>
+									<div className='flex items-center justify-between mb-2'>
+										<h5 className='font-medium text-gray-800'>
 												Scoring Rules
-											</h5>
-											<button
-												className='text-sm text-blue-600 hover:text-blue-800'
-												onClick={() => setShowScoringModal(true)}
-											>
+										</h5>
+										<button
+											className='text-sm text-blue-600 hover:text-blue-800'
+											onClick={() => setShowScoringModal(true)}
+										>
 												Edit Scoring Rules
-											</button>
+										</button>
+									</div>
+									<div className='grid grid-cols-2 gap-2 text-sm'>
+										<div className='flex justify-between'>
+											<span className='text-gray-600'>Scoring Mode:</span>
+											<span className='font-medium text-green-600'>
+												{s.scoringSettings.scoringMode ===
+													SCORING_MODE.PERCENTAGE
+													? 'Percentage'
+													: 'Accumulated'}
+											</span>
 										</div>
-										<div className='grid grid-cols-2 gap-2 text-sm'>
-											<div className='flex justify-between'>
-												<span className='text-gray-600'>Scoring Mode:</span>
-												<span className='font-medium text-green-600'>
-													{s.scoringSettings.scoringMode ===
-													SCORING_MODE.PERCENTAGE
-														? 'Percentage'
-														: 'Accumulated'}
-												</span>
-											</div>
-											<div className='flex justify-between'>
-												<span className='text-gray-600'>
+										<div className='flex justify-between'>
+											<span className='text-gray-600'>
 													Passing Threshold:
-												</span>
-												<span className='font-medium text-green-600'>
-													{s.scoringSettings.passingThreshold} points
-												</span>
-											</div>
-											<div className='flex justify-between'>
-												<span className='text-gray-600'>Total Score:</span>
-												<span className='font-medium text-green-600'>
-													{s.scoringSettings.scoringMode ===
+											</span>
+											<span className='font-medium text-green-600'>
+												{s.scoringSettings.passingThreshold} points
+											</span>
+										</div>
+										<div className='flex justify-between'>
+											<span className='text-gray-600'>Total Score:</span>
+											<span className='font-medium text-green-600'>
+												{s.scoringSettings.scoringMode ===
 													SCORING_MODE.PERCENTAGE
-														? '100'
-														: s.scoringSettings.totalPoints}{' '}
+													? '100'
+													: s.scoringSettings.totalPoints}{' '}
 													points
-												</span>
-											</div>
-											<div className='flex justify-between'>
-												<span className='text-gray-600'>
+											</span>
+										</div>
+										<div className='flex justify-between'>
+											<span className='text-gray-600'>
 													Custom Points:
-												</span>
-												<span className='font-medium text-green-600'>
-													{s.scoringSettings.customScoringRules
-														?.useCustomPoints
-														? 'Yes'
-														: 'No'}
-												</span>
-											</div>
+											</span>
+											<span className='font-medium text-green-600'>
+												{s.scoringSettings.customScoringRules
+													?.useCustomPoints
+													? 'Yes'
+													: 'No'}
+											</span>
 										</div>
 									</div>
-								)}
+								</div>
+							)}
 
 							{/* Question Source Display */}
 							{s.sourceType === SOURCE_TYPE.QUESTION_BANK && (
@@ -957,9 +1035,9 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 											url={
 												s.type === SURVEY_TYPE.ASSESSMENT
 													? getSurveyUrl(s.slug).replace(
-															'/survey/',
-															'/assessment/'
-														)
+														'/survey/',
+														'/assessment/'
+													)
 													: getSurveyUrl(s.slug)
 											}
 										/>
@@ -985,512 +1063,170 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 									</div>
 									{s.questions && s.questions.length > 0 ? (
 										<div className='space-y-2'>
-											{s.questions.map((q, idx) => {
-												const isEditing = editingQuestions[s._id] === idx;
-												const formKey = `${s._id}-${idx}`;
-												const editForm = questionEditForms[formKey];
-
-												return (
-													<div
-														key={idx}
-														className='bg-gray-50 rounded-lg p-3'
-													>
-														{isEditing ? (
-															// Edit mode
-															<div className='space-y-3'>
-																<div>
-																	<label className='block text-sm font-medium text-gray-700 mb-2'>
-																		Question Text
-																	</label>
-																	<input
-																		className='input-field w-full'
-																		placeholder='Enter question text'
-																		value={editForm?.text || ''}
-																		onChange={e =>
-																			handleQuestionEditChange(
-																				s._id,
-																				idx,
-																				'text',
-																				e.target.value
-																			)
-																		}
-																	/>
-																</div>
-																<div>
-																	<label className='block text-sm font-medium text-gray-700 mb-2'>
-																		Question Type *
-																	</label>
-																	<select
-																		className='input-field'
-																		value={editForm?.type || ''}
-																		onChange={e =>
-																			handleQuestionEditChange(
-																				s._id,
-																				idx,
-																				'type',
-																				e.target.value
-																			)
-																		}
+											{s.questions.map((q, idx) => (
+												<div
+													key={idx}
+													className='bg-gray-50 rounded-lg p-3'
+												>
+													{/* Display mode */}
+													<div>
+														<div className='flex justify-between items-start mb-1'>
+															<div className='flex-1'>
+																<div className='flex items-center gap-2 mb-1'>
+																	<span className='font-medium text-gray-800'>
+																		{idx + 1}. {q.text}
+																	</span>
+																	<span
+																		className={`text-xs px-2 py-1 rounded ${
+																			q.type ===
+																			QUESTION_TYPE.MULTIPLE_CHOICE
+																				? 'bg-purple-100 text-purple-800'
+																				: q.type ===
+																				  QUESTION_TYPE.SINGLE_CHOICE
+																					? 'bg-green-100 text-green-800'
+																					: q.type ===
+																					  QUESTION_TYPE.SHORT_TEXT
+																						? 'bg-orange-100 text-orange-800'
+																						: 'bg-gray-100 text-gray-800'
+																		}`}
 																	>
-																		<option value='single_choice'>
-																			Single Choice
-																		</option>
-																		<option value='multiple_choice'>
-																			Multiple Choice
-																		</option>
-																		<option value='short_text'>
-																			Short Text
-																		</option>
-																	</select>
-																	<div className='text-xs text-gray-500 mt-1'>
-																		{editForm?.type ===
-																			QUESTION_TYPE.SINGLE_CHOICE &&
-																			'Users can select only one answer'}
-																		{editForm?.type ===
-																			QUESTION_TYPE.MULTIPLE_CHOICE &&
-																			'Users can select multiple answers'}
-																		{editForm?.type ===
-																			QUESTION_TYPE.SHORT_TEXT &&
-																			'Users can enter a text response'}
-																	</div>
-																</div>
-																{editForm?.type !==
-																	QUESTION_TYPE.SHORT_TEXT && (
-																	<div>
-																		<div className='flex items-center justify-between mb-2'>
-																			<label className='block text-sm font-medium text-gray-700'>
-																				Options
-																			</label>
-																			<button
-																				className='btn-secondary text-sm'
-																				onClick={() =>
-																					addQuestionEditOption(
-																						s._id,
-																						idx
-																					)
-																				}
-																				type='button'
-																			>
-																				+ Add Option
-																			</button>
-																		</div>
-																		{editForm?.options &&
-																		editForm.options.length >
-																			0 ? (
-																			<div className='space-y-2'>
-																				{editForm.options.map(
-																					(
-																						option,
-																						optionIndex
-																					) => (
-																						<div
-																							key={
-																								optionIndex
-																							}
-																							className='flex items-center gap-2'
-																						>
-																							<input
-																								className='input-field flex-1'
-																								placeholder={`Option ${optionIndex + 1}`}
-																								value={
-																									option
-																								}
-																								onChange={e =>
-																									handleQuestionEditOptionChange(
-																										s._id,
-																										idx,
-																										optionIndex,
-																										e
-																											.target
-																											.value
-																									)
-																								}
-																							/>
-																							<button
-																								className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
-																								onClick={() =>
-																									removeQuestionEditOption(
-																										s._id,
-																										idx,
-																										optionIndex
-																									)
-																								}
-																								type='button'
-																							>
-																								Remove
-																							</button>
-																						</div>
-																					)
-																				)}
-																			</div>
-																		) : (
-																			<div className='text-gray-500 text-sm p-3 border-2 border-dashed border-gray-300 rounded-lg text-center'>
-																				No options added
-																				yet. Click "Add
-																				Option" to start.
-																			</div>
-																		)}
-																	</div>
-																)}
-																{TYPES_REQUIRING_ANSWERS.includes(
-																	s.type as any
-																) &&
-																	editForm?.options &&
-																	editForm.options.length > 0 && (
-																		<div className='space-y-4'>
-																			<div>
-																				<label className='block text-sm font-medium text-gray-700 mb-2'>
-																					Select Correct
-																					Answer(s)
-																				</label>
-																				<div className='space-y-2'>
-																					{editForm.options.map(
-																						(
-																							opt,
-																							optIdx
-																						) => {
-																							const isCorrect =
-																								Array.isArray(
-																									editForm.correctAnswer
-																								)
-																									? editForm.correctAnswer.includes(
-																											optIdx
-																										)
-																									: editForm.correctAnswer ===
-																										optIdx;
-																							return (
-																								<div
-																									key={
-																										optIdx
-																									}
-																									className='flex items-center gap-2'
-																								>
-																									<button
-																										type='button'
-																										onClick={() =>
-																											toggleCorrectAnswer(
-																												s._id,
-																												idx,
-																												optIdx
-																											)
-																										}
-																										className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-																											isCorrect
-																												? 'bg-green-500 border-green-500 text-white'
-																												: 'border-gray-300 hover:border-green-400'
-																										}`}
-																									>
-																										{isCorrect && (
-																											<svg
-																												className='w-3 h-3'
-																												fill='currentColor'
-																												viewBox='0 0 20 20'
-																											>
-																												<path
-																													fillRule='evenodd'
-																													d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-																													clipRule='evenodd'
-																												/>
-																											</svg>
-																										)}
-																									</button>
-																									<span className='text-sm text-gray-700'>
-																										{opt ||
-																											`Option ${optIdx + 1}`}
-																									</span>
-																								</div>
-																							);
-																						}
-																					)}
-																				</div>
-																				<div className='text-xs text-gray-500 mt-1'>
-																					Click the
-																					checkboxes to
-																					select multiple
-																					correct answers
-																				</div>
-																			</div>
-																			{s.scoringSettings
-																				?.customScoringRules
-																				?.useCustomPoints && (
-																				<div>
-																					<label className='block text-sm font-medium text-gray-700 mb-2'>
-																						Question
-																						Points
-																					</label>
-																					<input
-																						type='number'
-																						className='input-field w-full'
-																						placeholder={`Default points: ${s.scoringSettings.customScoringRules.defaultQuestionPoints}`}
-																						value={
-																							editForm.points ||
-																							''
-																						}
-																						onChange={e =>
-																							handleQuestionEditChange(
-																								s._id,
-																								idx,
-																								'points',
-																								e
-																									.target
-																									.value
-																									? parseInt(
-																											e
-																												.target
-																												.value
-																										)
-																									: undefined
-																							)
-																						}
-																						min='1'
-																						max='100'
-																					/>
-																					<div className='text-xs text-gray-500 mt-1'>
-																						Leave empty
-																						to use
-																						default
-																						points (
-																						{
-																							s
-																								.scoringSettings
-																								.customScoringRules
-																								.defaultQuestionPoints
-																						}{' '}
-																						points)
-																					</div>
-																				</div>
-																			)}
+																		{q.type ===
+																		QUESTION_TYPE.MULTIPLE_CHOICE
+																			? 'Multiple Choice'
+																			: q.type ===
+																				  QUESTION_TYPE.SINGLE_CHOICE
+																				? 'Single Choice'
+																				: q.type ===
+																					  QUESTION_TYPE.SHORT_TEXT
+																					? 'Short Text'
+																					: q.type ||
+																						'Single Choice'}
+																	</span>
+																	{q.imageUrl && (
+																		<span className='text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded'>
+																			📷 Has Image
+																		</span>
+																	)}
+																	{TYPES_REQUIRING_ANSWERS.includes(
+																		s.type
+																	) && (
+																		<div className='text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded'>
+																			{q.points || 1} pts
 																		</div>
 																	)}
-																<div className='flex gap-2 pt-2'>
-																	<button
-																		className='btn-primary text-sm'
-																		onClick={() =>
-																			saveQuestionEdit(
-																				s._id,
-																				idx
-																			)
-																		}
-																		type='button'
-																		disabled={
-																			!editForm?.text ||
-																			(editForm.type !==
-																				QUESTION_TYPE.SHORT_TEXT &&
-																				(!editForm?.options ||
-																					editForm.options.filter(
-																						opt =>
-																							opt.trim()
-																					).length ===
-																						0)) ||
-																			([
-																				SURVEY_TYPE.ASSESSMENT,
-																				SURVEY_TYPE.QUIZ,
-																				SURVEY_TYPE.IQ,
-																			].includes(s.type) &&
-																				editForm.type !==
-																					QUESTION_TYPE.SHORT_TEXT &&
-																				editForm.correctAnswer ===
-																					undefined)
-																		}
-																	>
-																		Save
-																	</button>
-																	<button
-																		className='btn-secondary text-sm'
-																		onClick={() =>
-																			cancelEditQuestion(
-																				s._id
-																			)
-																		}
-																		type='button'
-																	>
-																		Cancel
-																	</button>
 																</div>
 															</div>
-														) : (
-															// Display mode
-															<div>
-																<div className='flex justify-between items-start mb-1'>
-																	<div className='flex-1'>
-																		<div className='flex items-center gap-2 mb-1'>
-																			<span className='font-medium text-gray-800'>
-																				{idx + 1}. {q.text}
-																			</span>
-																			<span
-																				className={`text-xs px-2 py-1 rounded ${
-																					q.type ===
-																					QUESTION_TYPE.MULTIPLE_CHOICE
-																						? 'bg-purple-100 text-purple-800'
-																						: q.type ===
-																							  QUESTION_TYPE.SINGLE_CHOICE
-																							? 'bg-green-100 text-green-800'
-																							: q.type ===
-																								  QUESTION_TYPE.SHORT_TEXT
-																								? 'bg-orange-100 text-orange-800'
-																								: 'bg-gray-100 text-gray-800'
-																				}`}
-																			>
-																				{q.type ===
-																				QUESTION_TYPE.MULTIPLE_CHOICE
-																					? 'Multiple Choice'
-																					: q.type ===
-																						  QUESTION_TYPE.SINGLE_CHOICE
-																						? 'Single Choice'
-																						: q.type ===
-																							  QUESTION_TYPE.SHORT_TEXT
-																							? 'Short Text'
-																							: q.type ||
-																								'Single Choice'}
-																			</span>
+															<div className='flex items-center gap-2'>
+																<button
+																	className='btn-secondary text-sm px-3 py-1'
+																	onClick={() =>
+																		startEditQuestion(
+																			s._id,
+																			idx
+																		)
+																	}
+																>
+																	Edit
+																</button>
+																<button
+																	className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
+																	onClick={() =>
+																		deleteQuestion(
+																			s._id,
+																			idx
+																		)
+																	}
+																>
+																	Delete
+																</button>
+															</div>
+														</div>
+														{q.type ===
+														QUESTION_TYPE.SHORT_TEXT ? (
+																<div className='text-sm text-gray-600 mb-1'>
+																	<div className='font-medium'>
+																Type: Text Response
+																	</div>
+																	{TYPES_REQUIRING_ANSWERS.includes(
+																s.type as any
+																	) &&
+																q.correctAnswer &&
+																typeof q.correctAnswer ===
+																	'string' && (
+																		<div className='text-xs text-green-600 font-medium mt-1'>
+																		✓ Expected
+																		Answer:{' '}
+																			{
+																				q.correctAnswer
+																			}
 																		</div>
-																	</div>
-																	<div className='flex items-center gap-2'>
-																		{TYPES_REQUIRING_ANSWERS.includes(
-																			s.type
-																		) && (
-																			<div className='text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded'>
-																				{q.points || 1} pts
-																			</div>
-																		)}
-																		<button
-																			className='btn-secondary text-sm px-3 py-1'
-																			onClick={() =>
-																				startEditQuestion(
-																					s._id,
-																					idx
-																				)
-																			}
-																		>
-																			Edit
-																		</button>
-																		<button
-																			className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
-																			onClick={() =>
-																				deleteQuestion(
-																					s._id,
-																					idx
-																				)
-																			}
-																		>
-																			Delete
-																		</button>
-																	</div>
+																	)}
 																</div>
-																{q.type ===
-																QUESTION_TYPE.SHORT_TEXT ? (
+															) : (
+																<>
 																	<div className='text-sm text-gray-600 mb-1'>
-																		<div className='font-medium'>
-																			Type: Text Response
-																		</div>
-																		{TYPES_REQUIRING_ANSWERS.includes(
-																			s.type as any
-																		) &&
-																			q.correctAnswer &&
-																			typeof q.correctAnswer ===
-																				'string' && (
-																				<div className='text-xs text-green-600 font-medium mt-1'>
-																					✓ Expected
-																					Answer:{' '}
-																					{
-																						q.correctAnswer
-																					}
-																				</div>
-																			)}
-																	</div>
-																) : (
-																	<>
-																		<div className='text-sm text-gray-600 mb-1'>
-																			Options:{' '}
-																			{q.options &&
-																				q.options.map(
-																					(
-																						opt,
-																						optIdx
-																					) => {
-																						const isCorrect =
-																							Array.isArray(
-																								q.correctAnswer
-																							)
-																								? q.correctAnswer.includes(
-																										optIdx
-																									)
-																								: q.correctAnswer ===
-																									optIdx;
-																						return (
-																							<span
-																								key={
-																									optIdx
-																								}
-																								className={`${TYPES_REQUIRING_ANSWERS.includes(s.type as any) && isCorrect ? 'font-semibold text-green-600' : ''}`}
-																							>
-																								{
-																									opt
-																								}
-																								{optIdx <
-																								(q
-																									.options
-																									?.length ||
-																									0) -
-																									1
-																									? ', '
-																									: ''}
-																							</span>
-																						);
-																					}
-																				)}
-																		</div>
-																		{TYPES_REQUIRING_ANSWERS.includes(
-																			s.type
-																		) &&
-																			q.correctAnswer !==
-																				undefined &&
-																			q.type &&
-																			q.type !==
-																				QUESTION_TYPE.SHORT_TEXT && (
-																				<div className='text-xs text-green-600 font-medium'>
-																					✓ Correct Answer
-																					{Array.isArray(
-																						q.correctAnswer
-																					) &&
+																Options:{' '}
+																		{q.options &&
+																	q.options.map(
+																		(
+																			opt,
+																			optIdx
+																		) => {
+																			const isCorrect =
+																				Array.isArray(
 																					q.correctAnswer
-																						.length > 1
-																						? 's'
-																						: ''}
-																					:{' '}
-																					{Array.isArray(
-																						q.correctAnswer
+																				)
+																					? q.correctAnswer.includes(
+																						optIdx
 																					)
-																						? q.correctAnswer
-																								.map(
-																									idx =>
-																										q
-																											.options?.[
-																											idx
-																										]
-																								)
-																								.join(
-																									', '
-																								)
-																						: q
-																								.options?.[
-																								q
-																									.correctAnswer
-																							]}
-																				</div>
-																			)}
-																	</>
-																)}
-															</div>
-														)}
+																					: q.correctAnswer ===
+																						optIdx;
+																			return (
+																				<span
+																					key={
+																						optIdx
+																					}
+																					className={`${TYPES_REQUIRING_ANSWERS.includes(s.type as any) && isCorrect ? 'font-semibold text-green-600' : ''}`}
+																				>
+																					{
+																						typeof opt === 'string' ? opt : opt.text
+																					}
+																					{optIdx <
+																					(q
+																						.options
+																						?.length ||
+																						0) -
+																						1
+																						? ', '
+																						: ''}
+																				</span>
+																			);
+																		}
+																	)}
+																	</div>
+																	{TYPES_REQUIRING_ANSWERS.includes(
+																		s.type
+																	) &&
+																q.correctAnswer !==
+																	undefined &&
+																q.type &&
+																q.type !==
+																	QUESTION_TYPE.SHORT_TEXT && (
+																		<div className='text-xs text-green-600 font-medium'>
+																		✓ Correct Answer
+																		Selected
+																		</div>
+																	)}
+																</>
+															)}
 													</div>
-												);
-											})}
+												</div>
+											))}
 										</div>
 									) : (
-										<p className='text-gray-500 text-sm'>
-											No questions added yet.
-										</p>
+										<div className='text-gray-500 text-sm p-4 border-2 border-dashed border-gray-300 rounded-lg text-center'>
+											No questions added yet. Click "Add Question" to start.
+										</div>
 									)}
 								</div>
 							) : (
@@ -1610,11 +1346,11 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																stats[s._id]?.summary
 																	?.totalResponses > 0
 																	? (
-																			(count /
+																		(count /
 																				stats[s._id].summary
 																					.totalResponses) *
 																			100
-																		).toFixed(1)
+																	).toFixed(1)
 																	: 0;
 															return (
 																<div
@@ -1696,67 +1432,67 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																			'assessment',
 																			'iq',
 																		].includes(s.type) && (
-																			<div className='mt-2 space-y-1'>
-																				<div className='flex items-center gap-2'>
-																					<span className='text-sm font-medium text-blue-600'>
+																		<div className='mt-2 space-y-1'>
+																			<div className='flex items-center gap-2'>
+																				<span className='text-sm font-medium text-blue-600'>
 																						成绩:{' '}
-																						{
-																							response
-																								.score
-																								.displayScore
-																						}
-																						{response
+																					{
+																						response
 																							.score
-																							.scoringMode ===
+																							.displayScore
+																					}
+																					{response
+																						.score
+																						.scoringMode ===
 																						'percentage'
-																							? '%'
-																							: '分'}
-																					</span>
-																					<span
-																						className={`text-xs px-2 py-1 rounded-full ${
-																							response
-																								.score
-																								.passed
-																								? 'bg-green-100 text-green-800'
-																								: 'bg-red-100 text-red-800'
-																						}`}
-																					>
-																						{response
+																						? '%'
+																						: '分'}
+																				</span>
+																				<span
+																					className={`text-xs px-2 py-1 rounded-full ${
+																						response
 																							.score
 																							.passed
-																							? '通过'
-																							: '未通过'}
-																					</span>
-																				</div>
-																				<div className='text-xs text-gray-500'>
+																							? 'bg-green-100 text-green-800'
+																							: 'bg-red-100 text-red-800'
+																					}`}
+																				>
+																					{response
+																						.score
+																						.passed
+																						? '通过'
+																						: '未通过'}
+																				</span>
+																			</div>
+																			<div className='text-xs text-gray-500'>
 																					正确:{' '}
-																					{
-																						response
-																							.score
-																							.correctAnswers
-																					}{' '}
+																				{
+																					response
+																						.score
+																						.correctAnswers
+																				}{' '}
 																					/ 错误:{' '}
-																					{
-																						response
-																							.score
-																							.wrongAnswers
-																					}
-																					{response.timeSpent && (
-																						<span className='ml-2'>
+																				{
+																					response
+																						.score
+																						.wrongAnswers
+																				}
+																				{response.timeSpent && (
+																					<span className='ml-2'>
 																							用时:{' '}
-																							{Math.floor(
-																								response.timeSpent /
+																						{Math.floor(
+																							response.timeSpent /
 																									60
-																							)}
+																						)}
 																							分
-																							{response.timeSpent %
+																						{response.timeSpent %
 																								60}
 																							秒
-																						</span>
-																					)}
-																				</div>
+																					</span>
+																				)}
 																			</div>
-																		)}
+																		</div>
+																	)}
 																</div>
 																<div className='text-xs text-gray-500'>
 																	{new Date(
@@ -1840,10 +1576,10 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																		{index > 0 &&
 																			array[index - 1] !==
 																				pageNum - 1 && (
-																				<span className='px-2 py-1 text-gray-400'>
+																			<span className='px-2 py-1 text-gray-400'>
 																					...
-																				</span>
-																			)}
+																			</span>
+																		)}
 																		<button
 																			onClick={() =>
 																				setResponsePage(
@@ -1960,15 +1696,15 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 													<td className='px-2 py-1 border'>
 														{inv.createdAt
 															? new Date(
-																	inv.createdAt
-																).toLocaleString()
+																inv.createdAt
+															).toLocaleString()
 															: ''}
 													</td>
 													<td className='px-2 py-1 border'>
 														{inv.expiresAt
 															? new Date(
-																	inv.expiresAt
-																).toLocaleDateString()
+																inv.expiresAt
+															).toLocaleDateString()
 															: '永久'}
 													</td>
 													<td className='px-2 py-1 border'>
@@ -2053,6 +1789,31 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 						s.scoringSettings?.customScoringRules?.defaultQuestionPoints || 1
 					}
 				/>
+
+				{/* Edit Question Modal */}
+				{showEditQuestionModal && editingQuestionIndex >= 0 && (
+					<EditSurveyQuestionModal
+						isOpen={showEditQuestionModal}
+						onClose={cancelEditQuestion}
+						onSubmit={handleEditQuestionSubmit}
+						form={questionEditForms[`${s._id}-${editingQuestionIndex}`] || {
+							text: '',
+							type: QUESTION_TYPE.SINGLE_CHOICE,
+							options: [],
+						}}
+						onChange={(field, value) => handleQuestionEditChange(s._id, editingQuestionIndex, field, value)}
+						onOptionChange={(index, value) => handleQuestionEditOptionChange(s._id, editingQuestionIndex, index, value)}
+						onAddOption={() => addQuestionEditOption(s._id, editingQuestionIndex)}
+						onRemoveOption={index => removeQuestionEditOption(s._id, editingQuestionIndex, index)}
+						loading={loading}
+						surveyType={s.type}
+						isCustomScoringEnabled={s.scoringSettings?.customScoringRules?.useCustomPoints}
+						defaultQuestionPoints={
+							s.scoringSettings?.customScoringRules?.defaultQuestionPoints || 1
+						}
+						questionIndex={editingQuestionIndex}
+					/>
+				)}
 			</div>
 		</>
 	);

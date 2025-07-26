@@ -124,7 +124,7 @@ exports.deleteQuestionBank = async (req, res) => {
 // Add a question to a question bank
 exports.addQuestion = async (req, res) => {
 	try {
-		const { text, type, options, correctAnswer, explanation, points, tags, difficulty } =
+		const { text, type, options, correctAnswer, explanation, points, tags, difficulty, descriptionImage } =
 			req.body;
 
 		if (!text || !text.trim()) {
@@ -162,6 +162,11 @@ exports.addQuestion = async (req, res) => {
 			difficulty: difficulty || 'medium',
 		};
 
+		// Add description image if provided
+		if (descriptionImage) {
+			newQuestion.descriptionImage = descriptionImage;
+		}
+
 		// Add options and correctAnswer only for choice-based questions
 		if (questionType !== 'short_text') {
 			newQuestion.options = options.map(opt => opt.trim()).filter(opt => opt.length > 0);
@@ -185,7 +190,7 @@ exports.addQuestion = async (req, res) => {
 exports.updateQuestion = async (req, res) => {
 	try {
 		const { questionId } = req.params;
-		const { text, type, options, correctAnswer, explanation, points, tags, difficulty } =
+		const { text, type, options, correctAnswer, explanation, points, tags, difficulty, descriptionImage } =
 			req.body;
 
 		const questionBank = await QuestionBank.findById(req.params.id);
@@ -214,6 +219,14 @@ exports.updateQuestion = async (req, res) => {
 		if (points !== undefined) question.points = points;
 		if (tags !== undefined) question.tags = tags;
 		if (difficulty !== undefined) question.difficulty = difficulty;
+		if (descriptionImage !== undefined) {
+			if (descriptionImage) {
+				question.descriptionImage = descriptionImage;
+			} else {
+				// Remove description image if explicitly set to null/empty
+				delete question.descriptionImage;
+			}
+		}
 
 		await questionBank.save();
 

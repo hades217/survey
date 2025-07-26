@@ -42,6 +42,7 @@ docs/
 - [统计筛选实现](./implementation/STATISTICS_FILTER_IMPLEMENTATION.md) - 统计筛选功能
 - [筛选UI增强总结](./implementation/FILTER_UI_ENHANCEMENT_SUMMARY.md) - 筛选界面改进
 - [默认统计视图更新](./implementation/DEFAULT_STATS_VIEW_UPDATE.md) - 统计视图默认设置
+- [编辑问题弹窗实现](./implementation/EDIT_QUESTION_MODAL_IMPLEMENTATION.md) - 问题编辑改为弹窗模式
 
 ### 🧪 测试相关 (testing/)
 

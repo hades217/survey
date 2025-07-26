@@ -188,6 +188,11 @@ export const useQuestionBanks = () => {
 			difficulty: currentForm.difficulty,
 		};
 
+		// Add description image if provided
+		if (currentForm.descriptionImage) {
+			questionData.descriptionImage = currentForm.descriptionImage;
+		}
+
 		// For choice questions, add options and correctAnswer
 		if (currentForm.type !== 'short_text') {
 			if (currentForm.options) {
