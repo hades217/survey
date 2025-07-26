@@ -2,14 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-// Check if we need to use a different base URL for API calls
-const API_BASE_URL =
-	window.location.port === '5173' || window.location.port === '5174'
-		? 'http://localhost:5050'
-		: '';
-
 const api = axios.create({
-	baseURL: API_BASE_URL,
+	baseURL: '/api',
 });
 
 const isInvitationCode = str => /^[a-f0-9]{32}$/i.test(str);
@@ -163,6 +157,15 @@ const StudentAssessment = () => {
 						attempt: 1,
 					},
 				});
+
+				// Debug: Log the questions data
+				console.log('Questions response:', questionsResponse.data);
+				console.log('Questions with descriptionImage:', questionsResponse.data.questions.map((q, idx) => ({
+					index: idx,
+					text: q.text?.substring(0, 50),
+					hasDescriptionImage: !!q.descriptionImage,
+					descriptionImage: q.descriptionImage
+				})));
 
 				// Update survey with fetched questions
 				setSurvey(prev => ({
@@ -587,18 +590,45 @@ const StudentAssessment = () => {
 							<h3 className='text-xl font-semibold text-gray-800 mb-4'>
 								{currentQuestionIndex + 1}. {currentQuestion.text}
 							</h3>
+							
+							{/* Main question image */}
+							{currentQuestion.imageUrl && (
+								<div className='mb-4'>
+									<img
+										src={currentQuestion.imageUrl}
+										alt='Question image'
+										className='max-w-full h-auto rounded-lg border border-gray-300'
+										onLoad={() => {
+											console.log('Main image loaded successfully:', currentQuestion.imageUrl);
+										}}
+										onError={(e) => {
+											console.error('Main image failed to load:', currentQuestion.imageUrl);
+											console.error('Error event:', e);
+											e.currentTarget.style.display = 'none';
+										}}
+									/>
+								</div>
+							)}
+							
+							{/* Description image */}
 							{currentQuestion.descriptionImage && (
 								<div className='mb-4'>
 									<img
 										src={currentQuestion.descriptionImage}
 										alt='Question illustration'
 										className='max-w-full h-auto rounded-lg border border-gray-300'
+										onLoad={() => {
+											console.log('Description image loaded successfully:', currentQuestion.descriptionImage);
+										}}
 										onError={(e) => {
+											console.error('Description image failed to load:', currentQuestion.descriptionImage);
+											console.error('Error event:', e);
 											e.currentTarget.style.display = 'none';
 										}}
 									/>
 								</div>
 							)}
+							{(currentQuestion.imageUrl || currentQuestion.descriptionImage) && console.log('Rendering images for current question, imageUrl:', currentQuestion.imageUrl, 'descriptionImage:', currentQuestion.descriptionImage)}
 
 							<div className='space-y-3'>
 								{currentQuestion.type === 'short_text' ? (
@@ -620,10 +650,11 @@ const StudentAssessment = () => {
 									currentQuestion.options.map((option, index) => {
 										const optionValue = typeof option === 'string' ? option : option.text;
 										const optionText = typeof option === 'string' ? option : option.text;
+										const optionImage = typeof option === 'object' ? option.imageUrl : null;
 										return (
 										<label
 											key={index}
-											className='flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition-colors'
+											className='flex items-start p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition-colors'
 										>
 											<input
 												type='radio'
@@ -638,9 +669,28 @@ const StudentAssessment = () => {
 														optionValue
 													)
 												}
-												className='mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300'
+												className='mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 mt-1'
 											/>
-											<span className='text-gray-700'>{optionText}</span>
+											<div className='flex-1'>
+												{optionText && (
+													<span className='text-gray-700 block mb-2'>{optionText}</span>
+												)}
+												{optionImage && (
+													<img
+														src={optionImage}
+														alt={`Option ${index + 1}`}
+														className='max-w-full h-auto rounded border border-gray-300'
+														style={{ maxHeight: '200px' }}
+														onLoad={() => {
+															console.log('Option image loaded successfully:', optionImage);
+														}}
+														onError={(e) => {
+															console.error('Option image failed to load:', optionImage);
+															e.currentTarget.style.display = 'none';
+														}}
+													/>
+												)}
+											</div>
 										</label>
 										);
 									})
@@ -649,10 +699,11 @@ const StudentAssessment = () => {
 									currentQuestion.options.map((option, index) => {
 										const optionValue = typeof option === 'string' ? option : option.text;
 										const optionText = typeof option === 'string' ? option : option.text;
+										const optionImage = typeof option === 'object' ? option.imageUrl : null;
 										return (
 										<label
 											key={index}
-											className='flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition-colors'
+											className='flex items-start p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition-colors'
 										>
 											<input
 												type='checkbox'
@@ -667,9 +718,28 @@ const StudentAssessment = () => {
 														e.target.checked
 													)
 												}
-												className='mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
+												className='mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1'
 											/>
-											<span className='text-gray-700'>{optionText}</span>
+											<div className='flex-1'>
+												{optionText && (
+													<span className='text-gray-700 block mb-2'>{optionText}</span>
+												)}
+												{optionImage && (
+													<img
+														src={optionImage}
+														alt={`Option ${index + 1}`}
+														className='max-w-full h-auto rounded border border-gray-300'
+														style={{ maxHeight: '200px' }}
+														onLoad={() => {
+															console.log('Option image loaded successfully:', optionImage);
+														}}
+														onError={(e) => {
+															console.error('Option image failed to load:', optionImage);
+															e.currentTarget.style.display = 'none';
+														}}
+													/>
+												)}
+											</div>
 										</label>
 										);
 									})
@@ -783,8 +853,12 @@ const StudentAssessment = () => {
 																您的答案:
 															</span>{' '}
 															{Array.isArray(result.userAnswer)
-																? result.userAnswer.join(', ')
-																: result.userAnswer || '未作答'}
+																? result.userAnswer.map(ans => 
+																	typeof ans === 'object' ? ans.text || ans.value || JSON.stringify(ans) : ans
+																  ).join(', ')
+																: typeof result.userAnswer === 'object' 
+																	? result.userAnswer?.text || result.userAnswer?.value || JSON.stringify(result.userAnswer)
+																	: result.userAnswer || '未作答'}
 														</div>
 														{!result.isCorrect && (
 															<div className='text-green-700'>
@@ -792,10 +866,12 @@ const StudentAssessment = () => {
 																	正确答案:
 																</span>{' '}
 																{Array.isArray(result.correctAnswer)
-																	? result.correctAnswer.join(
-																			', '
-																		)
-																	: result.correctAnswer}
+																	? result.correctAnswer.map(ans => 
+																		typeof ans === 'object' ? ans.text || ans.value || JSON.stringify(ans) : ans
+																	  ).join(', ')
+																	: typeof result.correctAnswer === 'object' 
+																		? result.correctAnswer?.text || result.correctAnswer?.value || JSON.stringify(result.correctAnswer)
+																		: result.correctAnswer}
 															</div>
 														)}
 														{result.explanation && (

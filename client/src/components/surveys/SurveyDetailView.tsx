@@ -268,7 +268,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				...prev,
 				[surveyId]: {
 					...currentForm,
-					options: [...(currentForm.options || []), ''],
+					options: [...(currentForm.options || []), { text: '', imageUrl: null }],
 				},
 			};
 		});
@@ -536,7 +536,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				...prev,
 				[formKey]: {
 					...currentForm,
-					options: [...(currentForm.options || []), ''],
+					options: [...(currentForm.options || []), { text: '', imageUrl: null }],
 				},
 			}));
 		}

@@ -301,7 +301,10 @@ export const useSurveys = () => {
 		// For choice questions, require at least 2 options
 		if (
 			form.type !== QUESTION_TYPE.SHORT_TEXT &&
-			(!form.options || form.options.filter(opt => opt.trim()).length < 2)
+			(!form.options || form.options.filter(opt => {
+				const text = typeof opt === 'string' ? opt : opt?.text;
+				return text && text.trim();
+			}).length < 2)
 		) {
 			setError('Please provide at least 2 options for choice questions');
 			return;

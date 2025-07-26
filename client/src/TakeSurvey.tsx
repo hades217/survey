@@ -120,6 +120,17 @@ const TakeSurvey: React.FC = () => {
 				.then(res => {
 					console.log('Survey data received:', res.data);
 					console.log('Questions length:', res.data.questions?.length);
+					
+					// Debug: Check for descriptionImage in questions
+					if (res.data.questions && res.data.questions.length > 0) {
+						console.log('Questions with descriptionImage:', res.data.questions.map((q, idx) => ({
+							index: idx,
+							text: q.text?.substring(0, 50),
+							hasDescriptionImage: !!q.descriptionImage,
+							descriptionImage: q.descriptionImage
+						})));
+					}
+					
 					setSurvey(res.data);
 
 					// For manual surveys, load questions immediately
@@ -494,18 +505,45 @@ const TakeSurvey: React.FC = () => {
 											<label className='block mb-4 font-semibold text-gray-800 text-lg'>
 												{index + 1}. {q.text}
 											</label>
+											
+											{/* Main question image */}
+											{q.imageUrl && (
+												<div className='mb-4'>
+													<img
+														src={q.imageUrl}
+														alt='Question image'
+														className='max-w-full h-auto rounded-lg border border-gray-300'
+														onLoad={() => {
+															console.log('Main image loaded successfully:', q.imageUrl);
+														}}
+														onError={(e) => {
+															console.error('Main image failed to load:', q.imageUrl);
+															console.error('Error event:', e);
+															e.currentTarget.style.display = 'none';
+														}}
+													/>
+												</div>
+											)}
+											
+											{/* Description image */}
 											{q.descriptionImage && (
 												<div className='mb-4'>
 													<img
 														src={q.descriptionImage}
 														alt='Question illustration'
 														className='max-w-full h-auto rounded-lg border border-gray-300'
+														onLoad={() => {
+															console.log('Description image loaded successfully:', q.descriptionImage);
+														}}
 														onError={(e) => {
+															console.error('Description image failed to load:', q.descriptionImage);
+															console.error('Error event:', e);
 															e.currentTarget.style.display = 'none';
 														}}
 													/>
 												</div>
 											)}
+											{(q.imageUrl || q.descriptionImage) && console.log('Rendering images for question', index, 'imageUrl:', q.imageUrl, 'descriptionImage:', q.descriptionImage)}
 											{q.type === QUESTION_TYPE.SHORT_TEXT ? (
 												<div className='space-y-3'>
 													<textarea
@@ -528,15 +566,16 @@ const TakeSurvey: React.FC = () => {
 														q.options.map((opt, optIndex) => {
 															const optionValue = typeof opt === 'string' ? opt : opt.text;
 															const optionText = typeof opt === 'string' ? opt : opt.text;
+															const optionImage = typeof opt === 'object' ? opt.imageUrl : null;
 															return (
 															<label
 																key={`${q._id}-${optIndex}-${optionText}`}
-																className='flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-primary-300 cursor-pointer transition-colors'
+																className='flex items-start p-3 bg-white rounded-lg border border-gray-200 hover:border-primary-300 cursor-pointer transition-colors'
 															>
 																<input
 																	type='radio'
 																	name={q._id}
-																	className='mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300'
+																	className='mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 mt-1'
 																	value={optionValue}
 																	checked={
 																		form.answers[q._id] === optionValue
@@ -549,9 +588,28 @@ const TakeSurvey: React.FC = () => {
 																	}
 																	required
 																/>
-																<span className='text-gray-700'>
-																	{optionText}
-																</span>
+																<div className='flex-1'>
+																	{optionText && (
+																		<span className='text-gray-700 block mb-2'>
+																			{optionText}
+																		</span>
+																	)}
+																	{optionImage && (
+																		<img
+																			src={optionImage}
+																			alt={`Option ${optIndex + 1}`}
+																			className='max-w-full h-auto rounded border border-gray-300'
+																			style={{ maxHeight: '200px' }}
+																			onLoad={() => {
+																				console.log('Option image loaded successfully:', optionImage);
+																			}}
+																			onError={(e) => {
+																				console.error('Option image failed to load:', optionImage);
+																				e.currentTarget.style.display = 'none';
+																			}}
+																		/>
+																	)}
+																</div>
 															</label>
 															);
 														})}

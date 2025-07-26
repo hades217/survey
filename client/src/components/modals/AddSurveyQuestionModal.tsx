@@ -330,7 +330,10 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 					{form.type !== QUESTION_TYPE.SHORT_TEXT &&
 						isAssessmentType &&
 						form.options &&
-						form.options.filter(opt => opt.trim()).length >= 2 && (
+						form.options.filter(opt => {
+							const text = typeof opt === 'string' ? opt : opt.text;
+							return text && text.trim();
+						}).length >= 2 && (
 						<div>
 							<label className='block text-sm font-medium text-gray-700 mb-2'>
 									Select Correct Answer(s) *
