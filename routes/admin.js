@@ -1273,6 +1273,18 @@ router.post(
 
 		// Create invitation if distribution mode is specified
 		if (distributionMode) {
+			// Handle createdBy field - only set if it's a valid ObjectId
+			let createdBy = null;
+			if (req.user.id && req.user.id !== 'admin') {
+				try {
+					const mongoose = require('mongoose');
+					createdBy = new mongoose.Types.ObjectId(req.user.id);
+				} catch (error) {
+					// Invalid ObjectId, leave as null
+					console.log('Invalid ObjectId for createdBy:', req.user.id);
+				}
+			}
+
 			const invitation = await Invitation.create({
 				surveyId: survey._id,
 				distributionMode,
@@ -1280,7 +1292,7 @@ router.post(
 				targetEmails: targetEmails || [],
 				maxResponses,
 				expiresAt: expiresAt ? new Date(expiresAt) : null,
-				createdBy: req.user.id || null,
+				createdBy,
 			});
 
 			await invitation.populate('surveyId', 'title description');
@@ -1335,6 +1347,18 @@ router.post(
 			});
 		}
 
+		// Handle createdBy field - only set if it's a valid ObjectId
+		let createdBy = null;
+		if (req.user.id && req.user.id !== 'admin') {
+			try {
+				const mongoose = require('mongoose');
+				createdBy = new mongoose.Types.ObjectId(req.user.id);
+			} catch (error) {
+				// Invalid ObjectId, leave as null
+				console.log('Invalid ObjectId for createdBy:', req.user.id);
+			}
+		}
+
 		const invitation = await Invitation.create({
 			surveyId: req.params.id,
 			distributionMode,
@@ -1342,7 +1366,7 @@ router.post(
 			targetEmails: targetEmails || [],
 			maxResponses,
 			expiresAt: expiresAt ? new Date(expiresAt) : null,
-			createdBy: req.user.id || null,
+			createdBy,
 		});
 
 		await invitation.populate('surveyId', 'title description');

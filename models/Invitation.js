@@ -48,7 +48,7 @@ const invitationSchema = new mongoose.Schema({
 	createdBy: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User',
-		required: true,
+		required: false, // Allow null for legacy admin users
 	},
 	// Track who has accessed the invitation
 	accessLog: [

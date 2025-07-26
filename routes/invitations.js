@@ -63,13 +63,25 @@ router.post(
 			const results = [];
 			for (const email of targetEmails) {
 				try {
+					// Handle createdBy field - only set if it's a valid ObjectId
+					let createdBy = null;
+					if (req.user?.id && req.user.id !== 'admin') {
+						try {
+							const mongoose = require('mongoose');
+							createdBy = new mongoose.Types.ObjectId(req.user.id);
+						} catch (error) {
+							// Invalid ObjectId, leave as null
+							console.log('Invalid ObjectId for createdBy:', req.user.id);
+						}
+					}
+
 					const invitation = await Invitation.create({
 						surveyId,
 						distributionMode: 'targeted',
 						targetEmails: [email],
 						maxResponses: 1,
 						expiresAt: expiresAt ? new Date(expiresAt) : null,
-						createdBy: req.session.adminId || null,
+						createdBy,
 					});
 
 					// 生成 assessment 专属链接
@@ -95,6 +107,18 @@ router.post(
 			return res.json({ success: true, results });
 		}
 
+		// Handle createdBy field - only set if it's a valid ObjectId
+		let createdBy = null;
+		if (req.user?.id && req.user.id !== 'admin') {
+			try {
+				const mongoose = require('mongoose');
+				createdBy = new mongoose.Types.ObjectId(req.user.id);
+			} catch (error) {
+				// Invalid ObjectId, leave as null
+				console.log('Invalid ObjectId for createdBy:', req.user.id);
+			}
+		}
+
 		// 兼容原有 invitation 创建逻辑
 		const invitation = await Invitation.create({
 			surveyId,
@@ -103,7 +127,7 @@ router.post(
 			targetEmails: targetEmails || [],
 			maxResponses,
 			expiresAt: expiresAt ? new Date(expiresAt) : null,
-			createdBy: req.session.adminId || null, // Assuming admin ID is stored in session
+			createdBy,
 		});
 
 		// Populate the invitation with survey and target user details
@@ -567,6 +591,18 @@ router.post(
 					continue;
 				}
 
+				// Handle createdBy field - only set if it's a valid ObjectId
+				let createdBy = null;
+				if (req.user?.id && req.user.id !== 'admin') {
+					try {
+						const mongoose = require('mongoose');
+						createdBy = new mongoose.Types.ObjectId(req.user.id);
+					} catch (error) {
+						// Invalid ObjectId, leave as null
+						console.log('Invalid ObjectId for createdBy:', req.user.id);
+					}
+				}
+
 				const invitation = await Invitation.create({
 					surveyId,
 					distributionMode,
@@ -574,7 +610,7 @@ router.post(
 					targetEmails: targetEmails || [],
 					maxResponses,
 					expiresAt: expiresAt ? new Date(expiresAt) : null,
-					createdBy: req.session.adminId || null,
+					createdBy,
 				});
 
 				results.created.push(invitation);

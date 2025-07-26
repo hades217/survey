@@ -23,6 +23,20 @@ const transporter = nodemailer.createTransport({
  * @returns {Promise}
  */
 function sendMail({ to, subject, html, text }) {
+	// 临时禁用邮件发送用于测试
+	console.log('📧 邮件发送模拟（已禁用实际发送）:');
+	console.log(`收件人: ${to}`);
+	console.log(`主题: ${subject}`);
+	console.log(`内容: ${html.substring(0, 100)}...`);
+	
+	// 返回成功的Promise
+	return Promise.resolve({
+		messageId: 'fake-' + Date.now(),
+		response: '250 OK: Message accepted for delivery'
+	});
+	
+	// 原始发送代码（已注释）
+	/*
 	return transporter.sendMail({
 		from: process.env.MAIL_FROM || '测评系统 <your_email@163.com>',
 		to,
@@ -30,6 +44,7 @@ function sendMail({ to, subject, html, text }) {
 		html,
 		text,
 	});
+	*/
 }
 
 module.exports = { sendMail };
