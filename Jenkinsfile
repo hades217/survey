@@ -121,6 +121,28 @@ pipeline {
 				}
 			}
 		}
+
+		stage('Health Check') {
+			steps {
+				echo 'Performing health checks...'
+				script {
+					// Wait for services to be ready
+					sleep 10
+
+					// Test frontend
+					sh '''
+						curl -f http://localhost:${FRONTEND_PORT} || exit 1
+						echo "Frontend is healthy"
+					'''
+
+					// Test admin dashboard
+					sh '''
+						curl -f http://localhost:${FRONTEND_PORT}/admin || exit 1
+						echo "Admin dashboard is accessible"
+					'''
+				}
+			}
+		}
 	}
 
 	post {
