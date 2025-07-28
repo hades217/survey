@@ -28,7 +28,13 @@
       "Bash(find:*)",
       "Bash(chmod:*)",
       "Bash(./fix-lint.sh)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(docker-compose:*)",
+      "Bash(docker system prune:*)",
+      "Bash(docker image prune:*)",
+      "Bash(docker:*)",
+      "Bash(chmod:*)",
+      "Bash(./check_upload_usage.sh:*)"
     ],
     "deny": []
   }

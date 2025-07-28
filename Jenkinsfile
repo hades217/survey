@@ -91,16 +91,12 @@ pipeline {
 							MONGODB_URI=${MONGO_URI}
 
 							# Application Configuration
-							BACKEND_PORT=${BACKEND_PORT}
-							FRONTEND_PORT=${FRONTEND_PORT}
+							PORT=5050
 							NODE_ENV=production
 
 							# Admin Configuration
 							ADMIN_USERNAME=${ADMIN_USERNAME}
 							ADMIN_PASSWORD=${ADMIN_PASSWORD}
-
-							# Frontend Configuration
-							VITE_BASE_URL=http://localhost:${BACKEND_PORT}
 							EOF
 
 							# Show the complete .env file for debugging
@@ -131,13 +127,19 @@ pipeline {
 
 					// Test frontend
 					sh '''
-						curl -f http://localhost:${FRONTEND_PORT} || exit 1
+						curl -f http://localhost:80 || exit 1
 						echo "Frontend is healthy"
+					'''
+
+					// Test backend API
+					sh '''
+						curl -f http://localhost:80/api/surveys || exit 1
+						echo "Backend API is accessible"
 					'''
 
 					// Test admin dashboard
 					sh '''
-						curl -f http://localhost:${FRONTEND_PORT}/admin || exit 1
+						curl -f http://localhost:80/admin || exit 1
 						echo "Admin dashboard is accessible"
 					'''
 				}
@@ -153,9 +155,9 @@ pipeline {
 		success {
 			echo 'Deployment successful!'
 			echo 'Access your application at:'
-			echo "  Backend API: http://localhost:${BACKEND_PORT}/api"
-			echo "  Frontend: http://localhost:${FRONTEND_PORT}"
-			echo "  Admin Dashboard: http://localhost:${FRONTEND_PORT}/admin"
+			echo "  Application: http://localhost:80"
+			echo "  Admin Dashboard: http://localhost:80/admin"
+			echo "  API: http://localhost:80/api"
 			// You can add notifications here (Slack, email, etc.)
 		}
 		failure {

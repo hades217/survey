@@ -31,6 +31,13 @@ COPY services ./services
 COPY shared ./shared
 COPY utils ./utils
 COPY controllers ./controllers
+COPY questions.json ./
+COPY package.json ./
+
+# Create uploads directory and set permissions
+RUN mkdir -p uploads uploads/images uploads/documents uploads/temp
+RUN chown -R nextjs:nodejs uploads
+RUN chmod -R 755 uploads
 
 USER nextjs
 
