@@ -16,25 +16,71 @@ const app = express();
 const PORT = process.env.PORT || 5050;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/survey';
 
-mongoose
-	.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-	.then(() => {
-		console.log('✓ Connected to MongoDB');
-	})
-	.catch(err => {
-		console.error('✗ MongoDB connection failed:', err.message);
-		process.exit(1);
-	});
+// MongoDB connection with retry logic
+const connectToMongoDB = async (retries = 5, delay = 10000) => {
+	for (let i = 1; i <= retries; i++) {
+		try {
+			console.log(`🔄 MongoDB connection attempt ${i}...`);
+			console.log(`📍 Connecting to: ${MONGODB_URI}`);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(
-	session({
-		secret: 'change-me',
-		resave: false,
-		saveUninitialized: false,
-	})
-);
+			await mongoose.connect(MONGODB_URI, {
+				serverSelectionTimeoutMS: 30000, // Increased to 30 seconds
+				connectTimeoutMS: 30000,
+				socketTimeoutMS: 30000,
+				maxPoolSize: 10,
+				minPoolSize: 1,
+				retryWrites: true,
+				retryReads: true
+			});
+
+			console.log('✅ MongoDB connected successfully');
+			return;
+		} catch (error) {
+			console.log(`✗ MongoDB connection attempt ${i} failed:`, error.message);
+
+			if (i === retries) {
+				console.log('✗ All MongoDB connection attempts failed.');
+				console.log('🔧 Troubleshooting info:');
+				console.log('   - MongoDB URI:', MONGODB_URI);
+				console.log('   - Network connectivity test needed');
+
+				// Don't exit, let the server start without MongoDB for now
+				console.log('⚠️  Starting server without MongoDB connection...');
+				return;
+			}
+
+			console.log(`Retrying in ${delay/1000} seconds... (${retries - i} attempts left)`);
+			await new Promise(resolve => setTimeout(resolve, delay));
+		}
+	}
+};
+
+// Initialize MongoDB connection
+connectToMongoDB();
+
+// Middleware
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Health check endpoint (doesn't require database)
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// Session configuration
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'survey-app-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { 
+    secure: false, // Set to true in production with HTTPS
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
 
 app.use('/api', questionsRouter);
 app.use('/api', responsesRouter);

@@ -15,6 +15,12 @@ services:
       options:
         max-size: '10m'
         max-file: '3'
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   backend:
     build:
@@ -28,15 +34,16 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-password}
     restart: unless-stopped
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     healthcheck:
       test:
         - 'CMD-SHELL' 
         - 'wget --no-verbose --tries=1 --spider http://localhost:5050/api/surveys || exit 1'
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5
+      start_period: 120s
     logging:
       driver: 'json-file'
       options:
