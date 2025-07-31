@@ -19,6 +19,8 @@ export interface Survey extends ApiSurvey {
 	// 可以在这里添加前端特有的属性
 	createdAt: string;
 	isActive: boolean;
+	lastActivity?: string;
+	responseCount?: number;
 }
 
 // 重用API接口定义

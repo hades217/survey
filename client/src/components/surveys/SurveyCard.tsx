@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Survey } from '../../types/admin';
 import { getSurveyUrl } from '../../utils/config';
 import { useAdmin } from '../../contexts/AdminContext';
@@ -9,8 +10,9 @@ interface SurveyCardProps {
 }
 
 const SurveyCard: React.FC<SurveyCardProps> = ({ survey }) => {
+	const { t } = useTranslation();
 	const { showQR, setShowQR, copyToClipboard } = useAdmin();
-	const { toggleSurveyStatus, deleteSurvey, handleSurveyClick, openEditModal } = useSurveys();
+	const { toggleSurveyStatus, deleteSurvey, handleSurveyClick, openEditModal, duplicateSurvey } = useSurveys();
 
 	// Add safety checks for survey data
 	if (!survey) {
@@ -75,13 +77,22 @@ const SurveyCard: React.FC<SurveyCardProps> = ({ survey }) => {
 					</div>
 					<p className='text-gray-600 mb-2'>{survey.description || 'No description'}</p>
 					<div className='flex items-center gap-4 text-sm text-gray-500'>
-						<span>{survey.questions?.length || 0} questions</span>
+						<span>{survey.questions?.length || 0} {t('survey.questions')}</span>
+						<span>{survey.responseCount || 0} {t('survey.responses')}</span>
 						<span>
 							Created:{' '}
 							{survey.createdAt
 								? new Date(survey.createdAt).toLocaleDateString()
 								: 'Unknown'}
 						</span>
+						{survey.lastActivity ? (
+							<span>
+								{t('survey.lastActivity')}:{' '}
+								{new Date(survey.lastActivity).toLocaleDateString()}
+							</span>
+						) : (
+							<span>{t('survey.noActivity')}</span>
+						)}
 						{survey.timeLimit && <span>Time limit: {survey.timeLimit} minutes</span>}
 					</div>
 				</div>
@@ -89,6 +100,12 @@ const SurveyCard: React.FC<SurveyCardProps> = ({ survey }) => {
 			<div className='flex gap-2 mt-4'>
 				<button className='btn-primary text-sm' onClick={() => handleSurveyClick(survey)}>
 					Manage
+				</button>
+				<button
+					className='px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors'
+					onClick={() => duplicateSurvey(survey._id)}
+				>
+					{t('buttons.duplicate')}
 				</button>
 				<button
 					className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'

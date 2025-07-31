@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../utils/axiosConfig';
 import { useAdmin } from '../contexts/AdminContext';
 import { Survey } from '../types/admin';
@@ -12,6 +13,7 @@ import {
 } from '../constants';
 
 export const useSurveys = () => {
+	const { t } = useTranslation();
 	const {
 		surveys,
 		setSurveys,
@@ -377,6 +379,63 @@ export const useSurveys = () => {
 		}
 	};
 
+	const duplicateSurvey = async (surveyId: string) => {
+		const survey = surveys.find(s => s._id === surveyId);
+		if (!survey) {
+			setError('Survey not found');
+			return;
+		}
+
+		if (!window.confirm(t('survey.duplicateConfirm', { title: survey.title }))) {
+			return;
+		}
+
+		setLoading(true);
+		setError('');
+		try {
+
+			const duplicatedSurveyData = {
+				title: `${survey.title} (Copy)`,
+				description: survey.description,
+				slug: `${survey.slug}-copy-${Date.now()}`,
+				type: survey.type,
+				questions: survey.questions,
+				status: SURVEY_STATUS.DRAFT,
+				timeLimit: survey.timeLimit,
+				maxAttempts: survey.maxAttempts,
+				instructions: survey.instructions,
+				navigationMode: survey.navigationMode,
+				sourceType: survey.sourceType,
+				questionBankId: survey.questionBankId,
+				questionCount: survey.questionCount,
+				multiQuestionBankConfig: survey.multiQuestionBankConfig || [],
+				selectedQuestions: survey.selectedQuestions || [],
+				scoringSettings: survey.scoringSettings || {
+					scoringMode: SCORING_MODE.PERCENTAGE,
+					totalPoints: 0,
+					passingThreshold: 70,
+					showScore: true,
+					showCorrectAnswers: true,
+					showScoreBreakdown: true,
+					customScoringRules: {
+						useCustomPoints: false,
+						defaultQuestionPoints: 1,
+					},
+				},
+				isActive: false,
+			};
+
+			const response = await api.post('/admin/surveys', duplicatedSurveyData);
+			setSurveys([...surveys, response.data]);
+			return response.data;
+		} catch (err: unknown) {
+			setError(err.response?.data?.error || 'Failed to duplicate survey');
+			throw err;
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	return {
 		surveys,
 		selectedSurvey,
@@ -413,5 +472,6 @@ export const useSurveys = () => {
 		addQuestion,
 		updateQuestion,
 		deleteQuestion,
+		duplicateSurvey,
 	};
 };

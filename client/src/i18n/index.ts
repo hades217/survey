@@ -28,7 +28,8 @@ const resources = {
         "next": "Next",
         "previous": "Previous",
         "logout": "Logout",
-        "refresh": "Refresh"
+        "refresh": "Refresh",
+        "duplicate": "Duplicate"
       },
       "common": {
         "loading": "Loading...",
@@ -58,6 +59,14 @@ const resources = {
         "updatePersonalInfo": "Update Personal Information",
         "updatePassword": "Update Password",
         "updateCompanyInfo": "Update Company Information"
+      },
+      "survey": {
+        "duplicateConfirm": "Are you sure you want to duplicate \"{{title}}\"?",
+        "duplicateSuccess": "Survey duplicated successfully",
+        "questions": "questions",
+        "responses": "responses",
+        "lastActivity": "Last activity",
+        "noActivity": "No activity yet"
       }
     },
     admin: {
@@ -102,7 +111,8 @@ const resources = {
         "next": "下一步",
         "previous": "上一步",
         "logout": "退出",
-        "refresh": "刷新"
+        "refresh": "刷新",
+        "duplicate": "复制"
       },
       "common": {
         "loading": "加载中...",
@@ -132,6 +142,14 @@ const resources = {
         "updatePersonalInfo": "更新个人信息",
         "updatePassword": "更新密码",
         "updateCompanyInfo": "更新公司信息"
+      },
+      "survey": {
+        "duplicateConfirm": "确定要复制 \"{{title}}\" 吗？",
+        "duplicateSuccess": "问卷复制成功",
+        "questions": "题目",
+        "responses": "回复",
+        "lastActivity": "最近活动",
+        "noActivity": "暂无活动"
       }
     },
     admin: {

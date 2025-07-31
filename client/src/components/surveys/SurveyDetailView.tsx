@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAdmin } from '../../contexts/AdminContext';
 import { useSurveys } from '../../hooks/useSurveys';
 import { useQuestionBanks } from '../../hooks/useQuestionBanks';
@@ -26,6 +27,7 @@ interface SurveyDetailViewProps {
 }
 
 const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
+	const { t } = useTranslation();
 	const {
 		setSelectedSurvey,
 		setTab,
@@ -57,6 +59,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		updateQuestion,
 		deleteQuestion,
 		loadStats,
+		duplicateSurvey,
 	} = useSurveys();
 
 	const { questionBanks } = useQuestionBanks();
@@ -919,6 +922,12 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 									onClick={() => toggleSurveyStatus(s._id)}
 								>
 									{s.status === SURVEY_STATUS.ACTIVE ? 'Deactivate' : 'Activate'}
+								</button>
+								<button
+									className='px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors'
+									onClick={() => duplicateSurvey(s._id)}
+								>
+									{t('buttons.duplicate')}
 								</button>
 								<button
 									className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'

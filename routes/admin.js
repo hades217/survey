@@ -248,7 +248,35 @@ router.get(
 	asyncHandler(async (req, res) => {
 		const surveys = await Survey.find()
 			.populate('questionBankId', 'name description');
-		res.json(surveys);
+
+		// Add lastActivity and responseCount for each survey
+		const surveysWithStats = await Promise.all(
+			surveys.map(async (survey) => {
+				const surveyObj = survey.toObject();
+				
+				// Get response count - use ObjectId directly
+				const responseCount = await Response.countDocuments({ 
+					surveyId: survey._id 
+				});
+				
+				// Get last activity (most recent response)
+				const lastResponse = await Response.findOne({ 
+					surveyId: survey._id 
+				})
+					.sort({ createdAt: -1 })
+					.select('createdAt')
+					.lean();
+				
+				
+				return {
+					...surveyObj,
+					responseCount,
+					lastActivity: lastResponse ? lastResponse.createdAt : null
+				};
+			})
+		);
+
+		res.json(surveysWithStats);
 	})
 );
 
