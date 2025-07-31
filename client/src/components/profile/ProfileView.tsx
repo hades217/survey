@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAdmin } from '../../contexts/AdminContext';
 import ImageUpload from '../common/ImageUpload';
 
 const ProfileView: React.FC = () => {
+	const { t } = useTranslation();
 	const {
 		profileData,
 		profileForm,
@@ -82,9 +84,9 @@ const ProfileView: React.FC = () => {
 			<div className='bg-white rounded-lg shadow-sm border border-gray-200'>
 				{/* Header */}
 				<div className='px-6 py-4 border-b border-gray-200'>
-					<h2 className='text-2xl font-bold text-gray-900'>Profile Settings</h2>
+					<h2 className='text-2xl font-bold text-gray-900'>{t('profile.settings')}</h2>
 					<p className='text-gray-600 mt-1'>
-						Manage your personal information and company details
+						{t('profile.manageInfo')}
 					</p>
 				</div>
 
@@ -96,7 +98,7 @@ const ProfileView: React.FC = () => {
 							onClick={() => setError('')}
 							className='mt-2 text-red-600 hover:text-red-800 text-sm underline'
 						>
-							Dismiss
+							{t('profile.dismiss')}
 						</button>
 					</div>
 				)}
@@ -112,7 +114,7 @@ const ProfileView: React.FC = () => {
 									: 'text-gray-600 hover:text-gray-900'
 							}`}
 						>
-							Personal Information
+							{t('profile.personalInfo')}
 						</button>
 						<button
 							onClick={() => setActiveTab('company')}
@@ -122,7 +124,7 @@ const ProfileView: React.FC = () => {
 									: 'text-gray-600 hover:text-gray-900'
 							}`}
 						>
-							Company Information
+							{t('profile.companyInfo')}
 						</button>
 					</div>
 				</div>
@@ -157,7 +159,7 @@ const ProfileView: React.FC = () => {
 
 									<div>
 										<label className='block text-sm font-medium text-gray-700 mb-1'>
-											Email
+											{t('common.email')}
 										</label>
 										<input
 											type='email'
@@ -195,7 +197,7 @@ const ProfileView: React.FC = () => {
 										disabled={loading}
 										className='w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
 									>
-										{loading ? 'Updating...' : 'Update Profile'}
+										{loading ? t('profile.updating') : t('profile.updatePersonalInfo')}
 									</button>
 								</form>
 							</div>
@@ -251,7 +253,7 @@ const ProfileView: React.FC = () => {
 										disabled={loading}
 										className='w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
 									>
-										{loading ? 'Updating...' : 'Change Password'}
+										{loading ? t('profile.updating') : t('profile.updatePassword')}
 									</button>
 								</form>
 							</div>
@@ -269,7 +271,7 @@ const ProfileView: React.FC = () => {
 							<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 								<div>
 									<label className='block text-sm font-medium text-gray-700 mb-1'>
-										Company Name *
+										{t('profile.companyName')} *
 									</label>
 									<input
 										type='text'
@@ -284,7 +286,7 @@ const ProfileView: React.FC = () => {
 
 								<div>
 									<label className='block text-sm font-medium text-gray-700 mb-1'>
-										Industry
+										{t('profile.industry')}
 									</label>
 									<input
 										type='text'
@@ -320,7 +322,7 @@ const ProfileView: React.FC = () => {
 
 							<div>
 								<label className='block text-sm font-medium text-gray-700 mb-1'>
-									Website
+									{t('profile.website')}
 								</label>
 								<input
 									type='url'
@@ -355,7 +357,7 @@ const ProfileView: React.FC = () => {
 								disabled={loading}
 								className='w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
 							>
-								{loading ? 'Updating...' : 'Update Company Information'}
+								{loading ? t('profile.updating') : t('profile.updateCompanyInfo')}
 							</button>
 						</form>
 					</div>

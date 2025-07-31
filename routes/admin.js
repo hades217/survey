@@ -246,7 +246,8 @@ router.get(
 	'/surveys',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-		const surveys = await Survey.find().lean();
+		const surveys = await Survey.find()
+			.populate('questionBankId', 'name description');
 		res.json(surveys);
 	})
 );
@@ -461,7 +462,7 @@ router.put(
 		}
 
 		survey.questions.push(question);
-		
+
 		// Fix: Normalize ALL questions' options to the new object format before saving
 		// This prevents validation errors when some questions have legacy string array format
 		survey.questions.forEach((q) => {
@@ -483,7 +484,7 @@ router.put(
 				});
 			}
 		});
-		
+
 		await survey.save();
 		res.json(survey);
 	})

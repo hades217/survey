@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAdmin } from '../../contexts/AdminContext';
 
 const NavigationTabs: React.FC = () => {
 	const { tab, setTab, navigate } = useAdmin();
+	const { t } = useTranslation();
 
 	const handleTabClick = (newTab: 'list' | 'question-banks' | 'profile') => {
 		setTab(newTab);
@@ -30,7 +32,7 @@ const NavigationTabs: React.FC = () => {
 						: 'text-gray-600 hover:text-gray-900'
 				}`}
 			>
-				Surveys
+				{t('navigation.surveys')}
 			</button>
 			<button
 				onClick={() => handleTabClick('question-banks')}
@@ -40,7 +42,7 @@ const NavigationTabs: React.FC = () => {
 						: 'text-gray-600 hover:text-gray-900'
 				}`}
 			>
-				Question Banks
+				{t('navigation.questionBanks')}
 			</button>
 			<button
 				onClick={() => handleTabClick('profile')}
@@ -50,7 +52,7 @@ const NavigationTabs: React.FC = () => {
 						: 'text-gray-600 hover:text-gray-900'
 				}`}
 			>
-				Profile
+				{t('navigation.profile')}
 			</button>
 		</div>
 	);

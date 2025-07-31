@@ -6,6 +6,7 @@ import TakeSurvey from './TakeSurvey';
 import StudentAssessment from './components/StudentAssessment';
 import Admin from './Admin';
 import './styles.css';
+import './i18n';
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 	<React.StrictMode>

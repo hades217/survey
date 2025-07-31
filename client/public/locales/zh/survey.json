@@ -1,0 +1,60 @@
+{
+  "form": {
+    "title": "问卷表单",
+    "nameRequired": "姓名不能为空",
+    "emailRequired": "邮箱不能为空",
+    "emailInvalid": "邮箱格式不正确",
+    "pleaseSelectOption": "请选择一项",
+    "enterAnswerHere": "请在此输入您的答案..."
+  },
+  "assessment": {
+    "title": "测评",
+    "notFound": "测评未找到",
+    "invalidCode": "邀请码无效或已过期",
+    "information": "测评信息",
+    "rules": "规则说明",
+    "detailedInstructions": "详细说明",
+    "numberOfQuestions": "题目数量",
+    "questions": "题",
+    "random": "随机",
+    "multipleQuestionBanks": "多题库",
+    "selected": "已选",
+    "estimatedTime": "预计耗时",
+    "maximumAttempts": "可尝试次数",
+    "times": "次",
+    "questionType": "题目类型",
+    "singleChoice": "单选",
+    "multipleChoice": "多选",
+    "mixedQuestionTypes": "混合题型",
+    "timeLimit": "时间限制",
+    "start": "开始",
+    "question": "题目 {{number}} / {{total}}",
+    "previousQuestion": "上一题",
+    "nextQuestion": "下一题",
+    "submitAnswer": "提交答案",
+    "submitting": "提交中...",
+    "thankyou": "感谢您的参与！",
+    "surveySubmitted": "您的调研回答已成功提交，感谢您的宝贵意见。",
+    "results": "测评结果",
+    "totalScore": "总分",
+    "yourAnswer": "您的答案",
+    "notAnswered": "未作答",
+    "correctAnswer": "正确答案",
+    "explanation": "解释",
+    "rules": {
+      "surveyNoStandardAnswer": "这是一个调研问卷，没有标准答案",
+      "answerTruthfully": "请根据您的真实想法回答",
+      "thankYouPageAfterSubmit": "提交后将显示感谢页面",
+      "hasStandardAnswer": "这是一个{{type}}，有标准答案",
+      "readCarefully": "请仔细阅读每道题目后作答",
+      "scoresAfterSubmit": "提交后将显示成绩和正确答案",
+      "autoSubmitWhenTimeUp": "时间到将自动提交",
+      "allQuestionsRequired": "所有题目都是必答题",
+      "cannotModifyAfterSubmit": "提交后不能修改答案"
+    },
+    "placeholders": {
+      "enterName": "请输入您的姓名",
+      "enterEmail": "请输入您的邮箱"
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "appName": "Sigma Survey Platform",
+  "language": {
+    "english": "English",
+    "chinese": "中文"
+  },
+  "navigation": {
+    "surveys": "Surveys",
+    "questionBanks": "Question Banks", 
+    "profile": "Profile",
+    "dashboard": "Dashboard"
+  },
+  "buttons": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "confirm": "Confirm",
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "refresh": "Refresh"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "name": "Name",
+    "email": "Email",
+    "title": "Title",
+    "description": "Description",
+    "status": "Status",
+    "actions": "Actions",
+    "noData": "No data available",
+    "page": "Page",
+    "of": "of",
+    "records": "records",
+    "showingPage": "showing page",
+    "total": "Total"
+  }
+}

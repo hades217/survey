@@ -2,6 +2,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
 interface Question {
@@ -21,19 +22,22 @@ export type SurveyFormValues = {
 } & Record<string, string>;
 
 const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
+	const { t } = useTranslation('survey');
+	const { t: tCommon } = useTranslation(); // 默认命名空间用于通用翻译
+	
 	// Build validation schema based on question ids
 	const schema = React.useMemo(() => {
 		const questionShape: Record<string, z.ZodTypeAny> = {};
 		for (const q of questions) {
-			questionShape[q.id] = z.string().nonempty('Please select an option');
+			questionShape[q.id] = z.string().nonempty(t('form.pleaseSelectOption'));
 		}
 		return z
 			.object({
-				name: z.string().nonempty('Name is required'),
-				email: z.string().email('Invalid email format'),
+				name: z.string().nonempty(t('form.nameRequired')),
+				email: z.string().email(t('form.emailInvalid')),
 			})
 			.extend(questionShape);
-	}, [questions]);
+	}, [questions, t]);
 
 	const {
 		register,
@@ -50,13 +54,13 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
 	return (
 		<form onSubmit={handleSubmit(onSubmit)} className='space-y-4 max-w-xl mx-auto'>
 			<div>
-				<label className='block mb-1 font-semibold'>Name</label>
+				<label className='block mb-1 font-semibold'>{tCommon('common.name')}</label>
 				<input className='w-full p-2 border rounded' {...register('name')} />
 				{errors.name && <p className='text-red-500 text-sm'>{errors.name.message}</p>}
 			</div>
 
 			<div>
-				<label className='block mb-1 font-semibold'>Email</label>
+				<label className='block mb-1 font-semibold'>{tCommon('common.email')}</label>
 				<input type='email' className='w-full p-2 border rounded' {...register('email')} />
 				{errors.email && <p className='text-red-500 text-sm'>{errors.email.message}</p>}
 			</div>
@@ -67,7 +71,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
 					{q.type === 'short_text' ? (
 						<textarea
 							className='w-full p-3 border border-gray-200 rounded-lg focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-colors'
-							placeholder='Enter your answer here...'
+							placeholder={t('form.enterAnswerHere')}
 							rows={4}
 							{...register(q.id)}
 						/>
@@ -95,7 +99,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
 			))}
 
 			<button className='px-4 py-2 bg-blue-500 text-white rounded' type='submit'>
-				Submit
+				{tCommon('buttons.submit')}
 			</button>
 		</form>
 	);

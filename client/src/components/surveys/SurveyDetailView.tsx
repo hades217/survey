@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
 import { useSurveys } from '../../hooks/useSurveys';
+import { useQuestionBanks } from '../../hooks/useQuestionBanks';
 import { Survey, Question, QuestionForm, EnhancedStats } from '../../types/admin';
 import QRCodeComponent from '../QRCode';
 import AddSurveyQuestionModal from '../modals/AddSurveyQuestionModal';
@@ -57,6 +58,8 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		deleteQuestion,
 		loadStats,
 	} = useSurveys();
+
+	const { questionBanks } = useQuestionBanks();
 
 	// Local state for question editing
 	const [questionEditForms, setQuestionEditForms] = useState<Record<string, QuestionForm>>({});
@@ -891,7 +894,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 										<div className='flex justify-between'>
 											<span className='text-gray-600'>Source:</span>
 											<span className='font-medium text-purple-600'>
-												Question Bank
+												{questionBanks.find(bank => bank._id === s.questionBankId)?.name || 'Unknown Question Bank'}
 											</span>
 										</div>
 										<div className='flex justify-between'>
@@ -1229,8 +1232,8 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 										</div>
 									)}
 								</div>
-							) : (
-								// Question Bank Survey Information
+							) : s.sourceType === SOURCE_TYPE.QUESTION_BANK ? (
+								// Single Question Bank Survey Information
 								<div className='mb-4'>
 									<h4 className='font-semibold text-gray-800 mb-3'>
 										Question Bank Survey
@@ -1257,7 +1260,73 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 										</div>
 									</div>
 								</div>
-							)}
+							) : s.sourceType === SOURCE_TYPE.MULTI_QUESTION_BANK ? (
+								// Multi-Question Bank Survey Information
+								<div className='mb-4'>
+									<h4 className='font-semibold text-gray-800 mb-3'>
+										Multi-Question Bank Survey
+									</h4>
+									<div className='bg-blue-50 rounded-lg p-4'>
+										<div className='space-y-3'>
+											{s.multiQuestionBankConfig && s.multiQuestionBankConfig.length > 0 ? (
+												s.multiQuestionBankConfig.map((config: any, index: number) => {
+													const bank = questionBanks.find(b => b._id === config.questionBankId);
+													return (
+														<div key={index} className='flex items-center justify-between p-3 bg-white rounded-lg border'>
+															<div>
+																<div className='font-medium text-gray-800'>
+																	{bank?.name || 'Unknown Bank'}
+																</div>
+																<div className='text-sm text-gray-600'>
+																	{config.questionCount} questions
+																	{config.filters && Object.keys(config.filters).length > 0 && (
+																		<span className='text-blue-600'> (with filters)</span>
+																	)}
+																</div>
+															</div>
+															<div className='text-lg font-bold text-blue-600'>
+																{config.questionCount}
+															</div>
+														</div>
+													);
+												})
+											) : (
+												<div className='text-gray-500 text-sm text-center py-4'>
+													No question bank configurations set
+												</div>
+											)}
+											<div className='text-xs text-gray-500 mt-2'>
+												💡 Questions are selected based on configured rules for each bank
+											</div>
+										</div>
+									</div>
+								</div>
+							) : s.sourceType === SOURCE_TYPE.MANUAL_SELECTION ? (
+								// Manual Selection Survey Information
+								<div className='mb-4'>
+									<h4 className='font-semibold text-gray-800 mb-3'>
+										Manual Question Selection Survey
+									</h4>
+									<div className='bg-green-50 rounded-lg p-4'>
+										<div className='flex items-center justify-between mb-3'>
+											<div>
+												<div className='font-medium text-gray-800'>
+													Pre-selected Questions
+												</div>
+												<div className='text-sm text-gray-600'>
+													This survey uses {s.selectedQuestions?.length || 0} manually selected questions from various question banks.
+												</div>
+											</div>
+											<div className='text-lg font-bold text-green-600'>
+												{s.selectedQuestions?.length || 0} questions
+											</div>
+										</div>
+										<div className='text-xs text-gray-500'>
+											💡 Questions are pre-selected and will be the same for all students
+										</div>
+									</div>
+								</div>
+							) : null}
 						</div>
 					</>
 				)}

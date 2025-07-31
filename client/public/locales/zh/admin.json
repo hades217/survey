@@ -1,0 +1,74 @@
+{
+  "dashboard": {
+    "title": "{{companyName}} 管理后台",
+    "subtitle": "管理您的问卷、测评并查看回复"
+  },
+  "survey": {
+    "title": "问卷",
+    "surveys": "问卷管理",
+    "createSurvey": "创建问卷",
+    "editSurvey": "编辑问卷",
+    "deleteSurvey": "删除问卷",
+    "surveyList": "问卷列表",
+    "surveyDetails": "问卷详情",
+    "assessmentDetails": "测评详情",
+    "noSurveys": "暂无问卷",
+    "searchSurveys": "搜索问卷...",
+    "status": {
+      "active": "已发布",
+      "draft": "草稿",
+      "closed": "已关闭"
+    },
+    "type": {
+      "survey": "调研",
+      "quiz": "测验",
+      "assessment": "测评",
+      "iq": "IQ测试"
+    }
+  },
+  "statistics": {
+    "title": "统计数据",
+    "refreshData": "刷新数据",
+    "overview": "概览",
+    "totalResponses": "总回复数",
+    "completionRate": "完成率",
+    "totalQuestions": "总题目数",
+    "individualResponses": "个人回复",
+    "aggregatedResults": "汇总结果",
+    "noResponseData": "暂无回复数据",
+    "noStatisticsData": "暂无统计数据，点击"刷新数据"按钮加载",
+    "score": "成绩",
+    "points": "分",
+    "pass": "通过",
+    "fail": "未通过",
+    "correct": "正确",
+    "incorrect": "错误",
+    "timeUsed": "用时",
+    "minutes": "分钟",
+    "seconds": "秒",
+    "autoSubmitted": "自动提交"
+  },
+  "invitations": {
+    "title": "已邀请用户",
+    "inviteUsers": "📧 邀请用户测评",
+    "invitedUsersList": "已邀请用户列表",
+    "searchEmail": "搜索邮箱",
+    "invitationTime": "邀请时间",
+    "validUntil": "有效期",
+    "permanent": "永久",
+    "copyLink": "复制链接",
+    "noInvitations": "暂无邀请",
+    "status": {
+      "completed": "已完成",
+      "expired": "已过期",
+      "notFilled": "未填写"
+    }
+  },
+  "urls": {
+    "classicSurveyUrl": "经典版 Survey URL",
+    "enhancedAssessmentUrl": "增强版测评 URL",
+    "copyUrl": "复制链接",
+    "showQr": "显示二维码",
+    "hideQr": "隐藏二维码"
+  }
+}
