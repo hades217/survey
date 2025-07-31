@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAntiCheating } from './hooks/useAntiCheating';
+import { useSimpleAntiCheating } from './hooks/useSimpleAntiCheating';
+import { useAggressiveAntiCheating } from './hooks/useAggressiveAntiCheating';
+import { useWorkingAntiCheating } from './hooks/useWorkingAntiCheating';
+import './styles/antiCheating.css';
 import type { SurveyResponse } from '../../shared/surveyResponse';
 import {
 	QUESTION_TYPE,
@@ -70,6 +75,30 @@ const TakeSurvey: React.FC = () => {
 	const [error, setError] = useState('');
 	const [assessmentResults, setAssessmentResults] = useState<AssessmentResult[]>([]);
 	const [scoringResult, setScoringResult] = useState<ScoringResult | null>(null);
+
+	// Enable anti-cheating measures for assessments and quizzes
+	const isAssessmentType = survey && TYPES_REQUIRING_ANSWERS.includes(survey.type);
+	
+	// Debug logging
+	console.log('Survey type:', survey?.type);
+	console.log('Is assessment type:', isAssessmentType);
+	console.log('TYPES_REQUIRING_ANSWERS:', TYPES_REQUIRING_ANSWERS);
+	
+	// Use both hooks for comprehensive protection
+	const { getInputProps } = useAntiCheating({
+		enabled: false, // Disable complex hook for now
+		disableCopy: true,
+		disablePaste: true,
+		disableRightClick: true,
+		disableSelectAll: true,
+		disableDevTools: true,
+		showWarnings: true,
+	});
+
+	// Disable all React hook versions - using direct script instead
+	useSimpleAntiCheating(false);
+	useAggressiveAntiCheating(false);
+	useWorkingAntiCheating(false);
 
 	const loadQuestions = async (survey: Survey, userEmail?: string) => {
 		if (survey.sourceType === SOURCE_TYPE.QUESTION_BANK) {
@@ -454,7 +483,7 @@ const TakeSurvey: React.FC = () => {
 							)}
 						</div>
 
-						<form onSubmit={handleSubmit} className='space-y-6'>
+						<form onSubmit={handleSubmit} className={`space-y-6 ${isAssessmentType ? 'anti-cheat-container' : ''}`}>
 							<div className='grid md:grid-cols-2 gap-6'>
 								<div>
 									<label className='block mb-2 font-semibold text-gray-700'>
@@ -466,6 +495,7 @@ const TakeSurvey: React.FC = () => {
 										onChange={e => setForm({ ...form, name: e.target.value })}
 										required
 										placeholder='Enter your full name'
+										{...getInputProps()}
 									/>
 								</div>
 								<div>
@@ -479,6 +509,7 @@ const TakeSurvey: React.FC = () => {
 										onChange={e => handleEmailChange(e.target.value)}
 										required
 										placeholder='Enter your email'
+										{...getInputProps()}
 									/>
 									{survey?.sourceType === 'question_bank' &&
 										form.email &&
@@ -503,7 +534,7 @@ const TakeSurvey: React.FC = () => {
 										)}
 									</div>
 									{questions.map((q, index) => (
-										<div key={q._id} className='bg-gray-50 rounded-lg p-6'>
+										<div key={q._id} className={`bg-gray-50 rounded-lg p-6 ${isAssessmentType ? 'anti-cheat-container' : ''}`}>
 											<label className='block mb-4 font-semibold text-gray-800 text-lg'>
 												{index + 1}. {q.text}
 											</label>
@@ -560,6 +591,7 @@ const TakeSurvey: React.FC = () => {
 															)
 														}
 														required
+														{...getInputProps()}
 													/>
 												</div>
 											) : (

@@ -66,7 +66,14 @@ const resources = {
         "questions": "questions",
         "responses": "responses",
         "lastActivity": "Last activity",
-        "noActivity": "No activity yet"
+        "noActivity": "No activity yet",
+        "antiCheat": {
+          "copyWarning": "For fair assessment, copying content is not allowed.",
+          "pasteWarning": "For fair assessment, pasting content is not allowed.",
+          "rightClickWarning": "Right-click is disabled during assessment.",
+          "selectAllWarning": "Select all is disabled during assessment.",
+          "devToolsWarning": "Developer tools are disabled during assessment."
+        }
       }
     },
     admin: {
@@ -149,7 +156,14 @@ const resources = {
         "questions": "题目",
         "responses": "回复",
         "lastActivity": "最近活动",
-        "noActivity": "暂无活动"
+        "noActivity": "暂无活动",
+        "antiCheat": {
+          "copyWarning": "为保证测评公平，系统不允许复制内容。",
+          "pasteWarning": "为保证测评公平，系统不允许粘贴内容。",
+          "rightClickWarning": "测评期间禁用右键菜单。",
+          "selectAllWarning": "测评期间禁用全选功能。",
+          "devToolsWarning": "测评期间禁用开发者工具。"
+        }
       }
     },
     admin: {
