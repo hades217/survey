@@ -25,12 +25,12 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
 	const schema = React.useMemo(() => {
 		const questionShape: Record<string, z.ZodTypeAny> = {};
 		for (const q of questions) {
-			questionShape[q.id] = z.string().nonempty('请选择一项');
+			questionShape[q.id] = z.string().nonempty('Please select an option');
 		}
 		return z
 			.object({
-				name: z.string().nonempty('姓名不能为空'),
-				email: z.string().email('邮箱格式不正确'),
+				name: z.string().nonempty('Name is required'),
+				email: z.string().email('Invalid email format'),
 			})
 			.extend(questionShape);
 	}, [questions]);
@@ -50,13 +50,13 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
 	return (
 		<form onSubmit={handleSubmit(onSubmit)} className='space-y-4 max-w-xl mx-auto'>
 			<div>
-				<label className='block mb-1 font-semibold'>姓名</label>
+				<label className='block mb-1 font-semibold'>Name</label>
 				<input className='w-full p-2 border rounded' {...register('name')} />
 				{errors.name && <p className='text-red-500 text-sm'>{errors.name.message}</p>}
 			</div>
 
 			<div>
-				<label className='block mb-1 font-semibold'>邮箱</label>
+				<label className='block mb-1 font-semibold'>Email</label>
 				<input type='email' className='w-full p-2 border rounded' {...register('email')} />
 				{errors.email && <p className='text-red-500 text-sm'>{errors.email.message}</p>}
 			</div>
@@ -72,17 +72,21 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
 							{...register(q.id)}
 						/>
 					) : (
-						q.options.map(opt => (
-							<label key={opt} className='block'>
-								<input
-									type='radio'
-									value={opt}
-									{...register(q.id)}
-									className='mr-2'
-								/>
-								{opt}
-							</label>
-						))
+						q.options.map((opt, index) => {
+							const optionValue = typeof opt === 'string' ? opt : opt.text;
+							const optionText = typeof opt === 'string' ? opt : opt.text;
+							return (
+								<label key={`${q.id}-${index}`} className='block'>
+									<input
+										type='radio'
+										value={optionValue}
+										{...register(q.id)}
+										className='mr-2'
+									/>
+									{optionText}
+								</label>
+							);
+						})
 					)}
 					{errors[q.id] && (
 						<p className='text-red-500 text-sm'>{(errors as any)[q.id]?.message}</p>
@@ -91,7 +95,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
 			))}
 
 			<button className='px-4 py-2 bg-blue-500 text-white rounded' type='submit'>
-				提交
+				Submit
 			</button>
 		</form>
 	);

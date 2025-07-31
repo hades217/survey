@@ -299,6 +299,8 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 				const response = await api.get('/admin/check-auth');
 				console.log('Auth check response:', response);
 				setLoggedIn(true);
+				// Load profile data if already logged in
+				await loadProfile();
 			} catch (err) {
 				console.log('Auth check failed:', err);
 				setLoggedIn(false);
@@ -337,6 +339,8 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 				localStorage.setItem('adminToken', response.data.token);
 				setLoggedIn(true);
 				setLoginForm({ username: '', password: '' });
+				// Load profile data after successful login
+				await loadProfile();
 			} else {
 				setError(response.data.error || 'Login failed');
 			}
@@ -364,6 +368,8 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 					confirmPassword: '',
 					companyName: '',
 				});
+				// Load profile data after successful registration
+				await loadProfile();
 				// Redirect to admin dashboard
 				navigate('/admin');
 			} else {

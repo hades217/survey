@@ -34,7 +34,10 @@
       "Bash(docker image prune:*)",
       "Bash(docker:*)",
       "Bash(chmod:*)",
-      "Bash(./check_upload_usage.sh:*)"
+      "Bash(./check_upload_usage.sh:*)",
+      "WebFetch(domain:reactjs.org)",
+      "WebFetch(domain:legacy.reactjs.org)",
+      "WebFetch(domain:react.dev)"
     ],
     "deny": []
   }

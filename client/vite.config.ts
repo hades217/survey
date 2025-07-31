@@ -6,7 +6,7 @@ export default defineConfig({
 	build: {
 		outDir: 'dist',
 		assetsDir: 'assets',
-		sourcemap: false, // 生产环境不需要 sourcemap
+		sourcemap: false, // No sourcemap needed in production
 		rollupOptions: {
 			output: {
 				manualChunks: {

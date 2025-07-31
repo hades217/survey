@@ -1,96 +1,30 @@
-export interface Survey {
-	_id: string;
-	title: string;
-	description: string;
-	slug: string;
-	type: 'survey' | 'assessment' | 'quiz' | 'iq';
-	questions: {
-		text: string;
-		imageUrl?: string;
-		descriptionImage?: string;
-		type?: 'single_choice' | 'multiple_choice' | 'short_text';
-		options?: string[] | { text?: string; imageUrl?: string }[];
-		correctAnswer?: number | number[] | string;
-		points?: number;
-	}[];
+// 导入并重用api.ts中的类型定义
+import type {
+	Survey as ApiSurvey,
+	Question as ApiQuestion,
+	Company as ApiCompany,
+	QuestionBank as ApiQuestionBank,
+	User as ApiUser,
+	SurveyType,
+	SurveyStatus,
+	QuestionType,
+	NavigationMode,
+	SourceType,
+	ScoringMode,
+	QuestionDifficulty,
+} from './api';
+
+// 前端特有的Survey接口，继承API接口
+export interface Survey extends ApiSurvey {
+	// 可以在这里添加前端特有的属性
 	createdAt: string;
 	isActive: boolean;
-	status: 'draft' | 'active' | 'closed';
-	timeLimit?: number;
-	maxAttempts?: number;
-	instructions?: string;
-	navigationMode?: 'step-by-step' | 'paginated' | 'all-in-one';
-	sourceType?: 'manual' | 'question_bank' | 'multi_question_bank' | 'manual_selection';
-	questionBankId?: string;
-	questionCount?: number;
-	multiQuestionBankConfig?: {
-		questionBankId: string;
-		questionCount: number;
-		filters?: {
-			tags?: string[];
-			difficulty?: 'easy' | 'medium' | 'hard';
-			questionTypes?: ('single_choice' | 'multiple_choice' | 'short_text')[];
-		};
-	}[];
-	selectedQuestions?: {
-		questionBankId: string;
-		questionId: string;
-		questionSnapshot?: {
-			text: string;
-			type: string;
-			options?: string[];
-			correctAnswer?: unknown;
-			explanation?: string;
-			points?: number;
-			tags?: string[];
-			difficulty?: string;
-		};
-	}[];
-	scoringSettings?: {
-		scoringMode: 'percentage' | 'accumulated';
-		totalPoints: number;
-		passingThreshold: number;
-		showScore: boolean;
-		showCorrectAnswers: boolean;
-		showScoreBreakdown: boolean;
-		customScoringRules: {
-			useCustomPoints: boolean;
-			defaultQuestionPoints: number;
-		};
-	};
-	company?: {
-		name: string;
-		logoUrl?: string;
-		industry?: string;
-		website?: string;
-		description?: string;
-	};
 }
 
-export interface QuestionBank {
-	_id: string;
-	name: string;
-	description: string;
-	questions: Question[];
-	createdBy: string;
-	createdAt: string;
-	updatedAt: string;
-	questionCount: number;
-}
-
-export interface Question {
-	_id: string;
-	text: string;
-	imageUrl?: string;
-	descriptionImage?: string;
-	type: 'single_choice' | 'multiple_choice' | 'short_text';
-	options?: string[] | { text?: string; imageUrl?: string }[];
-	correctAnswer?: number | number[] | string;
-	explanation?: string;
-	points?: number;
-	tags?: string[];
-	difficulty?: 'easy' | 'medium' | 'hard';
-}
+// 重用API接口定义
+export interface QuestionBank extends ApiQuestionBank {}
+export interface Question extends ApiQuestion {}
+export interface Company extends ApiCompany {}
 
 export interface StatsItem {
 	question: string;
@@ -210,23 +144,7 @@ export interface QuestionBankForm {
 	description: string;
 }
 
-export interface AdminUser {
-	_id: string;
-	name: string;
-	email: string;
-	avatarUrl?: string;
-}
-
-export interface Company {
-	_id: string;
-	name: string;
-	industry?: string;
-	logoUrl?: string;
-	description?: string;
-	website?: string;
-	createdAt: string;
-	updatedAt: string;
-}
+export interface AdminUser extends ApiUser {}
 
 export interface ProfileData {
 	user: AdminUser;

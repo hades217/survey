@@ -45,19 +45,23 @@ const Survey: React.FC = () => {
 							required
 						/>
 					) : (
-						q.options.map(opt => (
-							<label key={opt} className='block'>
-								<input
-									type='radio'
-									name={q.id}
-									className='mr-2'
-									value={opt}
-									onChange={() => handleChange(q.id, opt)}
-									required
-								/>
-								{opt}
-							</label>
-						))
+						q.options.map((opt, index) => {
+							const optionValue = typeof opt === 'string' ? opt : opt.text;
+							const optionText = typeof opt === 'string' ? opt : opt.text;
+							return (
+								<label key={`${q.id}-${index}`} className='block'>
+									<input
+										type='radio'
+										name={q.id}
+										className='mr-2'
+										value={optionValue}
+										onChange={() => handleChange(q.id, optionValue)}
+										required
+									/>
+									{optionText}
+								</label>
+							);
+						})
 					)}
 				</div>
 			))}

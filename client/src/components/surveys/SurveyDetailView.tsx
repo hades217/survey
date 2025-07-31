@@ -108,7 +108,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		}
 	}, [tabLocal, survey._id]);
 
-	// 加载邀请列表
+	// Load invitation list
 	const loadInvitations = async () => {
 		setLoadingInvitations(true);
 		try {
@@ -129,13 +129,13 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		}
 	}, [tabLocal, survey._id]);
 
-	// 复制链接
+	// Copy link
 	const handleCopy = (token: string) => {
 		const url = `${window.location.origin}/assessment/${token}`;
 		navigator.clipboard.writeText(url);
 	};
 
-	// 过滤和分页
+	// Filter and pagination
 	const filtered = invitations.filter(
 		inv =>
 			!search ||
@@ -144,17 +144,17 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
 	const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-	// 状态判断
+	// Status determination
 	const getStatus = (inv: unknown) => {
 		const now = new Date();
 		if (inv.completedBy && inv.completedBy.length > 0)
-			return { label: '已完成', color: 'green' };
+			return { label: 'Completed', color: 'green' };
 		if (inv.expiresAt && new Date(inv.expiresAt) < now)
-			return { label: '已过期', color: 'red' };
-		return { label: '未填写', color: 'gray' };
+			return { label: 'Expired', color: 'red' };
+		return { label: 'Not filled', color: 'gray' };
 	};
 
-	// token 显示
+	// Token display
 	const maskToken = (token: string) =>
 		token ? token.slice(0, 6) + '****' + token.slice(-4) : '';
 
@@ -682,34 +682,34 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 							className='bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-4'
 							onClick={() => setShowInviteModal(true)}
 						>
-							📧 邀请用户测评
+							📧 Invite Users for Assessment
 						</button>
 					)}
 				</div>
-				{/* Tab 切换 */}
+				{/* Tab switching */}
 				<div className='flex gap-4 border-b mb-4'>
 					<button
 						className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tabLocal === TAB_TYPES.DETAIL ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
 						onClick={() => setTabLocal(TAB_TYPES.DETAIL)}
 					>
-						测评详情
+						Assessment Details
 					</button>
 					{s.type === SURVEY_TYPE.ASSESSMENT && (
 						<button
 							className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tabLocal === TAB_TYPES.INVITATIONS ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
 							onClick={() => setTabLocal(TAB_TYPES.INVITATIONS)}
 						>
-							已邀请用户
+							Invited Users
 						</button>
 					)}
 					<button
 						className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tabLocal === TAB_TYPES.STATISTICS ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
 						onClick={() => setTabLocal(TAB_TYPES.STATISTICS)}
 					>
-						统计数据
+						Statistics
 					</button>
 				</div>
-				{/* Tab 内容 */}
+				{/* Tab content */}
 				{tabLocal === TAB_TYPES.DETAIL && (
 					<>
 						<div className='card'>
@@ -763,7 +763,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 										className='btn-secondary text-sm px-3 py-1'
 										onClick={() => openEditModal(s)}
 									>
-										编辑
+										Edit
 									</button>
 								</div>
 							</div>
@@ -933,7 +933,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 										<div className='flex items-center justify-between'>
 											<div>
 												<label className='block text-sm font-medium text-gray-700 mb-1'>
-													增强版测评 URL
+													Enhanced Assessment URL
 												</label>
 												<div className='text-sm text-gray-600 font-mono'>
 													{getSurveyUrl(s.slug).replace(
@@ -970,7 +970,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 											<div className='flex items-center justify-between'>
 												<div>
 													<label className='block text-sm font-medium text-gray-700 mb-1'>
-														经典版 Survey URL
+														Classic Survey URL
 													</label>
 													<div className='text-sm text-gray-600 font-mono'>
 														{getSurveyUrl(s.slug)}
@@ -1000,7 +1000,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 												<div className='flex items-center justify-between pt-3 border-t border-gray-200'>
 													<div>
 														<label className='block text-sm font-medium text-gray-700 mb-1'>
-															增强版测评 URL
+															Enhanced Assessment URL
 														</label>
 														<div className='text-sm text-gray-600 font-mono'>
 															{getSurveyUrl(s.slug).replace(
@@ -1264,13 +1264,13 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				{tabLocal === TAB_TYPES.STATISTICS && (
 					<div className='card'>
 						<div className='flex justify-between items-center mb-4'>
-							<h3 className='text-xl font-bold text-gray-800'>统计数据</h3>
+							<h3 className='text-xl font-bold text-gray-800'>Statistics</h3>
 							<button
 								className='btn-secondary text-sm'
 								onClick={() => loadStats(s._id)}
 								type='button'
 							>
-								刷新数据
+								Refresh Data
 							</button>
 						</div>
 
@@ -1278,25 +1278,25 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 							<div className='space-y-4'>
 								{/* Statistics Summary */}
 								<div className='bg-blue-50 rounded-lg p-4'>
-									<h5 className='font-semibold text-gray-800 mb-2'>概览</h5>
+									<h5 className='font-semibold text-gray-800 mb-2'>Overview</h5>
 									<div className='grid grid-cols-3 gap-4 text-sm'>
 										<div className='text-center'>
 											<div className='font-bold text-blue-600 text-lg'>
 												{stats[s._id]?.summary?.totalResponses || 0}
 											</div>
-											<div className='text-gray-600'>总回复数</div>
+											<div className='text-gray-600'>Total Responses</div>
 										</div>
 										<div className='text-center'>
 											<div className='font-bold text-green-600 text-lg'>
 												{stats[s._id]?.summary?.completionRate || 0}%
 											</div>
-											<div className='text-gray-600'>完成率</div>
+											<div className='text-gray-600'>Completion Rate</div>
 										</div>
 										<div className='text-center'>
 											<div className='font-bold text-purple-600 text-lg'>
 												{stats[s._id]?.summary?.totalQuestions || 0}
 											</div>
-											<div className='text-gray-600'>总题目数</div>
+											<div className='text-gray-600'>Total Questions</div>
 										</div>
 									</div>
 								</div>
@@ -1317,7 +1317,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 										}`}
 										onClick={() => setStatsView(STATS_VIEW.INDIVIDUAL)}
 									>
-										个人回复 ({stats[s._id]?.userResponses?.length || 0})
+										Individual Responses ({stats[s._id]?.userResponses?.length || 0})
 									</button>
 									<button
 										className={`py-2 px-4 font-medium text-sm transition-colors ${
@@ -1327,7 +1327,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 										}`}
 										onClick={() => setStatsView(STATS_VIEW.AGGREGATED)}
 									>
-										汇总结果
+										Aggregated Results
 									</button>
 								</div>
 
@@ -1394,8 +1394,8 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 												{/* Pagination info */}
 												<div className='flex justify-between items-center text-sm text-gray-600 mb-4'>
 													<div>
-														共 {stats[s._id].userResponses.length}{' '}
-														条记录， 显示第{' '}
+														{stats[s._id].userResponses.length}{' '}
+														records, showing page{' '}
 														{(responsePage - 1) * RESPONSE_PAGE_SIZE +
 															1}{' '}
 														-{' '}
@@ -1403,7 +1403,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 															responsePage * RESPONSE_PAGE_SIZE,
 															stats[s._id].userResponses.length
 														)}{' '}
-														条
+
 													</div>
 												</div>
 
@@ -1435,7 +1435,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																		<div className='mt-2 space-y-1'>
 																			<div className='flex items-center gap-2'>
 																				<span className='text-sm font-medium text-blue-600'>
-																						成绩:{' '}
+																						Score:{' '}
 																					{
 																						response
 																							.score
@@ -1446,7 +1446,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																						.scoringMode ===
 																						'percentage'
 																						? '%'
-																						: '分'}
+																						: ' points'}
 																				</span>
 																				<span
 																					className={`text-xs px-2 py-1 rounded-full ${
@@ -1460,18 +1460,18 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																					{response
 																						.score
 																						.passed
-																						? '通过'
-																						: '未通过'}
+																						? 'Pass'
+																						: 'Fail'}
 																				</span>
 																			</div>
 																			<div className='text-xs text-gray-500'>
-																					正确:{' '}
+																					Correct:{' '}
 																				{
 																					response
 																						.score
 																						.correctAnswers
 																				}{' '}
-																					/ 错误:{' '}
+																					/ Incorrect:{' '}
 																				{
 																					response
 																						.score
@@ -1479,15 +1479,15 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																				}
 																				{response.timeSpent && (
 																					<span className='ml-2'>
-																							用时:{' '}
+																							Time used:{' '}
 																						{Math.floor(
 																							response.timeSpent /
 																									60
 																						)}
-																							分
+																							{' '}minutes{' '}
 																						{response.timeSpent %
 																								60}
-																							秒
+																							{' '}seconds{' '}
 																					</span>
 																				)}
 																			</div>
@@ -1503,7 +1503,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																	).toLocaleTimeString()}
 																	{response.isAutoSubmit && (
 																		<div className='text-orange-600 mt-1'>
-																			(自动提交)
+																			(Auto-submitted)
 																		</div>
 																	)}
 																</div>
@@ -1543,7 +1543,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 															disabled={responsePage === 1}
 															className='px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
 														>
-															上一页
+															Previous
 														</button>
 
 														<div className='flex gap-1'>
@@ -1622,14 +1622,14 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 															}
 															className='px-3 py-1 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
 														>
-															下一页
+															Next
 														</button>
 													</div>
 												)}
 											</>
 										) : (
 											<div className='text-center py-8 text-gray-500'>
-												<p>暂无回复数据</p>
+												<p>No response data</p>
 											</div>
 										)}
 									</div>
@@ -1637,7 +1637,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 							</div>
 						) : (
 							<div className='text-center py-8 text-gray-500'>
-								<p>暂无统计数据，点击"刷新数据"按钮加载</p>
+								<p>No statistics data, click "Refresh Data" to load</p>
 							</div>
 						)}
 					</div>
@@ -1645,10 +1645,10 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				{tabLocal === TAB_TYPES.INVITATIONS && (
 					<div className='mt-4'>
 						<div className='flex justify-between items-center mb-2'>
-							<div className='font-medium text-gray-800'>已邀请用户列表</div>
+							<div className='font-medium text-gray-800'>Invited Users List</div>
 							<input
 								className='border rounded px-2 py-1 text-sm'
-								placeholder='搜索邮箱'
+								placeholder='Search Email'
 								value={search}
 								onChange={e => {
 									setSearch(e.target.value);
@@ -1663,23 +1663,23 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 									<tr className='bg-gray-100'>
 										<th className='px-2 py-1 border'>Email</th>
 										<th className='px-2 py-1 border'>Token</th>
-										<th className='px-2 py-1 border'>邀请时间</th>
-										<th className='px-2 py-1 border'>有效期</th>
-										<th className='px-2 py-1 border'>状态</th>
-										<th className='px-2 py-1 border'>操作</th>
+										<th className='px-2 py-1 border'>Invitation Time</th>
+										<th className='px-2 py-1 border'>Valid Until</th>
+										<th className='px-2 py-1 border'>Status</th>
+										<th className='px-2 py-1 border'>Actions</th>
 									</tr>
 								</thead>
 								<tbody>
 									{loadingInvitations ? (
 										<tr>
 											<td colSpan={6} className='text-center py-4'>
-												加载中...
+												Loading...
 											</td>
 										</tr>
 									) : paged.length === 0 ? (
 										<tr>
 											<td colSpan={6} className='text-center py-4'>
-												暂无邀请
+												No invitations
 											</td>
 										</tr>
 									) : (
@@ -1705,7 +1705,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 															? new Date(
 																inv.expiresAt
 															).toLocaleDateString()
-															: '永久'}
+															: 'Permanent'}
 													</td>
 													<td className='px-2 py-1 border'>
 														<span
@@ -1727,9 +1727,9 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																handleCopy(inv.invitationCode)
 															}
 														>
-															复制链接
+															Copy Link
 														</button>
-														{/* 可扩展：重新发送/删除邀请 */}
+														{/* Expandable: resend/delete invitations */}
 													</td>
 												</tr>
 											);
@@ -1738,7 +1738,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 								</tbody>
 							</table>
 						</div>
-						{/* 分页 */}
+						{/* Pagination */}
 						{totalPages > 1 && (
 							<div className='flex justify-center items-center gap-2 mt-2'>
 								<button
@@ -1746,23 +1746,23 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 									onClick={() => setPage(page - 1)}
 									className='px-2 py-1 border rounded disabled:opacity-50'
 								>
-									上一页
+									Previous
 								</button>
 								<span>
-									第 {page} / {totalPages} 页
+									Page {page} / {totalPages}
 								</span>
 								<button
 									disabled={page === totalPages}
 									onClick={() => setPage(page + 1)}
 									className='px-2 py-1 border rounded disabled:opacity-50'
 								>
-									下一页
+									Next
 								</button>
 							</div>
 						)}
 					</div>
 				)}
-				{/* 只有 showInviteModal 为 true 时才显示弹窗 */}
+				{/* Only show modal when showInviteModal is true */}
 				{showInviteModal && (
 					<InviteAssessmentModal
 						show={showInviteModal}

@@ -28,7 +28,7 @@ const StudentAssessment = () => {
 	const timerRef = useRef(null);
 	const autoSubmitRef = useRef(false);
 
-	// Load survey data and questions (支持邀请码和 slug)
+	// Load survey data and questions (supports invitation codes and slug)
 	useEffect(() => {
 		if (!slug) return;
 		setLoading(true);
@@ -65,18 +65,18 @@ const StudentAssessment = () => {
 		};
 
 		if (isInvitationCode(slug)) {
-			// 通过邀请码获取 survey
+			// Get survey through invitation code
 			api.get(`/invitations/access/${slug}`)
 				.then(res => {
 					loadSurveyAndQuestions(res.data.survey, res.data.invitation);
 				})
 				.catch(err => {
-					setError(err.response?.data?.error || '邀请码无效或已过期');
+					setError(err.response?.data?.error || 'Invalid or expired invitation code');
 					console.error('Error fetching invitation:', err);
 				})
 				.finally(() => setLoading(false));
 		} else {
-			// 兼容原有 slug 逻辑
+			// Compatible with original slug logic
 			api.get(`/survey/${slug}`)
 				.then(res => {
 					loadSurveyAndQuestions(res.data);
@@ -248,7 +248,7 @@ const StudentAssessment = () => {
 		}
 	}, [survey, submitted, form]);
 
-	// Submit assessment (支持邀请码)
+	// Submit assessment (supports invitation codes)
 	const handleSubmit = async (isAutoSubmit = false) => {
 		if (!survey || submitted) return;
 		setLoading(true);
@@ -333,7 +333,7 @@ const StudentAssessment = () => {
 				<div className='bg-white rounded-lg shadow-lg p-8 max-w-md mx-auto text-center'>
 					<div className='text-red-500 text-6xl mb-4'>⚠️</div>
 					<h2 className='text-2xl font-bold text-gray-800 mb-2'>
-						{isInvitationCode(slug) ? '邀请码无效或已过期' : 'Assessment Not Found'}
+						{isInvitationCode(slug) ? 'Invalid or expired invitation code' : 'Assessment Not Found'}
 					</h2>
 					<p className='text-gray-600 mb-6'>{error}</p>
 					<button
@@ -387,12 +387,12 @@ const StudentAssessment = () => {
 									}`}
 								>
 									{survey.type === 'survey'
-										? '调研'
+										? 'Survey'
 										: survey.type === 'quiz'
-											? '测验'
+											? 'Quiz'
 											: survey.type === 'assessment'
-												? '测评'
-												: 'IQ测试'}
+												? 'Assessment'
+												: 'IQ Test'}
 								</span>
 								{survey.timeLimit && (
 									<span className='px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium'>
@@ -404,81 +404,81 @@ const StudentAssessment = () => {
 
 						<div className='grid md:grid-cols-2 gap-8 mb-8'>
 							<div className='space-y-4'>
-								<h3 className='text-lg font-semibold text-gray-800'>测评信息</h3>
+								<h3 className='text-lg font-semibold text-gray-800'>Assessment Information</h3>
 								<div className='space-y-2 text-sm'>
 									<div className='flex justify-between'>
-										<span className='text-gray-600'>题目数量:</span>
+										<span className='text-gray-600'>Number of Questions:</span>
 										<span className='font-medium'>
 											{survey.sourceType === 'manual'
-												? `${survey.questions.length} 题`
+												? `${survey.questions.length} questions`
 												: survey.sourceType === 'question_bank'
-													? `${survey.questionCount || '随机'} 题`
+													? `${survey.questionCount || 'random'} questions`
 													: survey.sourceType === 'multi_question_bank'
-														? `${survey.multiQuestionBankConfig?.reduce((sum, config) => sum + config.questionCount, 0) || '多题库'} 题`
+														? `${survey.multiQuestionBankConfig?.reduce((sum, config) => sum + config.questionCount, 0) || 'Multiple Question Banks'} questions`
 														: survey.sourceType === 'manual_selection'
-															? `${survey.selectedQuestions?.length || '已选'} 题`
-															: `${survey.questions?.length || 0} 题`}
+															? `${survey.selectedQuestions?.length || 'selected'} questions`
+															: `${survey.questions?.length || 0} questions`}
 										</span>
 									</div>
 									{survey.timeLimit && (
 										<div className='flex justify-between'>
-											<span className='text-gray-600'>预计耗时:</span>
+											<span className='text-gray-600'>Estimated Time:</span>
 											<span className='font-medium'>
-												{survey.timeLimit} 分钟
+												{survey.timeLimit} minutes
 											</span>
 										</div>
 									)}
 									{survey.maxAttempts && (
 										<div className='flex justify-between'>
-											<span className='text-gray-600'>可尝试次数:</span>
+											<span className='text-gray-600'>Maximum Attempts:</span>
 											<span className='font-medium'>
-												{survey.maxAttempts} 次
+												{survey.maxAttempts} times
 											</span>
 										</div>
 									)}
 									<div className='flex justify-between'>
-										<span className='text-gray-600'>题目类型:</span>
+										<span className='text-gray-600'>Question Type:</span>
 										<span className='font-medium'>
 											{survey.sourceType === 'manual' &&
 											survey.questions?.length > 0
 												? survey.questions.some(
 														q => q.type === 'multiple_choice'
 													)
-													? '单选+多选'
-													: '单选'
-												: '混合题型'}
+													? 'Single Choice + Multiple Choice'
+													: 'Single Choice'
+												: 'Mixed Question Types'}
 										</span>
 									</div>
 								</div>
 							</div>
 
 							<div className='space-y-4'>
-								<h3 className='text-lg font-semibold text-gray-800'>规则说明</h3>
+								<h3 className='text-lg font-semibold text-gray-800'>Rules Description</h3>
 								<div className='text-sm text-gray-600 space-y-2'>
 									{survey.type === 'survey' ? (
 										<>
-											<p>• 这是一个调研问卷，没有标准答案</p>
-											<p>• 请根据您的真实想法回答</p>
-											<p>• 提交后将显示感谢页面</p>
+											<p>• This is a survey questionnaire with no standard answers</p>
+											<p>• Please answer based on your true thoughts</p>
+											<p>• A thank you page will be displayed after submission</p>
 										</>
 									) : (
 										<>
 											<p>
-												• 这是一个
+												• This is a
 												{survey.type === 'quiz'
-													? '测验'
+													? 'Quiz'
 													: survey.type === 'assessment'
-														? '测评'
-														: 'IQ测试'}
-												，有标准答案
+														? 'Assessment'
+														: 'IQ Test'}
+												with standard answers
 											</p>
-											<p>• 请仔细阅读每道题目后作答</p>
-											<p>• 提交后将显示成绩和正确答案</p>
-											{survey.timeLimit && <p>• 时间到将自动提交</p>}
+											<p>• Please read each question carefully before answering</p>
+											<p>• Scores and correct answers will be displayed after submission</p>
+											{survey.timeLimit && <p>• Auto-submit when time expires</p>}
 										</>
 									)}
-									<p>• 所有题目都是必答题</p>
-									<p>• 提交后不能修改答案</p>
+									<p>• All questions are required</p>
+									<p>• Answers cannot be modified after submission</p>
 								</div>
 							</div>
 						</div>
@@ -534,12 +534,12 @@ const StudentAssessment = () => {
 								>
 									开始
 									{survey.type === 'survey'
-										? '调研'
+										? 'Survey'
 										: survey.type === 'quiz'
-											? '测验'
+											? 'Quiz'
 											: survey.type === 'assessment'
-												? '测评'
-												: 'IQ测试'}
+												? 'Assessment'
+												: 'IQ Test'}
 								</button>
 							</div>
 						</div>

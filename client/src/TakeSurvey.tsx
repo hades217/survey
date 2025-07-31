@@ -13,43 +13,21 @@ import {
 	type NavigationMode,
 	type ScoringMode,
 } from './constants';
+import type {
+	Survey as ApiSurvey,
+	Question as ApiQuestion,
+	Company,
+	AssessmentAccessResponse,
+	ApiResponse,
+} from './types/api';
 
-interface Survey {
-	_id: string;
-	title: string;
-	description: string;
-	slug: string;
-	type: SurveyType;
-	questions: Question[];
-	status?: SurveyStatus;
-	timeLimit?: number;
-	maxAttempts?: number;
-	instructions?: string;
-	navigationMode?: NavigationMode;
-	sourceType?: SourceType;
-	questionBankId?: string;
-	questionCount?: number;
-	scoringSettings?: {
-		scoringMode: ScoringMode;
-		totalPoints: number;
-		passingThreshold: number;
-		showScore: boolean;
-		showCorrectAnswers: boolean;
-		showScoreBreakdown: boolean;
-		customScoringRules: {
-			useCustomPoints: boolean;
-			defaultQuestionPoints: number;
-		};
-	};
+// 使用API类型定义
+interface Survey extends ApiSurvey {
+	// 可以添加前端特有的属性
 }
 
-interface Question {
-	_id: string;
-	text: string;
-	type: QuestionType;
-	options?: string[];
-	correctAnswer?: number | string;
-	points?: number;
+interface Question extends ApiQuestion {
+	// 可以添加前端特有的属性
 }
 
 interface FormState {
@@ -343,9 +321,33 @@ const TakeSurvey: React.FC = () => {
 		);
 	}
 
+	// 公司Logo组件
+	const CompanyLogo: React.FC<{ company?: Company }> = ({ company }) => {
+		if (!company?.logoUrl) return null;
+
+		return (
+			<div className='flex justify-center mb-8'>
+				<div className='bg-white rounded-lg shadow-sm p-4 border border-gray-200'>
+					<img
+						src={company.logoUrl}
+						alt={company.name || 'Company Logo'}
+						className='h-12 md:h-16 w-auto object-contain'
+						onError={(e) => {
+							// 如果logo加载失败，隐藏元素
+							e.currentTarget.parentElement?.parentElement?.remove();
+						}}
+					/>
+				</div>
+			</div>
+		);
+	};
+
 	return (
 		<div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8'>
 			<div className={`mx-auto px-4 ${slug ? 'max-w-2xl' : 'max-w-6xl'}`}>
+				{/* 显示公司Logo */}
+				<CompanyLogo company={survey?.company} />
+				
 				{!slug && (
 					<div className='mb-8'>
 						<div className='text-center mb-8'>

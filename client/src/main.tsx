@@ -3,8 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Survey from './Survey';
 import TakeSurvey from './TakeSurvey';
-// @ts-expect-error - Legacy JSX component without TypeScript
-import StudentAssessment from './components/StudentAssessment.jsx';
+import StudentAssessment from './components/StudentAssessment';
 import Admin from './Admin';
 import './styles.css';
 

@@ -22,9 +22,34 @@ router.get(
 	'/surveys',
 	asyncHandler(async (req, res) => {
 		const surveys = await Survey.find({ status: SURVEY_STATUS.ACTIVE })
-			.select('title description slug createdAt status')
+			.select('title description slug createdAt status type')
 			.lean();
-		res.json(surveys);
+
+		// Get company information from admin user
+		let companyInfo = null;
+		try {
+			const adminUser = await User.findOne({ role: 'admin' }).populate('companyId');
+			if (adminUser && adminUser.companyId) {
+				companyInfo = {
+					name: adminUser.companyId.name,
+					logoUrl: adminUser.companyId.logoUrl,
+					industry: adminUser.companyId.industry,
+					website: adminUser.companyId.website,
+					description: adminUser.companyId.description,
+				};
+			}
+		} catch (error) {
+			console.error('Error fetching company info:', error);
+			// Continue without company info if there's an error
+		}
+
+		// Add company information to each survey
+		const surveysWithCompany = surveys.map(survey => ({
+			...survey,
+			company: companyInfo,
+		}));
+
+		res.json(surveysWithCompany);
 	})
 );
 
@@ -34,6 +59,30 @@ router.get(
 	asyncHandler(async (req, res) => {
 		const survey = await Survey.findById(req.params.id).lean();
 		if (!survey) throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+
+		// Get company information from admin user
+		let companyInfo = null;
+		try {
+			const adminUser = await User.findOne({ role: 'admin' }).populate('companyId');
+			if (adminUser && adminUser.companyId) {
+				companyInfo = {
+					name: adminUser.companyId.name,
+					logoUrl: adminUser.companyId.logoUrl,
+					industry: adminUser.companyId.industry,
+					website: adminUser.companyId.website,
+					description: adminUser.companyId.description,
+				};
+			}
+		} catch (error) {
+			console.error('Error fetching company info:', error);
+			// Continue without company info if there's an error
+		}
+
+		// Add company information to survey response
+		if (companyInfo) {
+			survey.company = companyInfo;
+		}
+
 		res.json(survey);
 	})
 );
