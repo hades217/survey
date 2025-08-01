@@ -54,11 +54,112 @@ const userSchema = new mongoose.Schema({
 	lastLoginAt: {
 		type: Date,
 	},
+	// Stripe subscription fields
+	stripeCustomerId: {
+		type: String,
+		default: null,
+	},
+	stripeSubscriptionId: {
+		type: String,
+		default: null,
+	},
+	subscriptionTier: {
+		type: String,
+		enum: ['basic', 'pro'],
+		default: null,
+	},
+	subscriptionStatus: {
+		type: String,
+		enum: ['active', 'canceled', 'incomplete', 'incomplete_expired', 'past_due', 'trialing', 'unpaid'],
+		default: null,
+	},
+	subscriptionCurrentPeriodEnd: {
+		type: Date,
+		default: null,
+	},
+	subscriptionCancelAtPeriodEnd: {
+		type: Boolean,
+		default: false,
+	},
 });
+
+// Virtual to check if user has active subscription
+userSchema.virtual('hasActiveSubscription').get(function() {
+	return this.subscriptionStatus === 'active' || this.subscriptionStatus === 'trialing';
+});
+
+// Method to check if user can access feature based on subscription
+userSchema.methods.canAccessFeature = function(feature) {
+	if (!this.hasActiveSubscription) {
+		return false;
+	}
+
+	const SUBSCRIPTION_FEATURES = {
+		basic: {
+			maxSurveys: 3,
+			maxQuestionsPerSurvey: 20,
+			maxInvitees: 30,
+			csvImport: false,
+			imageQuestions: false,
+			advancedAnalytics: false,
+			randomQuestions: false,
+			fullQuestionBank: false,
+			templates: 3
+		},
+		pro: {
+			maxSurveys: -1, // unlimited
+			maxQuestionsPerSurvey: -1, // unlimited
+			maxInvitees: -1, // unlimited
+			csvImport: true,
+			imageQuestions: true,
+			advancedAnalytics: true,
+			randomQuestions: true,
+			fullQuestionBank: true,
+			templates: -1 // unlimited
+		}
+	};
+
+	const plan = SUBSCRIPTION_FEATURES[this.subscriptionTier];
+	if (!plan) return false;
+
+	return plan[feature] === true || plan[feature] === -1;
+};
+
+// Method to check if user has reached limit for a feature
+userSchema.methods.hasReachedLimit = function(feature, currentCount) {
+	if (!this.hasActiveSubscription) {
+		return true;
+	}
+
+	const SUBSCRIPTION_FEATURES = {
+		basic: {
+			maxSurveys: 3,
+			maxQuestionsPerSurvey: 20,
+			maxInvitees: 30,
+			templates: 3
+		},
+		pro: {
+			maxSurveys: -1, // unlimited
+			maxQuestionsPerSurvey: -1, // unlimited
+			maxInvitees: -1, // unlimited
+			templates: -1 // unlimited
+		}
+	};
+
+	const plan = SUBSCRIPTION_FEATURES[this.subscriptionTier];
+	if (!plan) return true;
+
+	const limit = plan[feature];
+	if (limit === -1) return false; // unlimited
+	
+	return currentCount >= limit;
+};
 
 // Index for efficient queries
 userSchema.index({ email: 1 });
 userSchema.index({ studentId: 1 });
 userSchema.index({ role: 1 });
+userSchema.index({ stripeCustomerId: 1 });
+userSchema.index({ stripeSubscriptionId: 1 });
 
 module.exports = mongoose.model('User', userSchema);
