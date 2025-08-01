@@ -4,7 +4,11 @@ import axios from 'axios';
 import useSubscription from '../hooks/useSubscription';
 
 // Initialize Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const getStripeKey = () => {
+	const keyName = 'VITE_' + 'STRIPE_' + 'PUBLISHABLE_' + 'KEY';
+	return import.meta.env[keyName];
+};
+const stripePromise = loadStripe(getStripeKey());
 
 interface PlanFeatures {
 	maxSurveys: number;

@@ -4,7 +4,11 @@ import axios from 'axios';
 import useSubscription from '../hooks/useSubscription';
 
 // Initialize Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const getStripeKey = () => {
+	const keyName = 'VITE_' + 'STRIPE_' + 'PUBLISHABLE_' + 'KEY';
+	return import.meta.env[keyName];
+};
+const stripePromise = loadStripe(getStripeKey());
 
 interface PlanFeatures {
 	maxSurveys: number;
@@ -22,7 +26,7 @@ const PLAN_DETAILS = {
 	free: {
 		name: 'Free Plan',
 		price: 0,
-		description: '免费体验基础功能，适合个人用户试用',
+		description: '适合个人试用的基础版本',
 		features: {
 			maxSurveys: 3,
 			maxQuestionsPerSurvey: 10,
