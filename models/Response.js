@@ -71,7 +71,7 @@ const responseSchema = new mongoose.Schema({
 			},
 		},
 	],
-	// Scoring information (for quiz/assessment/iq)
+	// Scoring information (for assessment)
 	score: {
 		totalPoints: { type: Number, default: 0 },
 		correctAnswers: { type: Number, default: 0 },
@@ -170,7 +170,7 @@ responseSchema.methods.createQuestionSnapshots = function (questions, userAnswer
 	});
 };
 
-// Method to calculate score for quiz/assessment/iq
+// Method to calculate score for assessment
 responseSchema.methods.calculateScore = function (survey) {
 	if (!survey.requiresAnswers) {
 		return; // No scoring for regular surveys

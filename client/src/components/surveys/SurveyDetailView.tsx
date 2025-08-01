@@ -729,20 +729,12 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 											className={`px-2 py-1 text-xs font-medium rounded-full ${
 												s.type === SURVEY_TYPE.ASSESSMENT
 													? 'bg-blue-100 text-blue-800'
-													: s.type === SURVEY_TYPE.QUIZ
-														? 'bg-green-100 text-green-800'
-														: s.type === SURVEY_TYPE.IQ
-															? 'bg-purple-100 text-purple-800'
-															: 'bg-gray-100 text-gray-800'
+													: 'bg-gray-100 text-gray-800'
 											}`}
 										>
 											{s.type === SURVEY_TYPE.ASSESSMENT
 												? 'Assessment'
-												: s.type === SURVEY_TYPE.QUIZ
-													? 'Quiz'
-													: s.type === SURVEY_TYPE.IQ
-														? 'IQ Test'
-														: 'Survey'}
+												: 'Survey'}
 										</span>
 										<span
 											className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -1006,38 +998,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 												</div>
 											</div>
 
-											{[SURVEY_TYPE.QUIZ, SURVEY_TYPE.IQ].includes(
-												s.type
-											) && (
-												<div className='flex items-center justify-between pt-3 border-t border-gray-200'>
-													<div>
-														<label className='block text-sm font-medium text-gray-700 mb-1'>
-															Enhanced Assessment URL
-														</label>
-														<div className='text-sm text-gray-600 font-mono'>
-															{getSurveyUrl(s.slug).replace(
-																'/survey/',
-																'/assessment/'
-															)}
-														</div>
-													</div>
-													<div className='flex gap-2'>
-														<button
-															className='btn-secondary text-sm'
-															onClick={() =>
-																copyToClipboard(
-																	getSurveyUrl(s.slug).replace(
-																		'/survey/',
-																		'/assessment/'
-																	)
-																)
-															}
-														>
-															Copy Enhanced URL
-														</button>
-													</div>
-												</div>
-											)}
+
 										</>
 									)}
 								</div>

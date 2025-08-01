@@ -91,8 +91,6 @@ const surveyCreateSchema = z
 		type: z.enum([
 			SURVEY_TYPE.SURVEY,
 			SURVEY_TYPE.ASSESSMENT,
-			SURVEY_TYPE.QUIZ,
-			SURVEY_TYPE.IQ,
 		]),
 		timeLimit: z.number().positive().optional(), // in minutes
 		maxAttempts: z.number().positive().default(1),
@@ -162,7 +160,7 @@ const surveyCreateSchema = z
 	)
 	.refine(
 		data => {
-			// Validate that quiz/assessment/iq questions have correct answers (only for manual questions)
+			// Validate that assessment questions have correct answers (only for manual questions)
 			const requiresAnswers = TYPES_REQUIRING_ANSWERS.includes(data.type);
 
 			if (requiresAnswers && data.sourceType === SOURCE_TYPE.MANUAL && data.questions) {
@@ -205,7 +203,7 @@ const surveyCreateSchema = z
 			return true;
 		},
 		{
-			message: 'Quiz/Assessment/IQ questions must have valid correct answers',
+			message: 'Assessment questions must have valid correct answers',
 		}
 	);
 
@@ -246,7 +244,7 @@ const surveyUpdateSchema = z.object({
 	title: z.string().min(1, 'Title is required').optional(),
 	description: z.string().optional(),
 	type: z
-		.enum([SURVEY_TYPE.SURVEY, SURVEY_TYPE.ASSESSMENT, SURVEY_TYPE.QUIZ, SURVEY_TYPE.IQ])
+		.enum([SURVEY_TYPE.SURVEY, SURVEY_TYPE.ASSESSMENT])
 		.optional(),
 	timeLimit: z.number().positive().optional(),
 	maxAttempts: z.number().positive().optional(),

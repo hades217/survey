@@ -27,7 +27,7 @@ docs/
 
 - [调查类型限制](./features/SURVEY_TYPE_RESTRICTIONS.md) - 不同调查类型的限制和规则
 - [学生评估功能](./features/STUDENT_ASSESSMENT_FEATURES.md) - 学生评估系统功能
-- [测验调查系统](./features/QUIZ_SURVEY_SYSTEM.md) - 测验类型调查的实现
+- [调查测评系统](./features/QUIZ_SURVEY_SYSTEM.md) - 调查和测评功能的实现
 - [评估评分系统](./features/ASSESSMENT_SCORING_SYSTEM.md) - 评估和测验的评分机制
 - [CSV导入功能演示](./features/CSV_IMPORT_FEATURE_DEMO.md) - CSV文件导入功能
 - [个人资料UI预览](./features/PROFILE_UI_PREVIEW.md) - 个人资料界面设计
@@ -70,7 +70,7 @@ docs/
 ### 功能开发
 
 1. [调查类型限制](./features/SURVEY_TYPE_RESTRICTIONS.md) - 了解不同调查类型
-2. [测验调查系统](./features/QUIZ_SURVEY_SYSTEM.md) - 了解测验功能实现
+2. [调查测评系统](./features/QUIZ_SURVEY_SYSTEM.md) - 了解调查和测评功能实现
 3. [评估评分系统](./features/ASSESSMENT_SCORING_SYSTEM.md) - 了解评分机制
 
 ### 问题排查

@@ -605,7 +605,7 @@ router.patch(
 			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Invalid question index' });
 		}
 
-		const requiresAnswer = ['quiz', 'assessment', 'iq'].includes(survey.type);
+		const requiresAnswer = ['assessment'].includes(survey.type);
 
 		if (requiresAnswer) {
 			if (correctAnswer === undefined || correctAnswer === null) {
@@ -834,10 +834,10 @@ router.put(
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
 
-		// Only allow scoring settings for quiz/assessment/iq types
-		if (!['quiz', 'assessment', 'iq'].includes(survey.type)) {
+		// Only allow scoring settings for assessment types
+		if (!['assessment'].includes(survey.type)) {
 			return res.status(HTTP_STATUS.BAD_REQUEST).json({
-				error: 'Scoring settings are only available for quiz, assessment, and IQ test types',
+				error: 'Scoring settings are only available for assessment types',
 			});
 		}
 
@@ -1223,8 +1223,8 @@ router.get(
 				isAutoSubmit: response.isAutoSubmit || false,
 			};
 
-			// Add score information for quiz/assessment/iq types
-			if (response.score && ['quiz', 'assessment', 'iq'].includes(survey.type)) {
+					// Add score information for assessment types
+		if (response.score && ['assessment'].includes(survey.type)) {
 				responseData.score = {
 					totalPoints: response.score.totalPoints || 0,
 					correctAnswers: response.score.correctAnswers || 0,

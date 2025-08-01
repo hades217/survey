@@ -189,7 +189,7 @@ const TakeSurvey: React.FC = () => {
 			};
 			await axios.post(`/api/surveys/${survey._id}/responses`, payload);
 
-			// Calculate assessment results if this is an assessment, quiz, or iq test
+			// Calculate assessment results if this is an assessment
 			if (TYPES_REQUIRING_ANSWERS.includes(survey.type)) {
 				let totalPoints = 0;
 				let maxPossiblePoints = 0;
@@ -414,20 +414,12 @@ const TakeSurvey: React.FC = () => {
 													className={`px-2 py-1 text-xs font-medium rounded-full ${
 														s.type === 'assessment'
 															? 'bg-blue-100 text-blue-800'
-															: s.type === 'quiz'
-																? 'bg-green-100 text-green-800'
-																: s.type === 'iq'
-																	? 'bg-purple-100 text-purple-800'
-																	: 'bg-gray-100 text-gray-800'
+															: 'bg-gray-100 text-gray-800'
 													}`}
 												>
 													{s.type === 'assessment'
 														? 'Assessment'
-														: s.type === 'quiz'
-															? 'Quiz'
-															: s.type === 'iq'
-																? 'IQ Test'
-																: 'Survey'}
+														: 'Survey'}
 												</span>
 											</div>
 											{s.description && (
@@ -437,7 +429,7 @@ const TakeSurvey: React.FC = () => {
 											)}
 										</div>
 										<div className='flex flex-col gap-2'>
-											{/* Enhanced Assessment Interface for quiz/assessment/iq */}
+											{/* Enhanced Assessment Interface for assessment */}
 											{TYPES_REQUIRING_ANSWERS.includes(s.type) && (
 												<button
 													onClick={() =>
@@ -457,11 +449,7 @@ const TakeSurvey: React.FC = () => {
 											>
 												{s.type === 'assessment'
 													? 'Classic Assessment'
-													: s.type === 'quiz'
-														? 'Classic Quiz'
-														: s.type === 'iq'
-															? 'Classic IQ Test'
-															: 'Start Survey'}{' '}
+													: 'Start Survey'}{' '}
 												→
 											</button>
 										</div>

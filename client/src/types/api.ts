@@ -1,6 +1,6 @@
 // ===== 基础类型定义 =====
 
-export type SurveyType = 'survey' | 'assessment' | 'quiz' | 'iq';
+export type SurveyType = 'survey' | 'assessment';
 export type SurveyStatus = 'draft' | 'active' | 'closed';
 export type QuestionType = 'single_choice' | 'multiple_choice' | 'short_text';
 export type NavigationMode = 'step-by-step' | 'paginated' | 'all-in-one';

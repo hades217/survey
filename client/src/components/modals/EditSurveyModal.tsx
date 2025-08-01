@@ -173,8 +173,6 @@ const EditSurveyModal: React.FC = () => {
 						>
 							<option value='survey'>Survey</option>
 							<option value='assessment'>Assessment</option>
-							<option value='quiz'>Quiz</option>
-							<option value='iq'>IQ Test</option>
 						</select>
 					</div>
 
@@ -439,8 +437,8 @@ const EditSurveyModal: React.FC = () => {
 					)}
 				</div>
 
-				{/* Enhanced settings for quiz/assessment/iq */}
-				{['quiz', 'assessment', 'iq'].includes(editForm.type) && (
+									{/* Enhanced settings for assessment */}
+					{['assessment'].includes(editForm.type) && (
 					<div className='bg-blue-50 rounded-lg p-4 space-y-4'>
 						<h4 className='font-medium text-gray-800'>Assessment Configuration</h4>
 

@@ -614,8 +614,8 @@ const StudentAssessment: React.FC = () => {
 							<p className='text-gray-600'>Thank you for taking the assessment.</p>
 						</div>
 
-						{/* Score Summary (for quiz/assessment/iq types) */}
-						{['quiz', 'assessment', 'iq'].includes(survey.type) && (
+											{/* Score Summary (for assessment types) */}
+					{['assessment'].includes(survey.type) && (
 							<div className='bg-blue-50 rounded-lg p-6 mb-6'>
 								<h3 className='font-semibold text-blue-800 mb-4'>Your Results</h3>
 								<div className='grid grid-cols-3 gap-4 text-center'>

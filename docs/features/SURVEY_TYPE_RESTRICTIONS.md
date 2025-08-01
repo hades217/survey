@@ -38,7 +38,7 @@
 
 ```typescript
 onChange={e => {
-    const newType = e.target.value as 'survey' | 'assessment' | 'quiz' | 'iq';
+    const newType = e.target.value as 'survey' | 'assessment';
     setNewSurvey({
         ...newSurvey,
         type: newType,
@@ -121,7 +121,7 @@ onChange={e => {
 3. 选择 Type 为 "Survey"
 4. 观察 Question Source 选择框被禁用
 5. 尝试选择 "Question Bank" - 应该被禁用
-6. 切换到其他类型 (Quiz/Assessment/IQ) - Question Bank 选项应该可用
+6. 切换到Assessment类型 - Question Bank 选项应该可用
 
 ## 预期行为
 
@@ -132,7 +132,7 @@ onChange={e => {
 - ✅ 自动禁用 Question Bank 选项
 - ✅ 显示相应的提示信息
 
-### Assessment/Quiz/IQ Types
+### Assessment Types
 
 - ✅ 可以使用 Manual 方式
 - ✅ 可以使用 Question Bank 方式

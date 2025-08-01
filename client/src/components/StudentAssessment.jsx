@@ -275,8 +275,8 @@ const StudentAssessment = () => {
 					email: form.email || null,
 				});
 			}
-			// Calculate results for quiz/assessment/iq
-			if (['quiz', 'assessment', 'iq'].includes(survey.type)) {
+					// Calculate results for assessment
+		if (['assessment'].includes(survey.type)) {
 				const results = survey.questions.map(q => {
 					const userAnswer = form.answers[q._id];
 					let correctAnswer = '';
@@ -839,7 +839,7 @@ const StudentAssessment = () => {
 								</p>
 							</div>
 						) : (
-							// Quiz/Assessment/IQ results
+							// Assessment results
 							<div>
 								<div className='text-center mb-8'>
 									<div className='text-blue-500 text-6xl mb-4'>📊</div>
