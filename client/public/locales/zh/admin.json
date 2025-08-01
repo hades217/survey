@@ -21,9 +21,7 @@
     },
     "type": {
       "survey": "调研",
-      "quiz": "测验",
-      "assessment": "测评",
-      "iq": "IQ测试"
+      "assessment": "测评"
     }
   },
   "statistics": {

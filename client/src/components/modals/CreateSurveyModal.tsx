@@ -47,7 +47,7 @@ const CreateSurveyModal: React.FC = () => {
 		}));
 	};
 
-	const isAssessmentType = [SURVEY_TYPE.QUIZ, SURVEY_TYPE.ASSESSMENT, SURVEY_TYPE.IQ].includes(
+	const isAssessmentType = [SURVEY_TYPE.ASSESSMENT].includes(
 		newSurvey.type
 	);
 
@@ -107,9 +107,7 @@ const CreateSurveyModal: React.FC = () => {
 								className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 							>
 								<option value='survey'>Survey</option>
-								<option value='quiz'>Quiz</option>
 								<option value='assessment'>Assessment</option>
-								<option value='iq'>IQ Test</option>
 							</select>
 						</div>
 					</div>

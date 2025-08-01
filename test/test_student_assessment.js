@@ -198,8 +198,8 @@ async function testStudentFeatures() {
 	// Test 4: Question type adaptation
 	console.log('\n🎯 题型适配体验:');
 
-	// Quiz/Assessment/IQ results
-	console.log('\n📊 Quiz/Assessment/IQ 测试结果:');
+	// Assessment results
+	console.log('\n📊 Assessment 测试结果:');
 	const mockResults = [
 		{
 			questionText: quiz.questions[0].text,
@@ -281,14 +281,14 @@ async function testMultipleInterfaces() {
 	mockSurveys.forEach(survey => {
 		console.log(`\n📝 ${survey.title}:`);
 		console.log(`   经典版: /survey/${survey.slug}`);
-		if (['quiz', 'assessment', 'iq'].includes(survey.type)) {
+		if (['assessment'].includes(survey.type)) {
 			console.log(`   增强版: /assessment/${survey.slug} ⭐️`);
 		}
 	});
 
 	console.log('\n✨ 智能推荐:');
 	console.log('- Survey类型: 推荐使用经典版界面');
-	console.log('- Quiz/Assessment/IQ: 推荐使用增强版界面');
+	console.log('- Assessment: 推荐使用增强版界面');
 	console.log('- 用户可选择: 两种界面都可用');
 }
 

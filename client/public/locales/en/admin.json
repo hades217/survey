@@ -21,9 +21,7 @@
     },
     "type": {
       "survey": "Survey",
-      "quiz": "Quiz",
-      "assessment": "Assessment",
-      "iq": "IQ Test"
+      "assessment": "Assessment"
     }
   },
   "statistics": {

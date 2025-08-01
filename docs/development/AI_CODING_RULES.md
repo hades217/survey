@@ -178,7 +178,7 @@ import { SURVEY_TYPE, QUESTION_TYPE, SURVEY_STATUS, TYPES_REQUIRING_ANSWERS } fr
 
 // Use in conditionals
 if (TYPES_REQUIRING_ANSWERS.includes(survey.type)) {
-	// Handle assessment/quiz/iq types
+	// Handle assessment types
 }
 
 // Use in comparisons

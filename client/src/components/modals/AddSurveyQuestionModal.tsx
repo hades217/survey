@@ -112,7 +112,7 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 			return false;
 		}
 
-		// For assessment/quiz/iq types, need correct answer for choice questions
+		// For assessment types, need correct answer for choice questions
 		if (
 			TYPES_REQUIRING_ANSWERS.includes(surveyType) &&
 			form.type !== QUESTION_TYPE.SHORT_TEXT

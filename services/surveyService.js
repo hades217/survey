@@ -99,7 +99,7 @@ async function saveSurveyResponse(data) {
 		}
 	}
 
-	// Calculate score if it's a quiz/assessment/iq
+			// Calculate score if it's an assessment
 	if (survey.requiresAnswers) {
 		response.calculateScore(survey);
 	}
@@ -148,7 +148,7 @@ async function getSurveyStatistics(surveyId) {
 		questionStatistics: [],
 	};
 
-	// Calculate scoring statistics for quiz/assessment/iq
+	// Calculate scoring statistics for assessment
 	if (survey.requiresAnswers) {
 		const totalScore = responses.reduce(
 			(sum, response) => sum + (response.score?.percentage || 0),
@@ -214,7 +214,7 @@ async function getSurveyStatistics(surveyId) {
 			});
 		}
 
-		// Calculate correct answer rate for quiz/assessment/iq
+		// Calculate correct answer rate for assessment
 		if (survey.requiresAnswers && question.correctAnswer !== null) {
 			let correctCount = 0;
 

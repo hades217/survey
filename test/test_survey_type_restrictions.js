@@ -109,7 +109,7 @@ async function testSurveyTypeRestrictions() {
 		console.log('\nExpected behavior:');
 		console.log('- Survey type should only allow manual question creation');
 		console.log(
-			'- Assessment/Quiz/IQ types should allow both manual and question bank sources'
+			'- Assessment types should allow both manual and question bank sources'
 		);
 		console.log('- Frontend should disable question bank option when survey type is selected');
 	} catch (error) {

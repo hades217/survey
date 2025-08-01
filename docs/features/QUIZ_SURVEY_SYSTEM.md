@@ -1,11 +1,11 @@
-# Enhanced Quiz/Survey System Documentation
+# Enhanced Survey/Assessment System Documentation
 
 ## Overview
 
-This system supports both survey and quiz/assessment functionality with the following features:
+This system supports both survey and assessment functionality with the following features:
 
 - **Survey Mode**: Collect feedback without correct answers
-- **Quiz/Assessment/IQ Mode**: Test knowledge with scoring and correct answers
+- **Assessment Mode**: Test knowledge with scoring and correct answers
 - **Single Choice Questions**: Radio button selections
 - **Multiple Choice Questions**: Checkbox selections with multiple correct answers
 - **Automatic Scoring**: Calculate scores, percentages, and pass/fail status
@@ -34,26 +34,12 @@ This system supports both survey and quiz/assessment functionality with the foll
 - **Scoring**: No scoring applied
 - **Use Cases**: Customer satisfaction, feedback collection, opinion polls
 
-### 2. Quiz (`quiz`)
-
-- **Purpose**: Test knowledge in a casual setting
-- **Correct Answers**: Required for all questions
-- **Scoring**: Automatic calculation with results shown
-- **Use Cases**: Educational quizzes, training assessments
-
-### 3. Assessment (`assessment`)
+### 2. Assessment (`assessment`)
 
 - **Purpose**: Formal evaluation of knowledge/skills
 - **Correct Answers**: Required for all questions
 - **Scoring**: Comprehensive scoring with pass/fail
-- **Use Cases**: Certification exams, course evaluations
-
-### 4. IQ Test (`iq`)
-
-- **Purpose**: Measure cognitive abilities
-- **Correct Answers**: Required for all questions
-- **Scoring**: Advanced scoring algorithms
-- **Use Cases**: Intelligence testing, cognitive assessments
+- **Use Cases**: Certification exams, course evaluations, knowledge testing
 
 ## API Endpoints
 
@@ -81,7 +67,7 @@ POST /api/surveys
 }
 ```
 
-### Create Quiz
+### Create Assessment
 
 ```http
 POST /api/surveys
@@ -91,9 +77,9 @@ POST /api/surveys
 
 ```json
 {
-	"title": "Math Quiz",
+	"title": "Math Assessment",
 	"description": "Test your math skills",
-	"type": "quiz",
+	"type": "assessment",
 	"scoringSettings": {
 		"passingScore": 70,
 		"showScore": true,
@@ -190,7 +176,7 @@ GET /api/surveys/{surveyId}/statistics
 {
   title: String,
   description: String,
-  type: String, // 'survey' | 'quiz' | 'assessment' | 'iq'
+  type: String, // 'survey' | 'assessment'
   questions: [{
     text: String,
     type: String, // 'single_choice' | 'multiple_choice'
@@ -246,7 +232,7 @@ GET /api/surveys/{surveyId}/statistics
 
 ## Scoring System
 
-### For Quiz/Assessment/IQ Types:
+### For Assessment Types:
 
 1. **Points Calculation**: Sum of points for correct answers
 2. **Percentage**: (Points Earned / Total Points) × 100
@@ -261,7 +247,7 @@ GET /api/surveys/{surveyId}/statistics
 
 ## Validation Rules
 
-### Quiz/Assessment/IQ Questions:
+### Assessment Questions:
 
 - Must have `correctAnswer` field
 - Single choice: `correctAnswer` must be a number
@@ -296,12 +282,12 @@ const survey = {
 };
 ```
 
-### Creating a Programming Quiz
+### Creating a Programming Assessment
 
 ```javascript
-const quiz = {
-	title: 'JavaScript Fundamentals Quiz',
-	type: 'quiz',
+const assessment = {
+	title: 'JavaScript Fundamentals Assessment',
+	type: 'assessment',
 	scoringSettings: {
 		passingScore: 70,
 		showScore: true,
@@ -347,7 +333,7 @@ const response = {
 ✅ **Single Choice Questions** - Radio button selection
 ✅ **Multiple Choice Questions** - Checkbox selections  
 ✅ **Survey Mode** - No correct answers required
-✅ **Quiz/Assessment Mode** - Correct answers required
+✅ **Assessment Mode** - Correct answers required
 ✅ **Automatic Scoring** - Points, percentages, pass/fail
 ✅ **Detailed Statistics** - Question-level analytics
 ✅ **Response Validation** - Comprehensive input validation

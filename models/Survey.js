@@ -19,7 +19,7 @@ const surveySchema = new mongoose.Schema({
 	},
 	type: {
 		type: String,
-		enum: [SURVEY_TYPE.SURVEY, SURVEY_TYPE.ASSESSMENT, SURVEY_TYPE.QUIZ, SURVEY_TYPE.IQ],
+		enum: [SURVEY_TYPE.SURVEY, SURVEY_TYPE.ASSESSMENT],
 		default: SURVEY_TYPE.SURVEY,
 	},
 	// Time limit in minutes
@@ -177,7 +177,7 @@ const surveySchema = new mongoose.Schema({
 						'At least 2 options are required for choice questions, and each option must have either text or image',
 				},
 			},
-			// For quiz/assessment/iq questions: correct answer(s)
+			// For assessment questions: correct answer(s)
 			// For single choice: number (index of correct option)
 			// For multiple choice: array of numbers (indices of correct options)
 			// For short_text: string (expected answer - optional for surveys)
@@ -283,7 +283,7 @@ const surveySchema = new mongoose.Schema({
 			default: false,
 		},
 	},
-	// Scoring settings (for quiz/assessment/iq)
+	// Scoring settings (for assessment)
 	scoringSettings: {
 		// Scoring mode: 'percentage' or 'accumulated'
 		scoringMode: {

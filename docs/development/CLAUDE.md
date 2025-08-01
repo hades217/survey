@@ -90,7 +90,7 @@ This project contains both .js and .ts files. The backend is primarily JavaScrip
 - Examples:
     - Use `SURVEY_TYPE.ASSESSMENT` instead of `'assessment'`
     - Use `QUESTION_TYPE.SINGLE_CHOICE` instead of `'single_choice'`
-    - Use `TYPES_REQUIRING_ANSWERS.includes(type)` instead of `['assessment', 'quiz', 'iq'].includes(type)`
+    - Use `TYPES_REQUIRING_ANSWERS.includes(type)` instead of `['assessment'].includes(type)`
 
 ### Configuration Files
 

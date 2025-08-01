@@ -1,7 +1,7 @@
 # 防作弊功能测试指南
 
 ## 🎯 测试范围
-防作弊功能仅在**测评类问卷**（Assessment, Quiz, IQ测试）中启用，普通问卷（Survey）不受影响。
+防作弊功能仅在**测评类问卷**（Assessment）中启用，普通问卷（Survey）不受影响。
 
 ## 🔧 如何测试
 
@@ -42,7 +42,7 @@
 
 ## ✅ 期望行为
 - **普通问卷（Survey）**：所有操作正常，无限制
-- **测评问卷（Assessment/Quiz/IQ）**：
+- **测评问卷（Assessment）**：
   - 无法复制问题内容
   - 无法粘贴到输入框
   - 右键菜单被禁用
@@ -54,4 +54,4 @@
 - 使用 `useAntiCheating` hook 管理防作弊功能
 - 通过 CSS 类 `anti-cheat-container` 禁用文本选择
 - 事件监听器拦截复制、粘贴、右键等操作
-- 仅在问卷类型为 Assessment/Quiz/IQ 时启用
+- 仅在问卷类型为 Assessment 时启用

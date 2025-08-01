@@ -2,8 +2,6 @@
 export const SURVEY_TYPE = {
 	SURVEY: 'survey',
 	ASSESSMENT: 'assessment',
-	QUIZ: 'quiz',
-	IQ: 'iq',
 } as const;
 
 // Survey status constants
@@ -67,7 +65,7 @@ export type StatsView = (typeof STATS_VIEW)[keyof typeof STATS_VIEW];
 export type SourceType = (typeof SOURCE_TYPE)[keyof typeof SOURCE_TYPE];
 
 // Types requiring answers
-export const TYPES_REQUIRING_ANSWERS = [SURVEY_TYPE.ASSESSMENT, SURVEY_TYPE.QUIZ, SURVEY_TYPE.IQ];
+export const TYPES_REQUIRING_ANSWERS = [SURVEY_TYPE.ASSESSMENT];
 
 // All valid types and statuses
 export const VALID_SURVEY_TYPES = Object.values(SURVEY_TYPE);
