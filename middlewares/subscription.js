@@ -4,31 +4,42 @@ const Invitation = require('../models/Invitation');
 
 // Subscription plans features
 const SUBSCRIPTION_FEATURES = {
-	basic: {
-		maxSurveys: 3,
-		maxQuestionsPerSurvey: 20,
-		maxInvitees: 30,
-		csvImport: false,
-		imageQuestions: false,
-		advancedAnalytics: false,
-		randomQuestions: false,
-		fullQuestionBank: false,
-		templates: 3
-	},
-	pro: {
-		maxSurveys: -1, // unlimited
-		maxQuestionsPerSurvey: -1, // unlimited
-		maxInvitees: -1, // unlimited
-		csvImport: true,
-		imageQuestions: true,
-		advancedAnalytics: true,
-		randomQuestions: true,
-		fullQuestionBank: true,
-		templates: -1 // unlimited
-	}
+    free: {
+        maxSurveys: 3,
+        maxQuestionsPerSurvey: 10,
+        maxInvitees: 10,
+        csvImport: false,
+        imageQuestions: false,
+        advancedAnalytics: false,
+        randomQuestions: false,
+        fullQuestionBank: false,
+        templates: 1
+    },
+    basic: {
+        maxSurveys: 10,
+        maxQuestionsPerSurvey: 20,
+        maxInvitees: 30,
+        csvImport: false,
+        imageQuestions: false,
+        advancedAnalytics: false,
+        randomQuestions: false,
+        fullQuestionBank: false,
+        templates: 3
+    },
+    pro: {
+        maxSurveys: -1, // unlimited
+        maxQuestionsPerSurvey: -1, // unlimited
+        maxInvitees: -1, // unlimited
+        csvImport: true,
+        imageQuestions: true,
+        advancedAnalytics: true,
+        randomQuestions: true,
+        fullQuestionBank: true,
+        templates: -1 // unlimited
+    }
 };
 
-// Middleware to check if user has active subscription
+// Middleware to check if user has paid subscription (basic or pro)
 const requireActiveSubscription = async (req, res, next) => {
 	try {
 		const user = await User.findById(req.user._id);
@@ -38,12 +49,13 @@ const requireActiveSubscription = async (req, res, next) => {
 		}
 
 		const hasActiveSubscription = user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trialing';
+		const hasPaidSubscription = hasActiveSubscription && user.subscriptionTier !== 'free';
 		
-		if (!hasActiveSubscription) {
+		if (!hasPaidSubscription) {
 			return res.status(403).json({ 
-				error: 'Active subscription required',
-				code: 'SUBSCRIPTION_REQUIRED',
-				message: 'You need an active subscription to access this feature.'
+				error: 'Paid subscription required',
+				code: 'PAID_SUBSCRIPTION_REQUIRED',
+				message: 'You need to upgrade to a paid plan to access this feature.'
 			});
 		}
 
@@ -65,17 +77,10 @@ const requireFeature = (feature) => {
 				return res.status(404).json({ error: 'User not found' });
 			}
 
-			const hasActiveSubscription = user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trialing';
+			// Default to free plan if no subscription tier set
+			const userTier = user.subscriptionTier || 'free';
+			const plan = SUBSCRIPTION_FEATURES[userTier];
 			
-			if (!hasActiveSubscription) {
-				return res.status(403).json({ 
-					error: 'Active subscription required',
-					code: 'SUBSCRIPTION_REQUIRED',
-					message: 'You need an active subscription to access this feature.'
-				});
-			}
-
-			const plan = SUBSCRIPTION_FEATURES[user.subscriptionTier];
 			if (!plan) {
 				return res.status(403).json({ 
 					error: 'Invalid subscription plan',
@@ -87,12 +92,14 @@ const requireFeature = (feature) => {
 			const hasFeature = plan[feature] === true || plan[feature] === -1;
 			
 			if (!hasFeature) {
+				const requiredPlan = feature === 'csvImport' || feature === 'imageQuestions' || feature === 'advancedAnalytics' || feature === 'randomQuestions' || feature === 'fullQuestionBank' ? 'pro' : 'basic';
+				
 				return res.status(403).json({ 
 					error: `Feature '${feature}' not available in your plan`,
 					code: 'FEATURE_NOT_AVAILABLE',
-					requiredPlan: 'pro',
-					message: `This feature is only available in the Pro plan. Please upgrade your subscription.`,
-					currentPlan: user.subscriptionTier
+					requiredPlan,
+					message: `This feature is only available in the ${requiredPlan.charAt(0).toUpperCase() + requiredPlan.slice(1)} plan. Please upgrade your subscription.`,
+					currentPlan: userTier
 				});
 			}
 
@@ -115,17 +122,10 @@ const checkUsageLimit = (feature) => {
 				return res.status(404).json({ error: 'User not found' });
 			}
 
-			const hasActiveSubscription = user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trialing';
+			// Default to free plan if no subscription tier set
+			const userTier = user.subscriptionTier || 'free';
+			const plan = SUBSCRIPTION_FEATURES[userTier];
 			
-			if (!hasActiveSubscription) {
-				return res.status(403).json({ 
-					error: 'Active subscription required',
-					code: 'SUBSCRIPTION_REQUIRED',
-					message: 'You need an active subscription to access this feature.'
-				});
-			}
-
-			const plan = SUBSCRIPTION_FEATURES[user.subscriptionTier];
 			if (!plan) {
 				return res.status(403).json({ 
 					error: 'Invalid subscription plan',
@@ -160,14 +160,15 @@ const checkUsageLimit = (feature) => {
 			}
 
 			if (currentCount >= limit) {
+				const nextPlan = userTier === 'free' ? 'basic' : 'pro';
 				return res.status(403).json({ 
 					error: `You have reached the limit of ${limit} for ${feature}`,
 					code: 'USAGE_LIMIT_REACHED',
 					currentCount,
 					limit,
-					requiredPlan: 'pro',
-					message: `You've reached your plan limit of ${limit} ${feature.replace('max', '').toLowerCase()}. Upgrade to Pro for unlimited access.`,
-					currentPlan: user.subscriptionTier
+					requiredPlan: nextPlan,
+					message: `You've reached your plan limit of ${limit} ${feature.replace('max', '').toLowerCase()}. Upgrade to ${nextPlan.charAt(0).toUpperCase() + nextPlan.slice(1)} for ${nextPlan === 'pro' ? 'unlimited' : 'more'} access.`,
+					currentPlan: userTier
 				});
 			}
 

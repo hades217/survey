@@ -65,8 +65,8 @@ const userSchema = new mongoose.Schema({
 	},
 	subscriptionTier: {
 		type: String,
-		enum: ['basic', 'pro'],
-		default: null,
+		enum: ['free', 'basic', 'pro'],
+		default: 'free',
 	},
 	subscriptionStatus: {
 		type: String,
@@ -88,15 +88,27 @@ userSchema.virtual('hasActiveSubscription').get(function() {
 	return this.subscriptionStatus === 'active' || this.subscriptionStatus === 'trialing';
 });
 
+// Virtual to check if user has paid subscription
+userSchema.virtual('hasPaidSubscription').get(function() {
+	return this.hasActiveSubscription && this.subscriptionTier !== 'free';
+});
+
 // Method to check if user can access feature based on subscription
 userSchema.methods.canAccessFeature = function(feature) {
-	if (!this.hasActiveSubscription) {
-		return false;
-	}
-
 	const SUBSCRIPTION_FEATURES = {
-		basic: {
+		free: {
 			maxSurveys: 3,
+			maxQuestionsPerSurvey: 10,
+			maxInvitees: 10,
+			csvImport: false,
+			imageQuestions: false,
+			advancedAnalytics: false,
+			randomQuestions: false,
+			fullQuestionBank: false,
+			templates: 1
+		},
+		basic: {
+			maxSurveys: 10,
 			maxQuestionsPerSurvey: 20,
 			maxInvitees: 30,
 			csvImport: false,
@@ -119,7 +131,9 @@ userSchema.methods.canAccessFeature = function(feature) {
 		}
 	};
 
-	const plan = SUBSCRIPTION_FEATURES[this.subscriptionTier];
+	// Default to free plan if no subscription tier set
+	const userTier = this.subscriptionTier || 'free';
+	const plan = SUBSCRIPTION_FEATURES[userTier];
 	if (!plan) return false;
 
 	return plan[feature] === true || plan[feature] === -1;
@@ -127,13 +141,15 @@ userSchema.methods.canAccessFeature = function(feature) {
 
 // Method to check if user has reached limit for a feature
 userSchema.methods.hasReachedLimit = function(feature, currentCount) {
-	if (!this.hasActiveSubscription) {
-		return true;
-	}
-
 	const SUBSCRIPTION_FEATURES = {
-		basic: {
+		free: {
 			maxSurveys: 3,
+			maxQuestionsPerSurvey: 10,
+			maxInvitees: 10,
+			templates: 1
+		},
+		basic: {
+			maxSurveys: 10,
 			maxQuestionsPerSurvey: 20,
 			maxInvitees: 30,
 			templates: 3
@@ -146,7 +162,9 @@ userSchema.methods.hasReachedLimit = function(feature, currentCount) {
 		}
 	};
 
-	const plan = SUBSCRIPTION_FEATURES[this.subscriptionTier];
+	// Default to free plan if no subscription tier set
+	const userTier = this.subscriptionTier || 'free';
+	const plan = SUBSCRIPTION_FEATURES[userTier];
 	if (!plan) return true;
 
 	const limit = plan[feature];

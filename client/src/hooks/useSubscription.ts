@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 interface SubscriptionInfo {
-	subscriptionTier: 'basic' | 'pro' | null;
+	subscriptionTier: 'free' | 'basic' | 'pro' | null;
 	subscriptionStatus: string | null;
 	subscriptionCurrentPeriodEnd: string | null;
 	subscriptionCancelAtPeriodEnd: boolean;
@@ -22,8 +22,19 @@ interface PlanFeatures {
 }
 
 const PLAN_FEATURES: Record<string, PlanFeatures> = {
-	basic: {
+	free: {
 		maxSurveys: 3,
+		maxQuestionsPerSurvey: 10,
+		maxInvitees: 10,
+		csvImport: false,
+		imageQuestions: false,
+		advancedAnalytics: false,
+		randomQuestions: false,
+		fullQuestionBank: false,
+		templates: 1
+	},
+	basic: {
+		maxSurveys: 10,
 		maxQuestionsPerSurvey: 20,
 		maxInvitees: 30,
 		csvImport: false,
@@ -79,28 +90,30 @@ export const useSubscription = () => {
 		fetchSubscriptionInfo();
 	}, [fetchSubscriptionInfo]);
 
-	const hasActiveSubscription = subscriptionInfo?.hasActiveSubscription || false;
-
-	const currentPlanFeatures = subscriptionInfo?.subscriptionTier ? 
-		PLAN_FEATURES[subscriptionInfo.subscriptionTier] : null;
+	// User always has access to free tier features
+	const hasActiveSubscription = true;
+	
+	// Use free plan as default if no subscription info
+	const currentTier = subscriptionInfo?.subscriptionTier || 'free';
+	const currentPlanFeatures = PLAN_FEATURES[currentTier];
 
 	// Check if user can access a specific feature
 	const canAccessFeature = useCallback((feature: keyof PlanFeatures): boolean => {
-		if (!hasActiveSubscription || !currentPlanFeatures) return false;
+		if (!currentPlanFeatures) return false;
 		const featureValue = currentPlanFeatures[feature];
 		return featureValue === true || featureValue === -1;
-	}, [hasActiveSubscription, currentPlanFeatures]);
+	}, [currentPlanFeatures]);
 
 	// Check if user has reached limit for a feature
 	const hasReachedLimit = useCallback((feature: keyof PlanFeatures, currentCount: number): boolean => {
-		if (!hasActiveSubscription || !currentPlanFeatures) return true;
+		if (!currentPlanFeatures) return true;
 		const limit = currentPlanFeatures[feature];
 		if (typeof limit === 'number') {
 			if (limit === -1) return false; // unlimited
 			return currentCount >= limit;
 		}
 		return false;
-	}, [hasActiveSubscription, currentPlanFeatures]);
+	}, [currentPlanFeatures]);
 
 	// Get limit for a specific feature
 	const getFeatureLimit = useCallback((feature: keyof PlanFeatures): number => {

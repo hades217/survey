@@ -19,12 +19,36 @@ interface PlanFeatures {
 }
 
 const PLAN_DETAILS = {
+	free: {
+		name: 'Free Plan',
+		price: 0,
+		description: '免费体验基础功能，适合个人用户试用',
+		features: {
+			maxSurveys: 3,
+			maxQuestionsPerSurvey: 10,
+			maxInvitees: 10,
+			csvImport: false,
+			imageQuestions: false,
+			advancedAnalytics: false,
+			randomQuestions: false,
+			fullQuestionBank: false,
+			templates: 1
+		},
+		highlights: [
+			'创建最多3个调查问卷',
+			'每个问卷最多10道题目',
+			'邀请最多10位用户参与',
+			'基础数据分析功能',
+			'1套问卷模板',
+			'基础题库管理功能'
+		]
+	},
 	basic: {
 		name: 'Basic Plan',
 		price: 19,
-		description: '适合个人用户和小团队的基础功能',
+		description: '适合个人用户和小团队的进阶功能',
 		features: {
-			maxSurveys: 3,
+			maxSurveys: 10,
 			maxQuestionsPerSurvey: 20,
 			maxInvitees: 30,
 			csvImport: false,
@@ -35,7 +59,7 @@ const PLAN_DETAILS = {
 			templates: 3
 		},
 		highlights: [
-			'创建最多3个调查问卷',
+			'创建最多10个调查问卷',
 			'每个问卷最多20道题目',
 			'邀请最多30位用户参与',
 			'基础数据分析功能',
@@ -177,46 +201,52 @@ const ProfileBilling: React.FC = () => {
 	return (
 		<div className="space-y-6">
 			{/* Current Subscription Status */}
-			{hasActiveSubscription && (
-				<div className="bg-white rounded-lg border border-gray-200 p-6">
-					<div className="flex items-center justify-between mb-4">
-						<h3 className="text-lg font-medium text-gray-900">当前订阅</h3>
-						{getStatusBadge(subscriptionInfo?.subscriptionStatus || '')}
+			<div className="bg-white rounded-lg border border-gray-200 p-6">
+				<div className="flex items-center justify-between mb-4">
+					<h3 className="text-lg font-medium text-gray-900">当前套餐</h3>
+					{subscriptionInfo?.subscriptionStatus ? 
+						getStatusBadge(subscriptionInfo.subscriptionStatus) :
+						<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+							免费用户
+						</span>
+					}
+				</div>
+				
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+					<div>
+						<dl className="space-y-3">
+							<div>
+								<dt className="text-sm font-medium text-gray-500">套餐类型</dt>
+								<dd className="text-lg font-semibold text-gray-900 capitalize">
+									{subscriptionInfo?.subscriptionTier || 'free'} Plan
+								</dd>
+							</div>
+							<div>
+								<dt className="text-sm font-medium text-gray-500">月费</dt>
+								<dd className="text-lg font-semibold text-gray-900">
+									{subscriptionInfo?.subscriptionTier === 'basic' ? '$19' : 
+									 subscriptionInfo?.subscriptionTier === 'pro' ? '$49' : '免费'}/月
+								</dd>
+							</div>
+							{getFormattedEndDate() && (
+								<div>
+									<dt className="text-sm font-medium text-gray-500">下次计费日期</dt>
+									<dd className="text-sm text-gray-900">{getFormattedEndDate()}</dd>
+								</div>
+							)}
+							{subscriptionInfo?.subscriptionCancelAtPeriodEnd && (
+								<div>
+									<dt className="text-sm font-medium text-gray-500">取消状态</dt>
+									<dd className="text-sm text-orange-600 font-medium">
+										订阅将在当前计费周期结束时取消
+									</dd>
+								</div>
+							)}
+						</dl>
 					</div>
 					
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-						<div>
-							<dl className="space-y-3">
-								<div>
-									<dt className="text-sm font-medium text-gray-500">套餐类型</dt>
-									<dd className="text-lg font-semibold text-gray-900 capitalize">
-										{subscriptionInfo?.subscriptionTier} Plan
-									</dd>
-								</div>
-								<div>
-									<dt className="text-sm font-medium text-gray-500">月费</dt>
-									<dd className="text-lg font-semibold text-gray-900">
-										${subscriptionInfo?.subscriptionTier === 'basic' ? '19' : '49'}/月
-									</dd>
-								</div>
-								{getFormattedEndDate() && (
-									<div>
-										<dt className="text-sm font-medium text-gray-500">下次计费日期</dt>
-										<dd className="text-sm text-gray-900">{getFormattedEndDate()}</dd>
-									</div>
-								)}
-								{subscriptionInfo?.subscriptionCancelAtPeriodEnd && (
-									<div>
-										<dt className="text-sm font-medium text-gray-500">取消状态</dt>
-										<dd className="text-sm text-orange-600 font-medium">
-											订阅将在当前计费周期结束时取消
-										</dd>
-									</div>
-								)}
-							</dl>
-						</div>
-						
-						<div className="flex flex-col space-y-3">
+					<div className="flex flex-col space-y-3">
+						{hasActiveSubscription && subscriptionInfo?.subscriptionTier !== 'free' && (
 							<button
 								onClick={handleManageBilling}
 								disabled={processingAction === 'manage'}
@@ -224,26 +254,62 @@ const ProfileBilling: React.FC = () => {
 							>
 								{processingAction === 'manage' ? '处理中...' : '管理订阅'}
 							</button>
-							
-							{canUpgrade() && (
-								<button
-									onClick={() => handleSubscribe('pro')}
-									disabled={processingAction === 'subscribe-pro'}
-									className="w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
-								>
-									{processingAction === 'subscribe-pro' ? '处理中...' : '升级到Pro'}
-								</button>
-							)}
-						</div>
+						)}
+						
+						{canUpgrade() && (
+							<button
+								onClick={() => handleSubscribe('pro')}
+								disabled={processingAction === 'subscribe-pro'}
+								className="w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+							>
+								{processingAction === 'subscribe-pro' ? '处理中...' : '升级到Pro'}
+							</button>
+						)}
 					</div>
 				</div>
-			)}
+			</div>
 
 			{/* Plan Comparison */}
 			<div className="bg-white rounded-lg border border-gray-200 p-6">
 				<h3 className="text-lg font-medium text-gray-900 mb-6">订阅套餐对比</h3>
 				
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+					{/* Free Plan */}
+					<div className={`border-2 rounded-lg p-6 ${
+						(subscriptionInfo?.subscriptionTier || 'free') === 'free' 
+							? 'border-gray-500 bg-gray-50' 
+							: 'border-gray-200'
+					}`}>
+						{(subscriptionInfo?.subscriptionTier || 'free') === 'free' && (
+							<div className="mb-4">
+								<span className="bg-gray-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+									当前套餐
+								</span>
+							</div>
+						)}
+						
+						<div className="mb-4">
+							<h4 className="text-xl font-bold text-gray-900">{PLAN_DETAILS.free.name}</h4>
+							<div className="mt-2">
+								<span className="text-3xl font-bold text-gray-900">免费</span>
+							</div>
+							<p className="text-sm text-gray-600 mt-2">{PLAN_DETAILS.free.description}</p>
+						</div>
+						
+						<div className="mb-6">
+							{renderFeatureList(PLAN_DETAILS.free.highlights)}
+						</div>
+						
+						{(subscriptionInfo?.subscriptionTier || 'free') !== 'free' && (
+							<button
+								disabled
+								className="w-full bg-gray-300 text-gray-500 px-4 py-2 rounded-lg font-medium cursor-not-allowed"
+							>
+								当前套餐
+							</button>
+						)}
+					</div>
+
 					{/* Basic Plan */}
 					<div className={`border-2 rounded-lg p-6 ${
 						subscriptionInfo?.subscriptionTier === 'basic' 
@@ -278,7 +344,7 @@ const ProfileBilling: React.FC = () => {
 								className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
 							>
 								{processingAction === 'subscribe-basic' ? '处理中...' : 
-								 hasActiveSubscription ? '降级到Basic' : '选择Basic'}
+								 subscriptionInfo?.subscriptionTier === 'pro' ? '降级到Basic' : '升级到Basic'}
 							</button>
 						)}
 					</div>
@@ -314,29 +380,28 @@ const ProfileBilling: React.FC = () => {
 								disabled={!!processingAction}
 								className="w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
 							>
-								{processingAction === 'subscribe-pro' ? '处理中...' : 
-								 hasActiveSubscription ? '升级到Pro' : '选择Pro'}
+								{processingAction === 'subscribe-pro' ? '处理中...' : '升级到Pro'}
 							</button>
 						)}
 					</div>
 				</div>
 			</div>
 
-			{/* No Subscription */}
-			{!hasActiveSubscription && (
-				<div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+			{/* Free Plan Info */}
+			{(subscriptionInfo?.subscriptionTier || 'free') === 'free' && (
+				<div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
 					<div className="flex">
 						<div className="flex-shrink-0">
-							<svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-								<path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+							<svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+								<path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
 							</svg>
 						</div>
 						<div className="ml-3">
-							<h3 className="text-sm font-medium text-yellow-800">
-								未激活订阅
+							<h3 className="text-sm font-medium text-blue-800">
+								免费套餐用户
 							</h3>
-							<div className="mt-2 text-sm text-yellow-700">
-								<p>您需要激活订阅才能使用调查问卷平台的功能。请选择上方的套餐开始使用。</p>
+							<div className="mt-2 text-sm text-blue-700">
+								<p>您正在使用免费套餐，可以创建最多3个调查问卷。升级到付费套餐可以解锁更多功能和更高的使用限制。</p>
 							</div>
 						</div>
 					</div>
