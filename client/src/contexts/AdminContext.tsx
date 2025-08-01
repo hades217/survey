@@ -370,8 +370,8 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 				});
 				// Load profile data after successful registration
 				await loadProfile();
-				// Redirect to admin dashboard
-				navigate('/admin');
+				// Redirect to onboarding for new companies
+				navigate('/onboarding');
 			} else {
 				setError(response.data.error || 'Registration failed');
 			}
@@ -417,6 +417,14 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 				description: response.data.company.description || '',
 				website: response.data.company.website || '',
 			});
+
+			// Check if onboarding is completed
+			if (response.data.company && !response.data.company.isOnboardingCompleted) {
+				// Only redirect to onboarding if not already on onboarding page
+				if (!location.pathname.startsWith('/onboarding')) {
+					navigate('/onboarding');
+				}
+			}
 		} catch (err) {
 			console.error('Load profile error:', err);
 			setError('Failed to load profile');

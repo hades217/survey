@@ -26,6 +26,16 @@ export interface Company {
   logoUrl?: string;
   description?: string;
   website?: string;
+  // Onboarding fields
+  size?: string;
+  contactName?: string;
+  contactEmail?: string;
+  role?: string;
+  themeColor?: string;
+  customLogoEnabled?: boolean;
+  defaultLanguage?: string;
+  autoNotifyCandidate?: boolean;
+  isOnboardingCompleted?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -36,6 +46,16 @@ export interface CompanyCreateRequest {
   logoUrl?: string;
   description?: string;
   website?: string;
+  // Onboarding fields
+  size?: string;
+  contactName?: string;
+  contactEmail?: string;
+  role?: string;
+  themeColor?: string;
+  customLogoEnabled?: boolean;
+  defaultLanguage?: string;
+  autoNotifyCandidate?: boolean;
+  isOnboardingCompleted?: boolean;
 }
 
 export interface CompanyUpdateRequest extends Partial<CompanyCreateRequest> {}
