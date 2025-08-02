@@ -11,7 +11,7 @@ const {
 } = require('../services/stripe');
 
 // Middleware to verify JWT token
-const authenticateToken = require('../middlewares/auth');
+const { jwtAuth: authenticateToken } = require('../middlewares/jwtAuth');
 
 // Create checkout session
 router.post('/create-checkout-session', authenticateToken, async (req, res) => {
@@ -38,7 +38,11 @@ router.post('/create-checkout-session', authenticateToken, async (req, res) => {
 		});
 	} catch (error) {
 		console.error('Error creating checkout session:', error);
-		res.status(500).json({ error: 'Failed to create checkout session' });
+		if (error.message && error.message.includes('Stripe is not initialized')) {
+			res.status(503).json({ error: 'Payment system is not configured. Please contact support.' });
+		} else {
+			res.status(500).json({ error: 'Failed to create checkout session' });
+		}
 	}
 });
 
@@ -61,7 +65,11 @@ router.post('/create-portal-session', authenticateToken, async (req, res) => {
 		res.json({ url: session.url });
 	} catch (error) {
 		console.error('Error creating portal session:', error);
-		res.status(500).json({ error: 'Failed to create portal session' });
+		if (error.message && error.message.includes('Stripe is not initialized')) {
+			res.status(503).json({ error: 'Payment system is not configured. Please contact support.' });
+		} else {
+			res.status(500).json({ error: 'Failed to create portal session' });
+		}
 	}
 });
 
@@ -118,6 +126,12 @@ router.get('/plans', (req, res) => {
 
 // Stripe webhook handler
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+	// Check if Stripe is initialized
+	if (!stripe) {
+		console.log('Webhook received but Stripe is not initialized');
+		return res.status(200).json({ received: true, message: 'Stripe not configured' });
+	}
+
 	const sig = req.headers['stripe-signature'];
 	let event;
 
@@ -166,6 +180,8 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 // Webhook handlers
 async function handleCheckoutSessionCompleted(session) {
 	try {
+		if (!stripe) return;
+		
 		const userId = session.metadata.userId;
 		const planType = session.metadata.planType;
 
@@ -180,6 +196,8 @@ async function handleCheckoutSessionCompleted(session) {
 
 async function handleSubscriptionUpdate(subscription) {
 	try {
+		if (!stripe) return;
+		
 		const customer = await stripe.customers.retrieve(subscription.customer);
 		const userId = customer.metadata.userId;
 		
@@ -194,6 +212,8 @@ async function handleSubscriptionUpdate(subscription) {
 
 async function handleSubscriptionDeleted(subscription) {
 	try {
+		if (!stripe) return;
+		
 		const customer = await stripe.customers.retrieve(subscription.customer);
 		const userId = customer.metadata.userId;
 		
@@ -213,6 +233,8 @@ async function handleSubscriptionDeleted(subscription) {
 
 async function handlePaymentSucceeded(invoice) {
 	try {
+		if (!stripe) return;
+		
 		if (invoice.subscription) {
 			const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
 			const customer = await stripe.customers.retrieve(subscription.customer);
@@ -230,6 +252,8 @@ async function handlePaymentSucceeded(invoice) {
 
 async function handlePaymentFailed(invoice) {
 	try {
+		if (!stripe) return;
+		
 		if (invoice.subscription) {
 			const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
 			const customer = await stripe.customers.retrieve(subscription.customer);

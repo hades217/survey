@@ -1,7 +1,13 @@
 const Stripe = require('stripe');
 
-// Initialize Stripe with secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Initialize Stripe with secret key only if available
+let stripe = null;
+if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'sk_test_your_stripe_secret_key_here') {
+	stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+	console.log('Stripe initialized successfully');
+} else {
+	console.log('Stripe not initialized - missing or placeholder API key');
+}
 
 // Subscription plans configuration
 const SUBSCRIPTION_PLANS = {
@@ -57,6 +63,9 @@ const SUBSCRIPTION_STATUS = {
 // Create or get Stripe customer
 async function createOrGetCustomer(user) {
 	try {
+		if (!stripe) {
+			throw new Error('Stripe is not initialized. Please configure STRIPE_SECRET_KEY.');
+		}
 		if (user.stripeCustomerId) {
 			// Return existing customer
 			return await stripe.customers.retrieve(user.stripeCustomerId);
@@ -85,6 +94,9 @@ async function createOrGetCustomer(user) {
 // Create checkout session
 async function createCheckoutSession(user, planType, successUrl, cancelUrl) {
 	try {
+		if (!stripe) {
+			throw new Error('Stripe is not initialized. Please configure STRIPE_SECRET_KEY.');
+		}
 		const plan = SUBSCRIPTION_PLANS[planType];
 		if (!plan) {
 			throw new Error('Invalid plan type');
@@ -128,6 +140,9 @@ async function createCheckoutSession(user, planType, successUrl, cancelUrl) {
 // Create customer portal session
 async function createPortalSession(user, returnUrl) {
 	try {
+		if (!stripe) {
+			throw new Error('Stripe is not initialized. Please configure STRIPE_SECRET_KEY.');
+		}
 		if (!user.stripeCustomerId) {
 			throw new Error('User does not have a Stripe customer ID');
 		}
@@ -147,6 +162,9 @@ async function createPortalSession(user, returnUrl) {
 // Get subscription details
 async function getSubscriptionDetails(subscriptionId) {
 	try {
+		if (!stripe) {
+			throw new Error('Stripe is not initialized. Please configure STRIPE_SECRET_KEY.');
+		}
 		return await stripe.subscriptions.retrieve(subscriptionId);
 	} catch (error) {
 		console.error('Error getting subscription details:', error);
@@ -157,6 +175,9 @@ async function getSubscriptionDetails(subscriptionId) {
 // Cancel subscription
 async function cancelSubscription(subscriptionId, cancelAtPeriodEnd = true) {
 	try {
+		if (!stripe) {
+			throw new Error('Stripe is not initialized. Please configure STRIPE_SECRET_KEY.');
+		}
 		if (cancelAtPeriodEnd) {
 			return await stripe.subscriptions.update(subscriptionId, {
 				cancel_at_period_end: true
@@ -173,6 +194,9 @@ async function cancelSubscription(subscriptionId, cancelAtPeriodEnd = true) {
 // Reactivate subscription
 async function reactivateSubscription(subscriptionId) {
 	try {
+		if (!stripe) {
+			throw new Error('Stripe is not initialized. Please configure STRIPE_SECRET_KEY.');
+		}
 		return await stripe.subscriptions.update(subscriptionId, {
 			cancel_at_period_end: false
 		});
