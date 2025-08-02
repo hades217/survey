@@ -124,8 +124,17 @@ exports.deleteQuestionBank = async (req, res) => {
 // Add a question to a question bank
 exports.addQuestion = async (req, res) => {
 	try {
-		const { text, type, options, correctAnswer, explanation, points, tags, difficulty, descriptionImage } =
-			req.body;
+		const {
+			text,
+			type,
+			options,
+			correctAnswer,
+			explanation,
+			points,
+			tags,
+			difficulty,
+			descriptionImage,
+		} = req.body;
 
 		if (!text || !text.trim()) {
 			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Question text is required' });
@@ -190,8 +199,17 @@ exports.addQuestion = async (req, res) => {
 exports.updateQuestion = async (req, res) => {
 	try {
 		const { questionId } = req.params;
-		const { text, type, options, correctAnswer, explanation, points, tags, difficulty, descriptionImage } =
-			req.body;
+		const {
+			text,
+			type,
+			options,
+			correctAnswer,
+			explanation,
+			points,
+			tags,
+			difficulty,
+			descriptionImage,
+		} = req.body;
 
 		const questionBank = await QuestionBank.findById(req.params.id);
 

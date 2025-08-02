@@ -1,7 +1,8 @@
 const axios = require('axios');
 
 const BASE_URL = 'http://localhost:5050';
-const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MzM2Njk0NywiZXhwIjoxNzUzOTcxNzQ3fQ.KSDOGnrSuseMeyQbQmWuQVb2VFdDb6lgatlLKeOc8Ok';
+const JWT_TOKEN =
+	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MzM2Njk0NywiZXhwIjoxNzUzOTcxNzQ3fQ.KSDOGnrSuseMeyQbQmWuQVb2VFdDb6lgatlLKeOc8Ok';
 
 async function testCompanyLogoDisplay() {
 	console.log('🧪 开始测试公司Logo显示功能...\n');
@@ -19,7 +20,7 @@ async function testCompanyLogoDisplay() {
 			industry: '科技',
 			logoUrl: 'https://via.placeholder.com/200x80/4F46E5/FFFFFF?text=Company+Logo',
 			description: '这是一个测试公司',
-			website: 'https://example.com'
+			website: 'https://example.com',
 		};
 
 		const companyResponse = await axios.put(`${BASE_URL}/api/admin/company`, companyUpdateData);
@@ -39,14 +40,11 @@ async function testCompanyLogoDisplay() {
 				{
 					text: '您看到了公司Logo吗？',
 					type: 'single_choice',
-					options: [
-						{ text: '看到了' },
-						{ text: '没有看到' }
-					],
+					options: [{ text: '看到了' }, { text: '没有看到' }],
 					correctAnswer: 0,
-					points: 1
-				}
-			]
+					points: 1,
+				},
+			],
 		};
 
 		const createResponse = await axios.post(`${BASE_URL}/api/admin/surveys`, surveyData);
@@ -80,7 +78,7 @@ async function testCompanyLogoDisplay() {
 			name: '无Logo公司',
 			industry: '教育',
 			description: '这个公司没有Logo',
-			website: 'https://no-logo.com'
+			website: 'https://no-logo.com',
 		};
 
 		await axios.put(`${BASE_URL}/api/admin/company`, noLogoCompanyData);
@@ -107,7 +105,6 @@ async function testCompanyLogoDisplay() {
 		console.log('   ✅ 支持有Logo和无Logo两种情况');
 		console.log('   ✅ 前端组件已更新以显示公司Logo');
 		console.log('   ✅ Logo显示在测评页面的多个位置');
-
 	} catch (error) {
 		console.error('❌ 测试失败:', error.response?.data || error.message);
 	}

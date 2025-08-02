@@ -7,11 +7,11 @@ const {
 	getSubscriptionDetails,
 	getPlanTypeFromSubscription,
 	stripe,
-	SUBSCRIPTION_PLANS
+	SUBSCRIPTION_PLANS,
 } = require('../services/stripe');
 
 // Middleware to verify JWT token
-const authenticateToken = require('../middlewares/auth');
+const { jwtAuth: authenticateToken } = require('../middlewares/jwtAuth');
 
 // Create checkout session
 router.post('/create-checkout-session', authenticateToken, async (req, res) => {
@@ -32,13 +32,19 @@ router.post('/create-checkout-session', authenticateToken, async (req, res) => {
 
 		const session = await createCheckoutSession(user, planType, successUrl, cancelUrl);
 
-		res.json({ 
-			sessionId: session.id, 
-			url: session.url 
+		res.json({
+			sessionId: session.id,
+			url: session.url,
 		});
 	} catch (error) {
 		console.error('Error creating checkout session:', error);
-		res.status(500).json({ error: 'Failed to create checkout session' });
+		if (error.message && error.message.includes('Stripe is not initialized')) {
+			res.status(503).json({
+				error: 'Payment system is not configured. Please contact support.',
+			});
+		} else {
+			res.status(500).json({ error: 'Failed to create checkout session' });
+		}
 	}
 });
 
@@ -61,7 +67,13 @@ router.post('/create-portal-session', authenticateToken, async (req, res) => {
 		res.json({ url: session.url });
 	} catch (error) {
 		console.error('Error creating portal session:', error);
-		res.status(500).json({ error: 'Failed to create portal session' });
+		if (error.message && error.message.includes('Stripe is not initialized')) {
+			res.status(503).json({
+				error: 'Payment system is not configured. Please contact support.',
+			});
+		} else {
+			res.status(500).json({ error: 'Failed to create portal session' });
+		}
 	}
 });
 
@@ -69,7 +81,7 @@ router.post('/create-portal-session', authenticateToken, async (req, res) => {
 router.get('/subscription-status', authenticateToken, async (req, res) => {
 	try {
 		const user = await User.findById(req.user._id);
-		
+
 		if (!user) {
 			return res.status(404).json({ error: 'User not found' });
 		}
@@ -89,7 +101,7 @@ router.get('/subscription-status', authenticateToken, async (req, res) => {
 			subscriptionCurrentPeriodEnd: user.subscriptionCurrentPeriodEnd,
 			subscriptionCancelAtPeriodEnd: user.subscriptionCancelAtPeriodEnd,
 			hasActiveSubscription: user.hasActiveSubscription,
-			subscription: subscription
+			subscription: subscription,
 		});
 	} catch (error) {
 		console.error('Error getting subscription status:', error);
@@ -106,7 +118,7 @@ router.get('/plans', (req, res) => {
 			price: plan.price,
 			currency: plan.currency,
 			interval: plan.interval,
-			features: plan.features
+			features: plan.features,
 		}));
 
 		res.json({ plans });
@@ -118,6 +130,12 @@ router.get('/plans', (req, res) => {
 
 // Stripe webhook handler
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+	// Check if Stripe is initialized
+	if (!stripe) {
+		console.log('Webhook received but Stripe is not initialized');
+		return res.status(200).json({ received: true, message: 'Stripe not configured' });
+	}
+
 	const sig = req.headers['stripe-signature'];
 	let event;
 
@@ -131,29 +149,29 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 	// Handle the event
 	try {
 		switch (event.type) {
-			case 'checkout.session.completed':
-				await handleCheckoutSessionCompleted(event.data.object);
-				break;
-			
-			case 'customer.subscription.created':
-			case 'customer.subscription.updated':
-				await handleSubscriptionUpdate(event.data.object);
-				break;
-			
-			case 'customer.subscription.deleted':
-				await handleSubscriptionDeleted(event.data.object);
-				break;
-			
-			case 'invoice.payment_succeeded':
-				await handlePaymentSucceeded(event.data.object);
-				break;
-			
-			case 'invoice.payment_failed':
-				await handlePaymentFailed(event.data.object);
-				break;
-			
-			default:
-				console.log(`Unhandled event type ${event.type}`);
+		case 'checkout.session.completed':
+			await handleCheckoutSessionCompleted(event.data.object);
+			break;
+
+		case 'customer.subscription.created':
+		case 'customer.subscription.updated':
+			await handleSubscriptionUpdate(event.data.object);
+			break;
+
+		case 'customer.subscription.deleted':
+			await handleSubscriptionDeleted(event.data.object);
+			break;
+
+		case 'invoice.payment_succeeded':
+			await handlePaymentSucceeded(event.data.object);
+			break;
+
+		case 'invoice.payment_failed':
+			await handlePaymentFailed(event.data.object);
+			break;
+
+		default:
+			console.log(`Unhandled event type ${event.type}`);
 		}
 
 		res.json({ received: true });
@@ -166,6 +184,8 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 // Webhook handlers
 async function handleCheckoutSessionCompleted(session) {
 	try {
+		if (!stripe) return;
+
 		const userId = session.metadata.userId;
 		const planType = session.metadata.planType;
 
@@ -180,9 +200,11 @@ async function handleCheckoutSessionCompleted(session) {
 
 async function handleSubscriptionUpdate(subscription) {
 	try {
+		if (!stripe) return;
+
 		const customer = await stripe.customers.retrieve(subscription.customer);
 		const userId = customer.metadata.userId;
-		
+
 		if (userId) {
 			const planType = getPlanTypeFromSubscription(subscription);
 			await updateUserSubscription(userId, subscription, planType);
@@ -194,16 +216,18 @@ async function handleSubscriptionUpdate(subscription) {
 
 async function handleSubscriptionDeleted(subscription) {
 	try {
+		if (!stripe) return;
+
 		const customer = await stripe.customers.retrieve(subscription.customer);
 		const userId = customer.metadata.userId;
-		
+
 		if (userId) {
 			await User.findByIdAndUpdate(userId, {
 				subscriptionStatus: 'canceled',
 				subscriptionTier: null,
 				stripeSubscriptionId: null,
 				subscriptionCurrentPeriodEnd: null,
-				subscriptionCancelAtPeriodEnd: false
+				subscriptionCancelAtPeriodEnd: false,
 			});
 		}
 	} catch (error) {
@@ -213,11 +237,13 @@ async function handleSubscriptionDeleted(subscription) {
 
 async function handlePaymentSucceeded(invoice) {
 	try {
+		if (!stripe) return;
+
 		if (invoice.subscription) {
 			const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
 			const customer = await stripe.customers.retrieve(subscription.customer);
 			const userId = customer.metadata.userId;
-			
+
 			if (userId) {
 				const planType = getPlanTypeFromSubscription(subscription);
 				await updateUserSubscription(userId, subscription, planType);
@@ -230,14 +256,16 @@ async function handlePaymentSucceeded(invoice) {
 
 async function handlePaymentFailed(invoice) {
 	try {
+		if (!stripe) return;
+
 		if (invoice.subscription) {
 			const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
 			const customer = await stripe.customers.retrieve(subscription.customer);
 			const userId = customer.metadata.userId;
-			
+
 			if (userId) {
 				await User.findByIdAndUpdate(userId, {
-					subscriptionStatus: 'past_due'
+					subscriptionStatus: 'past_due',
 				});
 			}
 		}
@@ -254,7 +282,7 @@ async function updateUserSubscription(userId, subscription, planType) {
 			subscriptionTier: planType,
 			subscriptionStatus: subscription.status,
 			subscriptionCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
-			subscriptionCancelAtPeriodEnd: subscription.cancel_at_period_end
+			subscriptionCancelAtPeriodEnd: subscription.cancel_at_period_end,
 		});
 	} catch (error) {
 		console.error('Error updating user subscription:', error);

@@ -284,6 +284,21 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 		logoUrl: '',
 		description: '',
 		website: '',
+		size: '',
+		foundedYear: undefined,
+		contactEmail: '',
+		contactPhone: '',
+		address: {
+			street: '',
+			city: '',
+			state: '',
+			country: '',
+			postalCode: '',
+		},
+		themeColor: '#3B82F6',
+		customLogoEnabled: false,
+		defaultLanguage: 'en',
+		autoNotifyCandidate: true,
 	});
 
 	// Check authentication on mount
@@ -318,6 +333,8 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 			setTab('question-banks');
 		} else if (path === '/admin/profile') {
 			setTab('profile');
+		} else if (path === '/admin/billing') {
+			setTab('billing');
 		} else if (path.startsWith('/admin/survey/') || path.startsWith('/admin/')) {
 			if (path.startsWith('/admin/survey/')) {
 				setTab('detail');
@@ -370,8 +387,8 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 				});
 				// Load profile data after successful registration
 				await loadProfile();
-				// Redirect to admin dashboard
-				navigate('/admin');
+				// Redirect to onboarding for new companies
+				navigate('/onboarding');
 			} else {
 				setError(response.data.error || 'Registration failed');
 			}
@@ -410,13 +427,50 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 				avatarUrl: response.data.user.avatarUrl || '',
 			});
 
+			// Try to load full company data from companies endpoint
+			let companyData = response.data.company;
+			try {
+				const companyResponse = await api.get('/companies/current');
+				if (companyResponse.data.success) {
+					companyData = companyResponse.data.company;
+				}
+			} catch (companyErr) {
+				console.log('Using admin profile company data as fallback');
+			}
+
 			setCompanyForm({
-				name: response.data.company.name,
-				industry: response.data.company.industry || '',
-				logoUrl: response.data.company.logoUrl || '',
-				description: response.data.company.description || '',
-				website: response.data.company.website || '',
+				name: companyData.name || '',
+				industry: companyData.industry || '',
+				logoUrl: companyData.logoUrl || '',
+				description: companyData.description || '',
+				website: companyData.website || '',
+				size: companyData.size || '',
+				foundedYear: companyData.foundedYear || undefined,
+				contactEmail: companyData.contactEmail || '',
+				contactPhone: companyData.contactPhone || '',
+				address: {
+					street: companyData.address?.street || '',
+					city: companyData.address?.city || '',
+					state: companyData.address?.state || '',
+					country: companyData.address?.country || '',
+					postalCode: companyData.address?.postalCode || '',
+				},
+				themeColor: companyData.themeColor || '#3B82F6',
+				customLogoEnabled: companyData.customLogoEnabled || false,
+				defaultLanguage: companyData.defaultLanguage || 'en',
+				autoNotifyCandidate:
+					companyData.autoNotifyCandidate !== undefined
+						? companyData.autoNotifyCandidate
+						: true,
 			});
+
+			// Check if onboarding is completed
+			if (companyData && !companyData.isOnboardingCompleted) {
+				// Only redirect to onboarding if not already on onboarding page
+				if (!location.pathname.startsWith('/onboarding')) {
+					navigate('/onboarding');
+				}
+			}
 		} catch (err) {
 			console.error('Load profile error:', err);
 			setError('Failed to load profile');
@@ -472,10 +526,36 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 	const updateCompany = async () => {
 		try {
 			setLoading(true);
-			const response = await api.put('/admin/company', companyForm);
+			// Map the form data to match the Company model structure
+			const updateData = {
+				name: companyForm.name,
+				industry: companyForm.industry,
+				logoUrl: companyForm.logoUrl,
+				description: companyForm.description,
+				website: companyForm.website,
+				size: companyForm.size,
+				foundedYear: companyForm.foundedYear,
+				contactEmail: companyForm.contactEmail,
+				contactPhone: companyForm.contactPhone,
+				address: companyForm.address,
+				// Settings that might be used in onboarding
+				settings: {
+					timezone: 'UTC',
+					language: companyForm.defaultLanguage || 'en',
+					dateFormat: 'MM/DD/YYYY',
+					emailNotifications: companyForm.autoNotifyCandidate !== false,
+				},
+				// Additional onboarding fields that could be stored as metadata
+				themeColor: companyForm.themeColor,
+				customLogoEnabled: companyForm.customLogoEnabled,
+				defaultLanguage: companyForm.defaultLanguage,
+				autoNotifyCandidate: companyForm.autoNotifyCandidate,
+			};
+
+			const response = await api.patch('/companies/current', updateData);
 
 			// Update profile data
-			if (profileData) {
+			if (profileData && response.data.success) {
 				setProfileData({
 					...profileData,
 					company: response.data.company,

@@ -168,7 +168,7 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 	// Question editing functions
 	const startEditQuestionBankQuestion = (questionBankId: string, questionIndex: number) => {
 		const question = qb.questions[questionIndex];
-		
+
 		setEditQuestionForm({
 			text: question.text,
 			descriptionImage: question.descriptionImage,
@@ -177,7 +177,7 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 			correctAnswer: question.correctAnswer,
 			points: question.points || 1,
 		});
-		
+
 		setEditingQuestionIndex(questionIndex);
 		setShowEditQuestionModal(true);
 	};
@@ -217,7 +217,10 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 		});
 	};
 
-	const handleEditQuestionOptionChange = (index: number, value: string | { text?: string; imageUrl?: string }) => {
+	const handleEditQuestionOptionChange = (
+		index: number,
+		value: string | { text?: string; imageUrl?: string }
+	) => {
 		setEditQuestionForm(prev => {
 			const newOptions = [...prev.options];
 			newOptions[index] = value;
@@ -255,7 +258,6 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 			setLoading(false);
 		}
 	};
-
 
 	const addQuestionBankQuestionHandler = async (form: QuestionForm) => {
 		try {
@@ -466,10 +468,13 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 										<div className='text-sm text-gray-600 space-y-1'>
 											{q.type === 'short_text' ? (
 												<div>
-													<div className='font-medium'>Type: Text Response</div>
-													{q.correctAnswer && typeof q.correctAnswer === 'string' && (
+													<div className='font-medium'>
+														Type: Text Response
+													</div>
+													{q.correctAnswer &&
+														typeof q.correctAnswer === 'string' && (
 														<div className='pl-4 text-green-600 font-semibold'>
-															Expected Answer: {q.correctAnswer}
+																Expected Answer: {q.correctAnswer}
 														</div>
 													)}
 												</div>
@@ -478,16 +483,26 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 													<div className='font-medium'>Options:</div>
 													{q.options &&
 														q.options.map((opt, optIdx) => {
-															const optionText = typeof opt === 'string' ? opt : opt.text || '';
-															const optionImageUrl = typeof opt === 'object' ? opt.imageUrl : undefined;
-															const isCorrect = Array.isArray(q.correctAnswer)
+															const optionText =
+																typeof opt === 'string'
+																	? opt
+																	: opt.text || '';
+															const optionImageUrl =
+																typeof opt === 'object'
+																	? opt.imageUrl
+																	: undefined;
+															const isCorrect = Array.isArray(
+																q.correctAnswer
+															)
 																? q.correctAnswer.includes(optIdx)
 																: q.correctAnswer === optIdx;
 															return (
 																<div
 																	key={optIdx}
 																	className={`flex items-start gap-2 pl-4 ${
-																		isCorrect ? 'text-green-600 font-semibold' : ''
+																		isCorrect
+																			? 'text-green-600 font-semibold'
+																			: ''
 																	}`}
 																>
 																	{isCorrect && (
@@ -508,7 +523,9 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 																		{optionImageUrl && (
 																			<div className='mt-1'>
 																				<img
-																					src={optionImageUrl}
+																					src={
+																						optionImageUrl
+																					}
 																					alt={`Option ${optIdx + 1}`}
 																					className='w-16 h-16 object-cover rounded border border-gray-300'
 																				/>

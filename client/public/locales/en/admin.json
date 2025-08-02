@@ -1,74 +1,74 @@
 {
-  "dashboard": {
-    "title": "{{companyName}} Admin Dashboard",
-    "subtitle": "Manage your surveys, assessments and view responses"
-  },
-  "survey": {
-    "title": "Survey",
-    "surveys": "Surveys",
-    "createSurvey": "Create Survey",
-    "editSurvey": "Edit Survey",
-    "deleteSurvey": "Delete Survey",
-    "surveyList": "Survey List",
-    "surveyDetails": "Survey Details",
-    "assessmentDetails": "Assessment Details",
-    "noSurveys": "No surveys found",
-    "searchSurveys": "Search surveys...",
-    "status": {
-      "active": "Active",
-      "draft": "Draft", 
-      "closed": "Closed"
-    },
-    "type": {
-      "survey": "Survey",
-      "quiz": "Quiz",
-      "assessment": "Assessment",
-      "iq": "IQ Test"
-    }
-  },
-  "statistics": {
-    "title": "Statistics",
-    "refreshData": "Refresh Data",
-    "overview": "Overview",
-    "totalResponses": "Total Responses",
-    "completionRate": "Completion Rate",
-    "totalQuestions": "Total Questions",
-    "individualResponses": "Individual Responses",
-    "aggregatedResults": "Aggregated Results",
-    "noResponseData": "No response data",
-    "noStatisticsData": "No statistics data, click \"Refresh Data\" to load",
-    "score": "Score",
-    "points": "points",
-    "pass": "Pass",
-    "fail": "Fail",
-    "correct": "Correct",
-    "incorrect": "Incorrect",
-    "timeUsed": "Time used",
-    "minutes": "minutes",
-    "seconds": "seconds",
-    "autoSubmitted": "Auto-submitted"
-  },
-  "invitations": {
-    "title": "Invited Users",
-    "inviteUsers": "📧 Invite Users for Assessment",
-    "invitedUsersList": "Invited Users List",
-    "searchEmail": "Search Email",
-    "invitationTime": "Invitation Time",
-    "validUntil": "Valid Until",
-    "permanent": "Permanent",
-    "copyLink": "Copy Link",
-    "noInvitations": "No invitations",
-    "status": {
-      "completed": "Completed",
-      "expired": "Expired",
-      "notFilled": "Not filled"
-    }
-  },
-  "urls": {
-    "classicSurveyUrl": "Classic Survey URL",
-    "enhancedAssessmentUrl": "Enhanced Assessment URL",
-    "copyUrl": "Copy URL",
-    "showQr": "Show QR",
-    "hideQr": "Hide QR"
-  }
+	"dashboard": {
+		"title": "{{companyName}} Admin Dashboard",
+		"subtitle": "Manage your surveys, assessments and view responses"
+	},
+	"survey": {
+		"title": "Survey",
+		"surveys": "Surveys",
+		"createSurvey": "Create Survey",
+		"editSurvey": "Edit Survey",
+		"deleteSurvey": "Delete Survey",
+		"surveyList": "Survey List",
+		"surveyDetails": "Survey Details",
+		"assessmentDetails": "Assessment Details",
+		"noSurveys": "No surveys found",
+		"searchSurveys": "Search surveys...",
+		"status": {
+			"active": "Active",
+			"draft": "Draft",
+			"closed": "Closed"
+		},
+		"type": {
+			"survey": "Survey",
+			"quiz": "Quiz",
+			"assessment": "Assessment",
+			"iq": "IQ Test"
+		}
+	},
+	"statistics": {
+		"title": "Statistics",
+		"refreshData": "Refresh Data",
+		"overview": "Overview",
+		"totalResponses": "Total Responses",
+		"completionRate": "Completion Rate",
+		"totalQuestions": "Total Questions",
+		"individualResponses": "Individual Responses",
+		"aggregatedResults": "Aggregated Results",
+		"noResponseData": "No response data",
+		"noStatisticsData": "No statistics data, click \"Refresh Data\" to load",
+		"score": "Score",
+		"points": "points",
+		"pass": "Pass",
+		"fail": "Fail",
+		"correct": "Correct",
+		"incorrect": "Incorrect",
+		"timeUsed": "Time used",
+		"minutes": "minutes",
+		"seconds": "seconds",
+		"autoSubmitted": "Auto-submitted"
+	},
+	"invitations": {
+		"title": "Invited Users",
+		"inviteUsers": "📧 Invite Users for Assessment",
+		"invitedUsersList": "Invited Users List",
+		"searchEmail": "Search Email",
+		"invitationTime": "Invitation Time",
+		"validUntil": "Valid Until",
+		"permanent": "Permanent",
+		"copyLink": "Copy Link",
+		"noInvitations": "No invitations",
+		"status": {
+			"completed": "Completed",
+			"expired": "Expired",
+			"notFilled": "Not filled"
+		}
+	},
+	"urls": {
+		"classicSurveyUrl": "Classic Survey URL",
+		"enhancedAssessmentUrl": "Enhanced Assessment URL",
+		"copyUrl": "Copy URL",
+		"showQr": "Show QR",
+		"hideQr": "Hide QR"
+	}
 }

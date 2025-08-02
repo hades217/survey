@@ -53,7 +53,7 @@ export interface EnhancedStats {
 	summary: StatsSummary;
 }
 
-export type TabType = 'list' | 'detail' | 'question-banks' | 'profile';
+export type TabType = 'list' | 'detail' | 'question-banks' | 'profile' | 'billing';
 export type StatsViewType = 'aggregated' | 'individual';
 
 export interface QuestionForm {
@@ -170,4 +170,22 @@ export interface CompanyForm {
 	logoUrl?: string;
 	description?: string;
 	website?: string;
+	// Additional fields from onboarding
+	size?: string;
+	foundedYear?: number;
+	contactEmail?: string;
+	contactPhone?: string;
+	// Address information
+	address?: {
+		street?: string;
+		city?: string;
+		state?: string;
+		country?: string;
+		postalCode?: string;
+	};
+	// Onboarding settings
+	themeColor?: string;
+	customLogoEnabled?: boolean;
+	defaultLanguage?: string;
+	autoNotifyCandidate?: boolean;
 }

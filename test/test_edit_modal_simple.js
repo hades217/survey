@@ -1,7 +1,8 @@
 const axios = require('axios');
 
 const BASE_URL = 'http://localhost:5050';
-const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MzM2Njk0NywiZXhwIjoxNzUzOTcxNzQ3fQ.KSDOGnrSuseMeyQbQmWuQVb2VFdDb6lgatlLKeOc8Ok';
+const JWT_TOKEN =
+	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MzM2Njk0NywiZXhwIjoxNzUzOTcxNzQ3fQ.KSDOGnrSuseMeyQbQmWuQVb2VFdDb6lgatlLKeOc8Ok';
 
 async function testEditModalSimple() {
 	console.log('🧪 简单测试编辑弹窗功能...\n');
@@ -41,7 +42,6 @@ async function testEditModalSimple() {
 		console.log('✅ 弹窗包含完整的问题编辑功能');
 		console.log('✅ 支持问题文本、类型、选项、图片等编辑');
 		console.log('✅ 与AddSurveyQuestionModal保持一致的UI体验');
-
 	} catch (error) {
 		console.error('❌ 测试失败:', error.response?.data || error.message);
 	}

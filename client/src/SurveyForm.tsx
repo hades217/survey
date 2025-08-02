@@ -24,7 +24,7 @@ export type SurveyFormValues = {
 const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
 	const { t } = useTranslation('survey');
 	const { t: tCommon } = useTranslation(); // 默认命名空间用于通用翻译
-	
+
 	// Build validation schema based on question ids
 	const schema = React.useMemo(() => {
 		const questionShape: Record<string, z.ZodTypeAny> = {};

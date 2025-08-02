@@ -70,7 +70,15 @@ const userSchema = new mongoose.Schema({
 	},
 	subscriptionStatus: {
 		type: String,
-		enum: ['active', 'canceled', 'incomplete', 'incomplete_expired', 'past_due', 'trialing', 'unpaid'],
+		enum: [
+			'active',
+			'canceled',
+			'incomplete',
+			'incomplete_expired',
+			'past_due',
+			'trialing',
+			'unpaid',
+		],
 		default: null,
 	},
 	subscriptionCurrentPeriodEnd: {
@@ -84,17 +92,17 @@ const userSchema = new mongoose.Schema({
 });
 
 // Virtual to check if user has active subscription
-userSchema.virtual('hasActiveSubscription').get(function() {
+userSchema.virtual('hasActiveSubscription').get(function () {
 	return this.subscriptionStatus === 'active' || this.subscriptionStatus === 'trialing';
 });
 
 // Virtual to check if user has paid subscription
-userSchema.virtual('hasPaidSubscription').get(function() {
+userSchema.virtual('hasPaidSubscription').get(function () {
 	return this.hasActiveSubscription && this.subscriptionTier !== 'free';
 });
 
 // Method to check if user can access feature based on subscription
-userSchema.methods.canAccessFeature = function(feature) {
+userSchema.methods.canAccessFeature = function (feature) {
 	const SUBSCRIPTION_FEATURES = {
 		free: {
 			maxSurveys: 3,
@@ -105,7 +113,7 @@ userSchema.methods.canAccessFeature = function(feature) {
 			advancedAnalytics: false,
 			randomQuestions: false,
 			fullQuestionBank: false,
-			templates: 1
+			templates: 1,
 		},
 		basic: {
 			maxSurveys: 10,
@@ -116,7 +124,7 @@ userSchema.methods.canAccessFeature = function(feature) {
 			advancedAnalytics: false,
 			randomQuestions: false,
 			fullQuestionBank: false,
-			templates: 3
+			templates: 3,
 		},
 		pro: {
 			maxSurveys: -1, // unlimited
@@ -127,8 +135,8 @@ userSchema.methods.canAccessFeature = function(feature) {
 			advancedAnalytics: true,
 			randomQuestions: true,
 			fullQuestionBank: true,
-			templates: -1 // unlimited
-		}
+			templates: -1, // unlimited
+		},
 	};
 
 	// Default to free plan if no subscription tier set
@@ -140,26 +148,26 @@ userSchema.methods.canAccessFeature = function(feature) {
 };
 
 // Method to check if user has reached limit for a feature
-userSchema.methods.hasReachedLimit = function(feature, currentCount) {
+userSchema.methods.hasReachedLimit = function (feature, currentCount) {
 	const SUBSCRIPTION_FEATURES = {
 		free: {
 			maxSurveys: 3,
 			maxQuestionsPerSurvey: 10,
 			maxInvitees: 10,
-			templates: 1
+			templates: 1,
 		},
 		basic: {
 			maxSurveys: 10,
 			maxQuestionsPerSurvey: 20,
 			maxInvitees: 30,
-			templates: 3
+			templates: 3,
 		},
 		pro: {
 			maxSurveys: -1, // unlimited
 			maxQuestionsPerSurvey: -1, // unlimited
 			maxInvitees: -1, // unlimited
-			templates: -1 // unlimited
-		}
+			templates: -1, // unlimited
+		},
 	};
 
 	// Default to free plan if no subscription tier set
@@ -169,7 +177,7 @@ userSchema.methods.hasReachedLimit = function(feature, currentCount) {
 
 	const limit = plan[feature];
 	if (limit === -1) return false; // unlimited
-	
+
 	return currentCount >= limit;
 };
 

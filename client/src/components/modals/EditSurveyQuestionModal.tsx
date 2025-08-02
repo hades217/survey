@@ -93,7 +93,9 @@ const EditSurveyQuestionModal: React.FC<EditSurveyQuestionModalProps> = ({
 		<div className='fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50'>
 			<div className='bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto'>
 				<div className='flex justify-between items-center p-6 border-b'>
-					<h2 className='text-xl font-semibold text-gray-800'>Edit Question {questionIndex + 1}</h2>
+					<h2 className='text-xl font-semibold text-gray-800'>
+						Edit Question {questionIndex + 1}
+					</h2>
 					<button onClick={onClose} className='text-gray-400 hover:text-gray-600 text-xl'>
 						×
 					</button>
@@ -133,14 +135,15 @@ const EditSurveyQuestionModal: React.FC<EditSurveyQuestionModalProps> = ({
 						</label>
 						<ImageUpload
 							imageUrl={form.descriptionImage || null}
-							onImageUpload={(url) => onChange('descriptionImage', url)}
+							onImageUpload={url => onChange('descriptionImage', url)}
 							onImageRemove={() => onChange('descriptionImage', '')}
 							placeholder='Upload image to illustrate question content'
 							uploadMethod='cloudinary'
 							className='w-full'
 						/>
 						<div className='text-xs text-gray-500 mt-1'>
-							Add an image to help explain the question context (charts, diagrams, scenarios, etc.)
+							Add an image to help explain the question context (charts, diagrams,
+							scenarios, etc.)
 						</div>
 					</div>
 
@@ -225,7 +228,9 @@ const EditSurveyQuestionModal: React.FC<EditSurveyQuestionModalProps> = ({
 																? e.target.value
 																: {
 																	text: e.target.value,
-																	imageUrl: optionImageUrl || undefined,
+																	imageUrl:
+																			optionImageUrl ||
+																			undefined,
 																};
 															onOptionChange(index, newOption);
 														}}
@@ -295,7 +300,9 @@ const EditSurveyQuestionModal: React.FC<EditSurveyQuestionModalProps> = ({
 					{form.type !== QUESTION_TYPE.SHORT_TEXT &&
 						isAssessmentType &&
 						form.options &&
-						form.options.filter(opt => typeof opt === 'string' ? opt.trim() : (opt.text && opt.text.trim())).length >= 2 && (
+						form.options.filter(opt =>
+							typeof opt === 'string' ? opt.trim() : opt.text && opt.text.trim()
+						).length >= 2 && (
 						<div>
 							<label className='block text-sm font-medium text-gray-700 mb-2'>
 									Select Correct Answer(s) *

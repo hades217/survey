@@ -160,12 +160,15 @@ const StudentAssessment = () => {
 
 				// Debug: Log the questions data
 				console.log('Questions response:', questionsResponse.data);
-				console.log('Questions with descriptionImage:', questionsResponse.data.questions.map((q, idx) => ({
-					index: idx,
-					text: q.text?.substring(0, 50),
-					hasDescriptionImage: !!q.descriptionImage,
-					descriptionImage: q.descriptionImage
-				})));
+				console.log(
+					'Questions with descriptionImage:',
+					questionsResponse.data.questions.map((q, idx) => ({
+						index: idx,
+						text: q.text?.substring(0, 50),
+						hasDescriptionImage: !!q.descriptionImage,
+						descriptionImage: q.descriptionImage,
+					}))
+				);
 
 				// Update survey with fetched questions
 				setSurvey(prev => ({
@@ -333,7 +336,9 @@ const StudentAssessment = () => {
 				<div className='bg-white rounded-lg shadow-lg p-8 max-w-md mx-auto text-center'>
 					<div className='text-red-500 text-6xl mb-4'>⚠️</div>
 					<h2 className='text-2xl font-bold text-gray-800 mb-2'>
-						{isInvitationCode(slug) ? 'Invalid or expired invitation code' : 'Assessment Not Found'}
+						{isInvitationCode(slug)
+							? 'Invalid or expired invitation code'
+							: 'Assessment Not Found'}
 					</h2>
 					<p className='text-gray-600 mb-6'>{error}</p>
 					<button
@@ -362,8 +367,11 @@ const StudentAssessment = () => {
 									src={survey.company.logoUrl}
 									alt={survey.company.name || 'Company Logo'}
 									className='mx-auto max-h-20 max-w-48 object-contain'
-									onError={(e) => {
-										console.error('Company logo failed to load:', survey.company.logoUrl);
+									onError={e => {
+										console.error(
+											'Company logo failed to load:',
+											survey.company.logoUrl
+										);
 										e.currentTarget.style.display = 'none';
 									}}
 								/>
@@ -404,7 +412,9 @@ const StudentAssessment = () => {
 
 						<div className='grid md:grid-cols-2 gap-8 mb-8'>
 							<div className='space-y-4'>
-								<h3 className='text-lg font-semibold text-gray-800'>Assessment Information</h3>
+								<h3 className='text-lg font-semibold text-gray-800'>
+									Assessment Information
+								</h3>
 								<div className='space-y-2 text-sm'>
 									<div className='flex justify-between'>
 										<span className='text-gray-600'>Number of Questions:</span>
@@ -453,13 +463,21 @@ const StudentAssessment = () => {
 							</div>
 
 							<div className='space-y-4'>
-								<h3 className='text-lg font-semibold text-gray-800'>Rules Description</h3>
+								<h3 className='text-lg font-semibold text-gray-800'>
+									Rules Description
+								</h3>
 								<div className='text-sm text-gray-600 space-y-2'>
 									{survey.type === 'survey' ? (
 										<>
-											<p>• This is a survey questionnaire with no standard answers</p>
+											<p>
+												• This is a survey questionnaire with no standard
+												answers
+											</p>
 											<p>• Please answer based on your true thoughts</p>
-											<p>• A thank you page will be displayed after submission</p>
+											<p>
+												• A thank you page will be displayed after
+												submission
+											</p>
 										</>
 									) : (
 										<>
@@ -472,9 +490,17 @@ const StudentAssessment = () => {
 														: 'IQ Test'}
 												with standard answers
 											</p>
-											<p>• Please read each question carefully before answering</p>
-											<p>• Scores and correct answers will be displayed after submission</p>
-											{survey.timeLimit && <p>• Auto-submit when time expires</p>}
+											<p>
+												• Please read each question carefully before
+												answering
+											</p>
+											<p>
+												• Scores and correct answers will be displayed after
+												submission
+											</p>
+											{survey.timeLimit && (
+												<p>• Auto-submit when time expires</p>
+											)}
 										</>
 									)}
 									<p>• All questions are required</p>
@@ -565,8 +591,11 @@ const StudentAssessment = () => {
 									src={survey.company.logoUrl}
 									alt={survey.company.name || 'Company Logo'}
 									className='mx-auto max-h-12 max-w-32 object-contain'
-									onError={(e) => {
-										console.error('Company logo failed to load:', survey.company.logoUrl);
+									onError={e => {
+										console.error(
+											'Company logo failed to load:',
+											survey.company.logoUrl
+										);
 										e.currentTarget.style.display = 'none';
 									}}
 								/>
@@ -629,10 +658,16 @@ const StudentAssessment = () => {
 										alt='Question image'
 										className='max-w-full h-auto rounded-lg border border-gray-300'
 										onLoad={() => {
-											console.log('Main image loaded successfully:', currentQuestion.imageUrl);
+											console.log(
+												'Main image loaded successfully:',
+												currentQuestion.imageUrl
+											);
 										}}
-										onError={(e) => {
-											console.error('Main image failed to load:', currentQuestion.imageUrl);
+										onError={e => {
+											console.error(
+												'Main image failed to load:',
+												currentQuestion.imageUrl
+											);
 											console.error('Error event:', e);
 											e.currentTarget.style.display = 'none';
 										}}
@@ -648,17 +683,29 @@ const StudentAssessment = () => {
 										alt='Question illustration'
 										className='max-w-full h-auto rounded-lg border border-gray-300'
 										onLoad={() => {
-											console.log('Description image loaded successfully:', currentQuestion.descriptionImage);
+											console.log(
+												'Description image loaded successfully:',
+												currentQuestion.descriptionImage
+											);
 										}}
-										onError={(e) => {
-											console.error('Description image failed to load:', currentQuestion.descriptionImage);
+										onError={e => {
+											console.error(
+												'Description image failed to load:',
+												currentQuestion.descriptionImage
+											);
 											console.error('Error event:', e);
 											e.currentTarget.style.display = 'none';
 										}}
 									/>
 								</div>
 							)}
-							{(currentQuestion.imageUrl || currentQuestion.descriptionImage) && console.log('Rendering images for current question, imageUrl:', currentQuestion.imageUrl, 'descriptionImage:', currentQuestion.descriptionImage)}
+							{(currentQuestion.imageUrl || currentQuestion.descriptionImage) &&
+								console.log(
+									'Rendering images for current question, imageUrl:',
+									currentQuestion.imageUrl,
+									'descriptionImage:',
+									currentQuestion.descriptionImage
+								)}
 
 							<div className='space-y-3'>
 								{currentQuestion.type === 'short_text' ? (
@@ -678,99 +725,124 @@ const StudentAssessment = () => {
 								) : currentQuestion.type === 'single_choice' ? (
 									// Single choice options
 									currentQuestion.options.map((option, index) => {
-										const optionValue = typeof option === 'string' ? option : option.text;
-										const optionText = typeof option === 'string' ? option : option.text;
-										const optionImage = typeof option === 'object' ? option.imageUrl : null;
+										const optionValue =
+											typeof option === 'string' ? option : option.text;
+										const optionText =
+											typeof option === 'string' ? option : option.text;
+										const optionImage =
+											typeof option === 'object' ? option.imageUrl : null;
 										return (
-										<label
-											key={index}
-											className='flex items-start p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition-colors'
-										>
-											<input
-												type='radio'
-												name={currentQuestion._id}
-												value={optionValue}
-												checked={
-													form.answers[currentQuestion._id] === optionValue
-												}
-												onChange={() =>
-													handleSingleChoiceChange(
-														currentQuestion._id,
+											<label
+												key={index}
+												className='flex items-start p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition-colors'
+											>
+												<input
+													type='radio'
+													name={currentQuestion._id}
+													value={optionValue}
+													checked={
+														form.answers[currentQuestion._id] ===
 														optionValue
-													)
-												}
-												className='mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 mt-1'
-											/>
-											<div className='flex-1'>
-												{optionText && (
-													<span className='text-gray-700 block mb-2'>{optionText}</span>
-												)}
-												{optionImage && (
-													<img
-														src={optionImage}
-														alt={`Option ${index + 1}`}
-														className='max-w-full h-auto rounded border border-gray-300'
-														style={{ maxHeight: '200px' }}
-														onLoad={() => {
-															console.log('Option image loaded successfully:', optionImage);
-														}}
-														onError={(e) => {
-															console.error('Option image failed to load:', optionImage);
-															e.currentTarget.style.display = 'none';
-														}}
-													/>
-												)}
-											</div>
-										</label>
+													}
+													onChange={() =>
+														handleSingleChoiceChange(
+															currentQuestion._id,
+															optionValue
+														)
+													}
+													className='mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 mt-1'
+												/>
+												<div className='flex-1'>
+													{optionText && (
+														<span className='text-gray-700 block mb-2'>
+															{optionText}
+														</span>
+													)}
+													{optionImage && (
+														<img
+															src={optionImage}
+															alt={`Option ${index + 1}`}
+															className='max-w-full h-auto rounded border border-gray-300'
+															style={{ maxHeight: '200px' }}
+															onLoad={() => {
+																console.log(
+																	'Option image loaded successfully:',
+																	optionImage
+																);
+															}}
+															onError={e => {
+																console.error(
+																	'Option image failed to load:',
+																	optionImage
+																);
+																e.currentTarget.style.display =
+																	'none';
+															}}
+														/>
+													)}
+												</div>
+											</label>
 										);
 									})
 								) : (
 									// Multiple choice options
 									currentQuestion.options.map((option, index) => {
-										const optionValue = typeof option === 'string' ? option : option.text;
-										const optionText = typeof option === 'string' ? option : option.text;
-										const optionImage = typeof option === 'object' ? option.imageUrl : null;
+										const optionValue =
+											typeof option === 'string' ? option : option.text;
+										const optionText =
+											typeof option === 'string' ? option : option.text;
+										const optionImage =
+											typeof option === 'object' ? option.imageUrl : null;
 										return (
-										<label
-											key={index}
-											className='flex items-start p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition-colors'
-										>
-											<input
-												type='checkbox'
-												value={optionValue}
-												checked={(
-													form.answers[currentQuestion._id] || []
-												).includes(optionValue)}
-												onChange={e =>
-													handleMultipleChoiceChange(
-														currentQuestion._id,
-														optionValue,
-														e.target.checked
-													)
-												}
-												className='mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1'
-											/>
-											<div className='flex-1'>
-												{optionText && (
-													<span className='text-gray-700 block mb-2'>{optionText}</span>
-												)}
-												{optionImage && (
-													<img
-														src={optionImage}
-														alt={`Option ${index + 1}`}
-														className='max-w-full h-auto rounded border border-gray-300'
-														style={{ maxHeight: '200px' }}
-														onLoad={() => {
-															console.log('Option image loaded successfully:', optionImage);
-														}}
-														onError={(e) => {
-															console.error('Option image failed to load:', optionImage);
-															e.currentTarget.style.display = 'none';
-														}}
-													/>
-												)}
-											</div>
-										</label>
+											<label
+												key={index}
+												className='flex items-start p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition-colors'
+											>
+												<input
+													type='checkbox'
+													value={optionValue}
+													checked={(
+														form.answers[currentQuestion._id] || []
+													).includes(optionValue)}
+													onChange={e =>
+														handleMultipleChoiceChange(
+															currentQuestion._id,
+															optionValue,
+															e.target.checked
+														)
+													}
+													className='mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1'
+												/>
+												<div className='flex-1'>
+													{optionText && (
+														<span className='text-gray-700 block mb-2'>
+															{optionText}
+														</span>
+													)}
+													{optionImage && (
+														<img
+															src={optionImage}
+															alt={`Option ${index + 1}`}
+															className='max-w-full h-auto rounded border border-gray-300'
+															style={{ maxHeight: '200px' }}
+															onLoad={() => {
+																console.log(
+																	'Option image loaded successfully:',
+																	optionImage
+																);
+															}}
+															onError={e => {
+																console.error(
+																	'Option image failed to load:',
+																	optionImage
+																);
+																e.currentTarget.style.display =
+																	'none';
+															}}
+														/>
+													)}
+												</div>
+											</label>
 										);
 									})
 								)}
@@ -819,8 +891,11 @@ const StudentAssessment = () => {
 									src={survey.company.logoUrl}
 									alt={survey.company.name || 'Company Logo'}
 									className='mx-auto max-h-16 max-w-40 object-contain'
-									onError={(e) => {
-										console.error('Company logo failed to load:', survey.company.logoUrl);
+									onError={e => {
+										console.error(
+											'Company logo failed to load:',
+											survey.company.logoUrl
+										);
 										e.currentTarget.style.display = 'none';
 									}}
 								/>
@@ -886,8 +961,9 @@ const StudentAssessment = () => {
 																src={result.descriptionImage}
 																alt='Question illustration'
 																className='max-w-full h-auto rounded-lg border border-gray-300'
-																onError={(e) => {
-																	e.currentTarget.style.display = 'none';
+																onError={e => {
+																	e.currentTarget.style.display =
+																		'none';
 																}}
 															/>
 														</div>
@@ -898,11 +974,24 @@ const StudentAssessment = () => {
 																您的答案:
 															</span>{' '}
 															{Array.isArray(result.userAnswer)
-																? result.userAnswer.map(ans =>
-																	typeof ans === 'object' ? ans.text || ans.value || JSON.stringify(ans) : ans
-																  ).join(', ')
-																: typeof result.userAnswer === 'object'
-																	? result.userAnswer?.text || result.userAnswer?.value || JSON.stringify(result.userAnswer)
+																? result.userAnswer
+																		.map(ans =>
+																			typeof ans === 'object'
+																				? ans.text ||
+																					ans.value ||
+																					JSON.stringify(
+																						ans
+																					)
+																				: ans
+																		)
+																		.join(', ')
+																: typeof result.userAnswer ===
+																	  'object'
+																	? result.userAnswer?.text ||
+																		result.userAnswer?.value ||
+																		JSON.stringify(
+																			result.userAnswer
+																		)
 																	: result.userAnswer || '未作答'}
 														</div>
 														{!result.isCorrect && (
@@ -911,11 +1000,27 @@ const StudentAssessment = () => {
 																	正确答案:
 																</span>{' '}
 																{Array.isArray(result.correctAnswer)
-																	? result.correctAnswer.map(ans =>
-																		typeof ans === 'object' ? ans.text || ans.value || JSON.stringify(ans) : ans
-																	  ).join(', ')
-																	: typeof result.correctAnswer === 'object'
-																		? result.correctAnswer?.text || result.correctAnswer?.value || JSON.stringify(result.correctAnswer)
+																	? result.correctAnswer
+																			.map(ans =>
+																				typeof ans ===
+																				'object'
+																					? ans.text ||
+																						ans.value ||
+																						JSON.stringify(
+																							ans
+																						)
+																					: ans
+																			)
+																			.join(', ')
+																	: typeof result.correctAnswer ===
+																		  'object'
+																		? result.correctAnswer
+																				?.text ||
+																			result.correctAnswer
+																				?.value ||
+																			JSON.stringify(
+																				result.correctAnswer
+																			)
 																		: result.correctAnswer}
 															</div>
 														)}

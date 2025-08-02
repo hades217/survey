@@ -1,7 +1,8 @@
 const axios = require('axios');
 
 const BASE_URL = 'http://localhost:5050';
-const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MzM2Njk0NywiZXhwIjoxNzUzOTcxNzQ3fQ.KSDOGnrSuseMeyQbQmWuQVb2VFdDb6lgatlLKeOc8Ok';
+const JWT_TOKEN =
+	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MzM2Njk0NywiZXhwIjoxNzUzOTcxNzQ3fQ.KSDOGnrSuseMeyQbQmWuQVb2VFdDb6lgatlLKeOc8Ok';
 
 // Test image URLs (using placeholder images)
 const TEST_IMAGES = {
@@ -9,7 +10,7 @@ const TEST_IMAGES = {
 	optionImage1: 'https://via.placeholder.com/200x150/10B981/FFFFFF?text=Option+A',
 	optionImage2: 'https://via.placeholder.com/200x150/F59E0B/FFFFFF?text=Option+B',
 	optionImage3: 'https://via.placeholder.com/200x150/EF4444/FFFFFF?text=Option+C',
-	optionImage4: 'https://via.placeholder.com/200x150/8B5CF6/FFFFFF?text=Option+D'
+	optionImage4: 'https://via.placeholder.com/200x150/8B5CF6/FFFFFF?text=Option+D',
 };
 
 async function testImageDisplay() {
@@ -37,23 +38,23 @@ async function testImageDisplay() {
 					options: [
 						{
 							text: 'Green',
-							imageUrl: TEST_IMAGES.optionImage1
+							imageUrl: TEST_IMAGES.optionImage1,
 						},
 						{
 							text: 'Yellow',
-							imageUrl: TEST_IMAGES.optionImage2
+							imageUrl: TEST_IMAGES.optionImage2,
 						},
 						{
 							text: 'Red',
-							imageUrl: TEST_IMAGES.optionImage3
+							imageUrl: TEST_IMAGES.optionImage3,
 						},
 						{
 							text: 'Purple',
-							imageUrl: TEST_IMAGES.optionImage4
-						}
+							imageUrl: TEST_IMAGES.optionImage4,
+						},
 					],
 					correctAnswer: 0,
-					points: 5
+					points: 5,
 				},
 				{
 					text: 'Select all shapes you can see:',
@@ -61,28 +62,32 @@ async function testImageDisplay() {
 					options: [
 						{
 							text: 'Circle',
-							imageUrl: 'https://via.placeholder.com/150x150/3B82F6/FFFFFF?text=Circle'
+							imageUrl:
+								'https://via.placeholder.com/150x150/3B82F6/FFFFFF?text=Circle',
 						},
 						{
 							text: 'Square',
-							imageUrl: 'https://via.placeholder.com/150x150/EF4444/FFFFFF?text=Square'
+							imageUrl:
+								'https://via.placeholder.com/150x150/EF4444/FFFFFF?text=Square',
 						},
 						{
 							text: 'Triangle',
-							imageUrl: 'https://via.placeholder.com/150x150/10B981/FFFFFF?text=Triangle'
-						}
+							imageUrl:
+								'https://via.placeholder.com/150x150/10B981/FFFFFF?text=Triangle',
+						},
 					],
 					correctAnswer: [0, 1],
-					points: 10
+					points: 10,
 				},
 				{
 					text: 'Describe what you see in the image below:',
-					imageUrl: 'https://via.placeholder.com/500x300/8B5CF6/FFFFFF?text=Describe+This+Image',
+					imageUrl:
+						'https://via.placeholder.com/500x300/8B5CF6/FFFFFF?text=Describe+This+Image',
 					type: 'short_text',
 					correctAnswer: 'A purple rectangle with white text',
-					points: 15
-				}
-			]
+					points: 15,
+				},
+			],
 		};
 
 		const createResponse = await axios.post(`${BASE_URL}/api/admin/surveys`, surveyData);
@@ -134,7 +139,7 @@ async function testImageDisplay() {
 		const testAnswers = {
 			name: 'Image Test User',
 			email: 'image-test@example.com',
-			answers: {}
+			answers: {},
 		};
 
 		// 为每个问题添加答案
@@ -150,13 +155,15 @@ async function testImageDisplay() {
 
 		const submitResponse = await axios.post(`${BASE_URL}/api/responses`, {
 			surveyId: survey._id,
-			...testAnswers
+			...testAnswers,
 		});
 		console.log('✅ 测试答案提交成功');
 
 		// 6. 验证统计数据显示
 		console.log('\n6. 验证统计数据显示...');
-		const statsResponse = await axios.get(`${BASE_URL}/api/admin/surveys/${survey._id}/statistics`);
+		const statsResponse = await axios.get(
+			`${BASE_URL}/api/admin/surveys/${survey._id}/statistics`
+		);
 		const stats = statsResponse.data;
 		console.log(`✅ 统计数据获取成功`);
 		console.log(`   - 总回复数: ${stats.summary.totalResponses}`);
@@ -169,7 +176,7 @@ async function testImageDisplay() {
 			TEST_IMAGES.optionImage1,
 			TEST_IMAGES.optionImage2,
 			TEST_IMAGES.optionImage3,
-			TEST_IMAGES.optionImage4
+			TEST_IMAGES.optionImage4,
 		];
 
 		for (const url of imageUrls) {
@@ -200,7 +207,6 @@ async function testImageDisplay() {
 		console.log('\n8. 清理测试数据...');
 		await axios.delete(`${BASE_URL}/api/admin/surveys/${survey._id}`);
 		console.log('✅ 测试数据清理完成');
-
 	} catch (error) {
 		console.error('❌ 测试失败:', error.response?.data || error.message);
 	}

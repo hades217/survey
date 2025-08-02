@@ -7,6 +7,7 @@ import SurveyDetailView from './surveys/SurveyDetailView';
 import QuestionBankListView from './questionBanks/QuestionBankListView';
 import QuestionBankDetailView from './questionBanks/QuestionBankDetailView';
 import ProfileView from './profile/ProfileView';
+import BillingView from './billing/BillingView';
 import CreateSurveyModal from './modals/CreateSurveyModal';
 import EditSurveyModal from './modals/EditSurveyModal';
 import ScoringModal from './modals/ScoringModal';
@@ -30,6 +31,10 @@ const AdminDashboard: React.FC = () => {
 
 		if (tab === 'profile') {
 			return <ProfileView />;
+		}
+
+		if (tab === 'billing') {
+			return <BillingView />;
 		}
 
 		// Default: survey list view

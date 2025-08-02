@@ -51,6 +51,12 @@ const responseSchema = new mongoose.Schema({
 				pointsAwarded: { type: Number, default: 0 },
 				maxPoints: { type: Number, default: 1 },
 			},
+			// Answer time tracking for this question
+			durationInSeconds: {
+				type: Number,
+				default: 0,
+				min: 0,
+			},
 		},
 	],
 	// For question bank submissions: store the selected question IDs (legacy support)
@@ -137,6 +143,7 @@ responseSchema.methods.createQuestionSnapshots = function (questions, userAnswer
 				pointsAwarded: 0,
 				maxPoints: question.points || 1,
 			},
+			durationInSeconds: 0, // Initialize duration to 0
 		};
 
 		// Calculate scoring for this question

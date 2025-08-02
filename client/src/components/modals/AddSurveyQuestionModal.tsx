@@ -169,14 +169,15 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 						</label>
 						<ImageUpload
 							imageUrl={form.descriptionImage || null}
-							onImageUpload={(url) => onChange('descriptionImage', url)}
+							onImageUpload={url => onChange('descriptionImage', url)}
 							onImageRemove={() => onChange('descriptionImage', '')}
 							placeholder='Upload image to illustrate question content'
 							uploadMethod='cloudinary'
 							className='w-full'
 						/>
 						<div className='text-xs text-gray-500 mt-1'>
-							Add an image to help explain the question context (charts, diagrams, scenarios, etc.)
+							Add an image to help explain the question context (charts, diagrams,
+							scenarios, etc.)
 						</div>
 					</div>
 

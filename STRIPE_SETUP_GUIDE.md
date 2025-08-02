@@ -14,6 +14,7 @@ This guide will help you set up the complete Stripe subscription system for your
 ### 1. Install Dependencies
 
 Dependencies are already included in your `package.json` files:
+
 - Backend: `stripe: ^18.4.0`
 - Frontend: `@stripe/stripe-js: ^2.4.0`
 
@@ -23,28 +24,28 @@ Dependencies are already included in your `package.json` files:
 
 1. **Go to Stripe Dashboard** → Products
 2. **Create Basic Plan**:
-   - Name: "Basic Plan"
-   - Description: "Essential survey features for small teams"
-   - Price: $19.00 USD/month (recurring)
-   - Copy the Price ID (starts with `price_`)
+    - Name: "Basic Plan"
+    - Description: "Essential survey features for small teams"
+    - Price: $19.00 USD/month (recurring)
+    - Copy the Price ID (starts with `price_`)
 
 3. **Create Pro Plan**:
-   - Name: "Pro Plan" 
-   - Description: "Advanced survey features for growing businesses"
-   - Price: $49.00 USD/month (recurring)
-   - Copy the Price ID (starts with `price_`)
+    - Name: "Pro Plan"
+    - Description: "Advanced survey features for growing businesses"
+    - Price: $49.00 USD/month (recurring)
+    - Copy the Price ID (starts with `price_`)
 
 #### Set up Webhook:
 
 1. **Go to Webhooks** → Add endpoint
 2. **Endpoint URL**: `https://yourdomain.com/api/stripe/webhook`
 3. **Select Events**:
-   - `checkout.session.completed`
-   - `customer.subscription.created`
-   - `customer.subscription.updated`
-   - `customer.subscription.deleted`
-   - `invoice.payment_succeeded`
-   - `invoice.payment_failed`
+    - `checkout.session.completed`
+    - `customer.subscription.created`
+    - `customer.subscription.updated`
+    - `customer.subscription.deleted`
+    - `invoice.payment_succeeded`
+    - `invoice.payment_failed`
 4. **Copy Webhook Secret** (starts with `whsec_`)
 
 ### 3. Environment Variables
@@ -98,7 +99,7 @@ Add the billing page to your router. Example with React Router:
 import BillingPage from './components/BillingPage';
 
 // Add this route
-<Route path="/billing" element={<BillingPage />} />
+<Route path="/billing" element={<BillingPage />} />;
 ```
 
 ## 🎯 Feature Implementation Examples
@@ -111,45 +112,43 @@ import { useSubscription } from '../hooks/useSubscription';
 import UpgradePrompt from '../components/UpgradePrompt';
 
 const SurveyCreation = () => {
-  const { hasReachedLimit, getUpgradeMessage } = useSubscription();
-  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
-  const [currentSurveyCount, setCurrentSurveyCount] = useState(0);
+	const { hasReachedLimit, getUpgradeMessage } = useSubscription();
+	const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+	const [currentSurveyCount, setCurrentSurveyCount] = useState(0);
 
-  const handleCreateSurvey = async () => {
-    if (hasReachedLimit('maxSurveys', currentSurveyCount)) {
-      setShowUpgradePrompt(true);
-      return;
-    }
-    
-    // Proceed with survey creation
-    try {
-      const response = await axios.post('/api/surveys', surveyData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      // Handle success
-    } catch (error) {
-      if (error.response?.data?.code === 'USAGE_LIMIT_REACHED') {
-        setShowUpgradePrompt(true);
-      }
-    }
-  };
+	const handleCreateSurvey = async () => {
+		if (hasReachedLimit('maxSurveys', currentSurveyCount)) {
+			setShowUpgradePrompt(true);
+			return;
+		}
 
-  return (
-    <div>
-      <button onClick={handleCreateSurvey}>
-        Create New Survey
-      </button>
-      
-      {showUpgradePrompt && (
-        <UpgradePrompt
-          message={getUpgradeMessage('maxSurveys')}
-          currentPlan={subscriptionInfo?.subscriptionTier}
-          onClose={() => setShowUpgradePrompt(false)}
-          showFeatureComparison={true}
-        />
-      )}
-    </div>
-  );
+		// Proceed with survey creation
+		try {
+			const response = await axios.post('/api/surveys', surveyData, {
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			// Handle success
+		} catch (error) {
+			if (error.response?.data?.code === 'USAGE_LIMIT_REACHED') {
+				setShowUpgradePrompt(true);
+			}
+		}
+	};
+
+	return (
+		<div>
+			<button onClick={handleCreateSurvey}>Create New Survey</button>
+
+			{showUpgradePrompt && (
+				<UpgradePrompt
+					message={getUpgradeMessage('maxSurveys')}
+					currentPlan={subscriptionInfo?.subscriptionTier}
+					onClose={() => setShowUpgradePrompt(false)}
+					showFeatureComparison={true}
+				/>
+			)}
+		</div>
+	);
 };
 ```
 
@@ -160,22 +159,24 @@ const SurveyCreation = () => {
 const { requireActiveSubscription, checkUsageLimit } = require('../middlewares/subscription');
 
 // Protect survey creation with subscription check and usage limit
-router.post('/surveys', 
-  authenticateToken, 
-  requireActiveSubscription,
-  checkUsageLimit('maxSurveys'),
-  async (req, res) => {
-    // Survey creation logic
-  }
+router.post(
+	'/surveys',
+	authenticateToken,
+	requireActiveSubscription,
+	checkUsageLimit('maxSurveys'),
+	async (req, res) => {
+		// Survey creation logic
+	}
 );
 
 // Protect CSV import feature
-router.post('/surveys/:id/import-csv',
-  authenticateToken,
-  requireFeature('csvImport'),
-  async (req, res) => {
-    // CSV import logic
-  }
+router.post(
+	'/surveys/:id/import-csv',
+	authenticateToken,
+	requireFeature('csvImport'),
+	async (req, res) => {
+		// CSV import logic
+	}
 );
 ```
 
@@ -184,35 +185,31 @@ router.post('/surveys/:id/import-csv',
 ```tsx
 // In your survey editor
 const SurveyEditor = () => {
-  const { canAccessFeature, needsUpgradeFor } = useSubscription();
+	const { canAccessFeature, needsUpgradeFor } = useSubscription();
 
-  return (
-    <div>
-      {/* CSV Import Button */}
-      {canAccessFeature('csvImport') ? (
-        <button onClick={handleCSVImport}>
-          Import from CSV
-        </button>
-      ) : (
-        <UpgradePrompt
-          inline={true}
-          message="CSV import is available in Pro plan"
-          currentPlan={subscriptionInfo?.subscriptionTier}
-        />
-      )}
+	return (
+		<div>
+			{/* CSV Import Button */}
+			{canAccessFeature('csvImport') ? (
+				<button onClick={handleCSVImport}>Import from CSV</button>
+			) : (
+				<UpgradePrompt
+					inline={true}
+					message="CSV import is available in Pro plan"
+					currentPlan={subscriptionInfo?.subscriptionTier}
+				/>
+			)}
 
-      {/* Image Questions */}
-      {canAccessFeature('imageQuestions') ? (
-        <button onClick={addImageQuestion}>
-          Add Image Question
-        </button>
-      ) : (
-        <div className="opacity-50 cursor-not-allowed">
-          <button disabled>Add Image Question (Pro Only)</button>
-        </div>
-      )}
-    </div>
-  );
+			{/* Image Questions */}
+			{canAccessFeature('imageQuestions') ? (
+				<button onClick={addImageQuestion}>Add Image Question</button>
+			) : (
+				<div className="opacity-50 cursor-not-allowed">
+					<button disabled>Add Image Question (Pro Only)</button>
+				</div>
+			)}
+		</div>
+	);
 };
 ```
 
@@ -243,17 +240,17 @@ router.post('/surveys/:id/questions', authenticateToken, checkQuestionLimit, han
 
 ## 📊 Plan Feature Matrix
 
-| Feature | Basic Plan | Pro Plan |
-|---------|------------|----------|
-| Max Surveys | 3 | Unlimited |
-| Max Questions per Survey | 20 | Unlimited |
-| Max Invitees | 30 | Unlimited |
-| CSV Import | ❌ | ✅ |
-| Image Questions | ❌ | ✅ |
-| Advanced Analytics | ❌ | ✅ |
-| Random Questions | ❌ | ✅ |
-| Full Question Bank | ❌ | ✅ |
-| Survey Templates | 3 | Unlimited |
+| Feature                  | Basic Plan | Pro Plan  |
+| ------------------------ | ---------- | --------- |
+| Max Surveys              | 3          | Unlimited |
+| Max Questions per Survey | 20         | Unlimited |
+| Max Invitees             | 30         | Unlimited |
+| CSV Import               | ❌         | ✅        |
+| Image Questions          | ❌         | ✅        |
+| Advanced Analytics       | ❌         | ✅        |
+| Random Questions         | ❌         | ✅        |
+| Full Question Bank       | ❌         | ✅        |
+| Survey Templates         | 3          | Unlimited |
 
 ## 🧪 Testing
 
@@ -298,24 +295,25 @@ stripe listen --forward-to localhost:3000/api/stripe/webhook
 ### Common Issues:
 
 1. **Webhook Signature Verification Failed**:
-   - Check webhook secret in environment variables
-   - Ensure raw body parsing for webhook endpoint
+    - Check webhook secret in environment variables
+    - Ensure raw body parsing for webhook endpoint
 
 2. **Subscription Not Updating**:
-   - Verify webhook events are configured correctly
-   - Check webhook endpoint is accessible
+    - Verify webhook events are configured correctly
+    - Check webhook endpoint is accessible
 
 3. **Checkout Session Creation Failed**:
-   - Verify Stripe keys and price IDs
-   - Check user authentication
+    - Verify Stripe keys and price IDs
+    - Check user authentication
 
 4. **Feature Access Denied**:
-   - Ensure subscription status is 'active' or 'trialing'
-   - Verify plan features configuration
+    - Ensure subscription status is 'active' or 'trialing'
+    - Verify plan features configuration
 
 ### Debug Mode:
 
 Enable detailed logging by setting:
+
 ```env
 NODE_ENV=development
 ```
