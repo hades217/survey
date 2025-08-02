@@ -12,7 +12,8 @@ interface SurveyCardProps {
 const SurveyCard: React.FC<SurveyCardProps> = ({ survey }) => {
 	const { t } = useTranslation();
 	const { showQR, setShowQR, copyToClipboard } = useAdmin();
-	const { toggleSurveyStatus, deleteSurvey, handleSurveyClick, openEditModal, duplicateSurvey } = useSurveys();
+	const { toggleSurveyStatus, deleteSurvey, handleSurveyClick, openEditModal, duplicateSurvey } =
+		useSurveys();
 
 	// Add safety checks for survey data
 	if (!survey) {
@@ -77,8 +78,12 @@ const SurveyCard: React.FC<SurveyCardProps> = ({ survey }) => {
 					</div>
 					<p className='text-gray-600 mb-2'>{survey.description || 'No description'}</p>
 					<div className='flex items-center gap-4 text-sm text-gray-500'>
-						<span>{survey.questions?.length || 0} {t('survey.questions')}</span>
-						<span>{survey.responseCount || 0} {t('survey.responses')}</span>
+						<span>
+							{survey.questions?.length || 0} {t('survey.questions')}
+						</span>
+						<span>
+							{survey.responseCount || 0} {t('survey.responses')}
+						</span>
 						<span>
 							Created:{' '}
 							{survey.createdAt

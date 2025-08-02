@@ -472,7 +472,6 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			// Close modal
 			setShowEditQuestionModal(false);
 			setEditingQuestionIndex(-1);
-
 		} catch (error) {
 			console.error('Error updating question:', error);
 			setError('Failed to update question. Please try again.');
@@ -897,7 +896,9 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 										<div className='flex justify-between'>
 											<span className='text-gray-600'>Source:</span>
 											<span className='font-medium text-purple-600'>
-												{questionBanks.find(bank => bank._id === s.questionBankId)?.name || 'Unknown Question Bank'}
+												{questionBanks.find(
+													bank => bank._id === s.questionBankId
+												)?.name || 'Unknown Question Bank'}
 											</span>
 										</div>
 										<div className='flex justify-between'>
@@ -1094,10 +1095,10 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																			QUESTION_TYPE.MULTIPLE_CHOICE
 																				? 'bg-purple-100 text-purple-800'
 																				: q.type ===
-																				  QUESTION_TYPE.SINGLE_CHOICE
+																					  QUESTION_TYPE.SINGLE_CHOICE
 																					? 'bg-green-100 text-green-800'
 																					: q.type ===
-																					  QUESTION_TYPE.SHORT_TEXT
+																						  QUESTION_TYPE.SHORT_TEXT
 																						? 'bg-orange-100 text-orange-800'
 																						: 'bg-gray-100 text-gray-800'
 																		}`}
@@ -1143,94 +1144,81 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																<button
 																	className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
 																	onClick={() =>
-																		deleteQuestion(
-																			s._id,
-																			idx
-																		)
+																		deleteQuestion(s._id, idx)
 																	}
 																>
 																	Delete
 																</button>
 															</div>
 														</div>
-														{q.type ===
-														QUESTION_TYPE.SHORT_TEXT ? (
-																<div className='text-sm text-gray-600 mb-1'>
-																	<div className='font-medium'>
-																Type: Text Response
-																	</div>
-																	{TYPES_REQUIRING_ANSWERS.includes(
-																s.type as any
-																	) &&
-																q.correctAnswer &&
-																typeof q.correctAnswer ===
-																	'string' && (
-																		<div className='text-xs text-green-600 font-medium mt-1'>
-																		✓ Expected
-																		Answer:{' '}
-																			{
-																				q.correctAnswer
-																			}
-																		</div>
-																	)}
+														{q.type === QUESTION_TYPE.SHORT_TEXT ? (
+															<div className='text-sm text-gray-600 mb-1'>
+																<div className='font-medium'>
+																	Type: Text Response
 																</div>
-															) : (
-																<>
-																	<div className='text-sm text-gray-600 mb-1'>
-																Options:{' '}
-																		{q.options &&
-																	q.options.map(
-																		(
-																			opt,
-																			optIdx
-																		) => {
-																			const isCorrect =
-																				Array.isArray(
-																					q.correctAnswer
-																				)
-																					? q.correctAnswer.includes(
-																						optIdx
-																					)
-																					: q.correctAnswer ===
-																						optIdx;
-																			return (
-																				<span
-																					key={
-																						optIdx
-																					}
-																					className={`${TYPES_REQUIRING_ANSWERS.includes(s.type as any) && isCorrect ? 'font-semibold text-green-600' : ''}`}
-																				>
-																					{
-																						typeof opt === 'string' ? opt : opt.text
-																					}
-																					{optIdx <
-																					(q
-																						.options
-																						?.length ||
-																						0) -
-																						1
-																						? ', '
-																						: ''}
-																				</span>
-																			);
-																		}
-																	)}
+																{TYPES_REQUIRING_ANSWERS.includes(
+																	s.type as any
+																) &&
+																	q.correctAnswer &&
+																	typeof q.correctAnswer ===
+																		'string' && (
+																	<div className='text-xs text-green-600 font-medium mt-1'>
+																			✓ Expected Answer:{' '}
+																		{q.correctAnswer}
 																	</div>
-																	{TYPES_REQUIRING_ANSWERS.includes(
-																		s.type
-																	) &&
-																q.correctAnswer !==
-																	undefined &&
-																q.type &&
-																q.type !==
-																	QUESTION_TYPE.SHORT_TEXT && (
-																		<div className='text-xs text-green-600 font-medium'>
-																		✓ Correct Answer
-																		Selected
-																		</div>
-																	)}
-																</>
-															)}
+																)}
+															</div>
+														) : (
+															<>
+																<div className='text-sm text-gray-600 mb-1'>
+																	Options:{' '}
+																	{q.options &&
+																		q.options.map(
+																			(opt, optIdx) => {
+																				const isCorrect =
+																					Array.isArray(
+																						q.correctAnswer
+																					)
+																						? q.correctAnswer.includes(
+																							optIdx
+																						)
+																						: q.correctAnswer ===
+																							optIdx;
+																				return (
+																					<span
+																						key={optIdx}
+																						className={`${TYPES_REQUIRING_ANSWERS.includes(s.type as any) && isCorrect ? 'font-semibold text-green-600' : ''}`}
+																					>
+																						{typeof opt ===
+																						'string'
+																							? opt
+																							: opt.text}
+																						{optIdx <
+																						(q.options
+																							?.length ||
+																							0) -
+																							1
+																							? ', '
+																							: ''}
+																					</span>
+																				);
+																			}
+																		)}
+																</div>
+																{TYPES_REQUIRING_ANSWERS.includes(
+																	s.type
+																) &&
+																	q.correctAnswer !== undefined &&
+																	q.type &&
+																	q.type !==
+																		QUESTION_TYPE.SHORT_TEXT && (
+																	<div className='text-xs text-green-600 font-medium'>
+																			✓ Correct Answer
+																			Selected
+																	</div>
+																)}
+															</>
+														)}
 													</div>
 												</div>
 											))}
@@ -1277,35 +1265,52 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 									</h4>
 									<div className='bg-blue-50 rounded-lg p-4'>
 										<div className='space-y-3'>
-											{s.multiQuestionBankConfig && s.multiQuestionBankConfig.length > 0 ? (
-												s.multiQuestionBankConfig.map((config: any, index: number) => {
-													const bank = questionBanks.find(b => b._id === config.questionBankId);
-													return (
-														<div key={index} className='flex items-center justify-between p-3 bg-white rounded-lg border'>
-															<div>
-																<div className='font-medium text-gray-800'>
-																	{bank?.name || 'Unknown Bank'}
+											{s.multiQuestionBankConfig &&
+											s.multiQuestionBankConfig.length > 0 ? (
+													s.multiQuestionBankConfig.map(
+														(config: any, index: number) => {
+															const bank = questionBanks.find(
+																b => b._id === config.questionBankId
+															);
+															return (
+																<div
+																	key={index}
+																	className='flex items-center justify-between p-3 bg-white rounded-lg border'
+																>
+																	<div>
+																		<div className='font-medium text-gray-800'>
+																			{bank?.name ||
+																			'Unknown Bank'}
+																		</div>
+																		<div className='text-sm text-gray-600'>
+																			{config.questionCount}{' '}
+																		questions
+																			{config.filters &&
+																			Object.keys(
+																				config.filters
+																			).length > 0 && (
+																				<span className='text-blue-600'>
+																					{' '}
+																					(with filters)
+																				</span>
+																			)}
+																		</div>
+																	</div>
+																	<div className='text-lg font-bold text-blue-600'>
+																		{config.questionCount}
+																	</div>
 																</div>
-																<div className='text-sm text-gray-600'>
-																	{config.questionCount} questions
-																	{config.filters && Object.keys(config.filters).length > 0 && (
-																		<span className='text-blue-600'> (with filters)</span>
-																	)}
-																</div>
-															</div>
-															<div className='text-lg font-bold text-blue-600'>
-																{config.questionCount}
-															</div>
-														</div>
-													);
-												})
-											) : (
-												<div className='text-gray-500 text-sm text-center py-4'>
+															);
+														}
+													)
+												) : (
+													<div className='text-gray-500 text-sm text-center py-4'>
 													No question bank configurations set
-												</div>
-											)}
+													</div>
+												)}
 											<div className='text-xs text-gray-500 mt-2'>
-												💡 Questions are selected based on configured rules for each bank
+												💡 Questions are selected based on configured rules
+												for each bank
 											</div>
 										</div>
 									</div>
@@ -1323,7 +1328,9 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 													Pre-selected Questions
 												</div>
 												<div className='text-sm text-gray-600'>
-													This survey uses {s.selectedQuestions?.length || 0} manually selected questions from various question banks.
+													This survey uses{' '}
+													{s.selectedQuestions?.length || 0} manually
+													selected questions from various question banks.
 												</div>
 											</div>
 											<div className='text-lg font-bold text-green-600'>
@@ -1331,7 +1338,8 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 											</div>
 										</div>
 										<div className='text-xs text-gray-500'>
-											💡 Questions are pre-selected and will be the same for all students
+											💡 Questions are pre-selected and will be the same for
+											all students
 										</div>
 									</div>
 								</div>
@@ -1395,7 +1403,8 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 										}`}
 										onClick={() => setStatsView(STATS_VIEW.INDIVIDUAL)}
 									>
-										Individual Responses ({stats[s._id]?.userResponses?.length || 0})
+										Individual Responses (
+										{stats[s._id]?.userResponses?.length || 0})
 									</button>
 									<button
 										className={`py-2 px-4 font-medium text-sm transition-colors ${
@@ -1472,8 +1481,8 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 												{/* Pagination info */}
 												<div className='flex justify-between items-center text-sm text-gray-600 mb-4'>
 													<div>
-														{stats[s._id].userResponses.length}{' '}
-														records, showing page{' '}
+														{stats[s._id].userResponses.length} records,
+														showing page{' '}
 														{(responsePage - 1) * RESPONSE_PAGE_SIZE +
 															1}{' '}
 														-{' '}
@@ -1481,7 +1490,6 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 															responsePage * RESPONSE_PAGE_SIZE,
 															stats[s._id].userResponses.length
 														)}{' '}
-
 													</div>
 												</div>
 
@@ -1557,15 +1565,16 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																				}
 																				{response.timeSpent && (
 																					<span className='ml-2'>
-																							Time used:{' '}
+																							Time
+																							used:{' '}
 																						{Math.floor(
 																							response.timeSpent /
 																									60
-																						)}
-																							{' '}minutes{' '}
+																						)}{' '}
+																							minutes{' '}
 																						{response.timeSpent %
-																								60}
-																							{' '}seconds{' '}
+																								60}{' '}
+																							seconds{' '}
 																					</span>
 																				)}
 																			</div>
@@ -1588,68 +1597,145 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 															</div>
 															<div className='space-y-2'>
 																{/* Show question snapshots with durations if available */}
-																{response.questionSnapshots && response.questionSnapshots.length > 0 ? (
-																	response.questionSnapshots.map((snapshot, qIdx) => (
-																		<div
-																			key={snapshot.questionIndex}
-																			className='border-l-4 border-blue-200 pl-3'
-																		>
-																			<div className='flex justify-between items-start mb-1'>
-																				<div className='font-medium text-gray-700 text-sm'>
-																					Q{snapshot.questionIndex + 1}: {snapshot.questionData.text}
-																				</div>
-																				{snapshot.durationInSeconds !== undefined && (
-																					<div className='flex items-center text-xs text-gray-500 ml-2'>
-																						<svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-																							<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
-																						</svg>
-																						<span className={snapshot.durationInSeconds > 90 ? 'text-red-500 font-medium' : ''}>
-																							{snapshot.durationInSeconds}s
-																						</span>
-																						{snapshot.durationInSeconds > 90 && (
-																							<svg className='w-3 h-3 ml-1 text-red-500' fill='currentColor' viewBox='0 0 20 20'>
-																								<path fillRule='evenodd' d='M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z' clipRule='evenodd' />
-																							</svg>
-																						)}
-																					</div>
-																				)}
-																			</div>
-																			<div className='flex justify-between text-sm'>
-																				<div className={`${snapshot.userAnswer === null || snapshot.userAnswer === 'No answer' ? 'text-gray-400 italic' : 'text-gray-900'}`}>
-																					<span className='font-medium text-gray-600'>Answer: </span>
-																					{snapshot.userAnswer || 'No answer'}
-																				</div>
-																				{snapshot.scoring && (
-																					<div className={`text-xs px-2 py-1 rounded ${snapshot.scoring.isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-																						{snapshot.scoring.isCorrect ? '✓ Correct' : '✗ Wrong'}
-																						{snapshot.scoring.pointsAwarded !== undefined && (
-																							<span className='ml-1'>
-																								({snapshot.scoring.pointsAwarded}/{snapshot.scoring.maxPoints}pts)
-																							</span>
-																						)}
-																					</div>
-																				)}
-																			</div>
-																		</div>
-																	))
-																) : (
-																	// Fallback to old format
-																	Object.entries(response.answers).map(([question, answer]) => (
-																		<div
-																			key={question}
-																			className='border-l-4 border-blue-200 pl-3'
-																		>
-																			<div className='font-medium text-gray-700 text-sm'>
-																				{question}
-																			</div>
+																{response.questionSnapshots &&
+																response.questionSnapshots.length >
+																	0
+																	? response.questionSnapshots.map(
+																		(snapshot, qIdx) => (
 																			<div
-																				className={`text-sm ${answer === 'No answer' ? 'text-gray-400 italic' : 'text-gray-900'}`}
+																				key={
+																					snapshot.questionIndex
+																				}
+																				className='border-l-4 border-blue-200 pl-3'
 																			>
-																				{answer}
+																				<div className='flex justify-between items-start mb-1'>
+																					<div className='font-medium text-gray-700 text-sm'>
+																							Q
+																						{snapshot.questionIndex +
+																								1}
+																							:{' '}
+																						{
+																							snapshot
+																								.questionData
+																								.text
+																						}
+																					</div>
+																					{snapshot.durationInSeconds !==
+																							undefined && (
+																						<div className='flex items-center text-xs text-gray-500 ml-2'>
+																							<svg
+																								className='w-3 h-3 mr-1'
+																								fill='none'
+																								stroke='currentColor'
+																								viewBox='0 0 24 24'
+																							>
+																								<path
+																									strokeLinecap='round'
+																									strokeLinejoin='round'
+																									strokeWidth={
+																										2
+																									}
+																									d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+																								/>
+																							</svg>
+																							<span
+																								className={
+																									snapshot.durationInSeconds >
+																										90
+																										? 'text-red-500 font-medium'
+																										: ''
+																								}
+																							>
+																								{
+																									snapshot.durationInSeconds
+																								}
+																									s
+																							</span>
+																							{snapshot.durationInSeconds >
+																									90 && (
+																								<svg
+																									className='w-3 h-3 ml-1 text-red-500'
+																									fill='currentColor'
+																									viewBox='0 0 20 20'
+																								>
+																									<path
+																										fillRule='evenodd'
+																										d='M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z'
+																										clipRule='evenodd'
+																									/>
+																								</svg>
+																							)}
+																						</div>
+																					)}
+																				</div>
+																				<div className='flex justify-between text-sm'>
+																					<div
+																						className={`${snapshot.userAnswer === null || snapshot.userAnswer === 'No answer' ? 'text-gray-400 italic' : 'text-gray-900'}`}
+																					>
+																						<span className='font-medium text-gray-600'>
+																								Answer:{' '}
+																						</span>
+																						{snapshot.userAnswer ||
+																								'No answer'}
+																					</div>
+																					{snapshot.scoring && (
+																						<div
+																							className={`text-xs px-2 py-1 rounded ${snapshot.scoring.isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+																						>
+																							{snapshot
+																								.scoring
+																								.isCorrect
+																								? '✓ Correct'
+																								: '✗ Wrong'}
+																							{snapshot
+																								.scoring
+																								.pointsAwarded !==
+																									undefined && (
+																								<span className='ml-1'>
+																										(
+																									{
+																										snapshot
+																											.scoring
+																											.pointsAwarded
+																									}
+																										/
+																									{
+																										snapshot
+																											.scoring
+																											.maxPoints
+																									}
+																										pts)
+																								</span>
+																							)}
+																						</div>
+																					)}
+																				</div>
 																			</div>
-																		</div>
-																	))
-																)}
+																		)
+																	)
+																	: // Fallback to old format
+																	Object.entries(
+																		response.answers
+																	).map(
+																		([
+																			question,
+																			answer,
+																		]) => (
+																			<div
+																				key={question}
+																				className='border-l-4 border-blue-200 pl-3'
+																			>
+																				<div className='font-medium text-gray-700 text-sm'>
+																					{question}
+																				</div>
+																				<div
+																					className={`text-sm ${answer === 'No answer' ? 'text-gray-400 italic' : 'text-gray-900'}`}
+																				>
+																					{answer}
+																				</div>
+																			</div>
+																		)
+																	)}
 															</div>
 														</div>
 													))}
@@ -1920,18 +2006,33 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 						isOpen={showEditQuestionModal}
 						onClose={cancelEditQuestion}
 						onSubmit={handleEditQuestionSubmit}
-						form={questionEditForms[`${s._id}-${editingQuestionIndex}`] || {
-							text: '',
-							type: QUESTION_TYPE.SINGLE_CHOICE,
-							options: [],
-						}}
-						onChange={(field, value) => handleQuestionEditChange(s._id, editingQuestionIndex, field, value)}
-						onOptionChange={(index, value) => handleQuestionEditOptionChange(s._id, editingQuestionIndex, index, value)}
+						form={
+							questionEditForms[`${s._id}-${editingQuestionIndex}`] || {
+								text: '',
+								type: QUESTION_TYPE.SINGLE_CHOICE,
+								options: [],
+							}
+						}
+						onChange={(field, value) =>
+							handleQuestionEditChange(s._id, editingQuestionIndex, field, value)
+						}
+						onOptionChange={(index, value) =>
+							handleQuestionEditOptionChange(
+								s._id,
+								editingQuestionIndex,
+								index,
+								value
+							)
+						}
 						onAddOption={() => addQuestionEditOption(s._id, editingQuestionIndex)}
-						onRemoveOption={index => removeQuestionEditOption(s._id, editingQuestionIndex, index)}
+						onRemoveOption={index =>
+							removeQuestionEditOption(s._id, editingQuestionIndex, index)
+						}
 						loading={loading}
 						surveyType={s.type}
-						isCustomScoringEnabled={s.scoringSettings?.customScoringRules?.useCustomPoints}
+						isCustomScoringEnabled={
+							s.scoringSettings?.customScoringRules?.useCustomPoints
+						}
 						defaultQuestionPoints={
 							s.scoringSettings?.customScoringRules?.defaultQuestionPoints || 1
 						}

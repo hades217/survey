@@ -2,7 +2,10 @@ const Stripe = require('stripe');
 
 // Initialize Stripe with secret key only if available
 let stripe = null;
-if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'sk_test_your_stripe_secret_key_here') {
+if (
+	process.env.STRIPE_SECRET_KEY &&
+	process.env.STRIPE_SECRET_KEY !== 'sk_test_your_stripe_secret_key_here'
+) {
 	stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 	console.log('Stripe initialized successfully');
 } else {
@@ -26,8 +29,8 @@ const SUBSCRIPTION_PLANS = {
 			advancedAnalytics: false,
 			randomQuestions: false,
 			fullQuestionBank: false,
-			templates: 3
-		}
+			templates: 3,
+		},
 	},
 	pro: {
 		name: 'Pro Plan',
@@ -44,9 +47,9 @@ const SUBSCRIPTION_PLANS = {
 			advancedAnalytics: true,
 			randomQuestions: true,
 			fullQuestionBank: true,
-			templates: -1 // unlimited
-		}
-	}
+			templates: -1, // unlimited
+		},
+	},
 };
 
 // Subscription status types
@@ -57,7 +60,7 @@ const SUBSCRIPTION_STATUS = {
 	INCOMPLETE_EXPIRED: 'incomplete_expired',
 	PAST_DUE: 'past_due',
 	TRIALING: 'trialing',
-	UNPAID: 'unpaid'
+	UNPAID: 'unpaid',
 };
 
 // Create or get Stripe customer
@@ -76,8 +79,8 @@ async function createOrGetCustomer(user) {
 			email: user.email,
 			name: user.name,
 			metadata: {
-				userId: user._id.toString()
-			}
+				userId: user._id.toString(),
+			},
 		});
 
 		// Update user with Stripe customer ID
@@ -110,24 +113,24 @@ async function createCheckoutSession(user, planType, successUrl, cancelUrl) {
 			line_items: [
 				{
 					price: plan.priceId,
-					quantity: 1
-				}
+					quantity: 1,
+				},
 			],
 			mode: 'subscription',
 			success_url: successUrl,
 			cancel_url: cancelUrl,
 			metadata: {
 				userId: user._id.toString(),
-				planType: planType
+				planType: planType,
 			},
 			allow_promotion_codes: true,
 			billing_address_collection: 'required',
 			subscription_data: {
 				metadata: {
 					userId: user._id.toString(),
-					planType: planType
-				}
-			}
+					planType: planType,
+				},
+			},
 		});
 
 		return session;
@@ -149,7 +152,7 @@ async function createPortalSession(user, returnUrl) {
 
 		const session = await stripe.billingPortal.sessions.create({
 			customer: user.stripeCustomerId,
-			return_url: returnUrl
+			return_url: returnUrl,
 		});
 
 		return session;
@@ -180,7 +183,7 @@ async function cancelSubscription(subscriptionId, cancelAtPeriodEnd = true) {
 		}
 		if (cancelAtPeriodEnd) {
 			return await stripe.subscriptions.update(subscriptionId, {
-				cancel_at_period_end: true
+				cancel_at_period_end: true,
 			});
 		} else {
 			return await stripe.subscriptions.cancel(subscriptionId);
@@ -198,7 +201,7 @@ async function reactivateSubscription(subscriptionId) {
 			throw new Error('Stripe is not initialized. Please configure STRIPE_SECRET_KEY.');
 		}
 		return await stripe.subscriptions.update(subscriptionId, {
-			cancel_at_period_end: false
+			cancel_at_period_end: false,
 		});
 	} catch (error) {
 		console.error('Error reactivating subscription:', error);
@@ -209,13 +212,13 @@ async function reactivateSubscription(subscriptionId) {
 // Get plan type from subscription
 function getPlanTypeFromSubscription(subscription) {
 	const priceId = subscription.items.data[0].price.id;
-	
+
 	if (priceId === process.env.STRIPE_BASIC_PRICE_ID) {
 		return 'basic';
 	} else if (priceId === process.env.STRIPE_PRO_PRICE_ID) {
 		return 'pro';
 	}
-	
+
 	return null;
 }
 
@@ -229,5 +232,5 @@ module.exports = {
 	getSubscriptionDetails,
 	cancelSubscription,
 	reactivateSubscription,
-	getPlanTypeFromSubscription
+	getPlanTypeFromSubscription,
 };

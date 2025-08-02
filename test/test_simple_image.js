@@ -1,7 +1,8 @@
 const axios = require('axios');
 
 const BASE_URL = 'http://localhost:5050';
-const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MzM2Njk0NywiZXhwIjoxNzUzOTcxNzQ3fQ.KSDOGnrSuseMeyQbQmWuQVb2VFdDb6lgatlLKeOc8Ok';
+const JWT_TOKEN =
+	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MzM2Njk0NywiZXhwIjoxNzUzOTcxNzQ3fQ.KSDOGnrSuseMeyQbQmWuQVb2VFdDb6lgatlLKeOc8Ok';
 
 async function testSimpleImage() {
 	console.log('🧪 开始简单图片测试...\n');
@@ -26,17 +27,17 @@ async function testSimpleImage() {
 					options: [
 						{
 							text: 'A blue rectangle',
-							imageUrl: 'https://via.placeholder.com/100x100/10B981/FFFFFF?text=A'
+							imageUrl: 'https://via.placeholder.com/100x100/10B981/FFFFFF?text=A',
 						},
 						{
 							text: 'A red circle',
-							imageUrl: 'https://via.placeholder.com/100x100/EF4444/FFFFFF?text=B'
-						}
+							imageUrl: 'https://via.placeholder.com/100x100/EF4444/FFFFFF?text=B',
+						},
 					],
 					correctAnswer: 0,
-					points: 5
-				}
-			]
+					points: 5,
+				},
+			],
 		};
 
 		console.log('发送的数据:', JSON.stringify(surveyData, null, 2));
@@ -59,7 +60,9 @@ async function testSimpleImage() {
 			if (q.options) {
 				q.options.forEach((opt, optIndex) => {
 					if (typeof opt === 'object') {
-						console.log(`    选项 ${optIndex + 1}: ${opt.text} - 图片: ${opt.imageUrl ? '✅' : '❌'}`);
+						console.log(
+							`    选项 ${optIndex + 1}: ${opt.text} - 图片: ${opt.imageUrl ? '✅' : '❌'}`
+						);
 					} else {
 						console.log(`    选项 ${optIndex + 1}: ${opt} - 图片: ❌`);
 					}
@@ -70,7 +73,6 @@ async function testSimpleImage() {
 		// 4. 清理
 		await axios.delete(`${BASE_URL}/api/admin/surveys/${survey._id}`);
 		console.log('\n✅ 测试完成');
-
 	} catch (error) {
 		console.error('❌ 测试失败:', error.response?.data || error.message);
 		if (error.response?.data?.message) {

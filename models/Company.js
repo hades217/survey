@@ -1,72 +1,141 @@
 const mongoose = require('mongoose');
 
 const companySchema = new mongoose.Schema({
+	// Basic Information
 	name: {
 		type: String,
 		required: true,
-		trim: true,
-	},
-	industry: {
-		type: String,
-		trim: true,
-	},
-	logoUrl: {
-		type: String,
-		trim: true,
-	},
-	// Company size field for onboarding
-	size: {
-		type: String,
-		enum: ['1-10', '11-50', '51-200', '201-500', '500+'],
-		trim: true,
-	},
-	description: {
-		type: String,
 		trim: true,
 	},
 	website: {
 		type: String,
 		trim: true,
 	},
-	// Contact information fields for onboarding
-	contactName: {
+	industry: {
 		type: String,
 		trim: true,
 	},
+	size: {
+		type: String,
+		enum: ['1-10', '11-50', '51-200', '201-500', '500+'],
+	},
+	foundedYear: {
+		type: Number,
+		min: 1800,
+		max: new Date().getFullYear(),
+	},
+	description: {
+		type: String,
+		trim: true,
+		maxlength: 1000,
+	},
+
+	// Contact Information
 	contactEmail: {
 		type: String,
 		trim: true,
 		lowercase: true,
 	},
-	role: {
+	contactPhone: {
 		type: String,
 		trim: true,
 	},
-	// Brand settings for onboarding
-	themeColor: {
+
+	// Address
+	address: {
+		street: {
+			type: String,
+			trim: true,
+		},
+		city: {
+			type: String,
+			trim: true,
+		},
+		state: {
+			type: String,
+			trim: true,
+		},
+		country: {
+			type: String,
+			trim: true,
+		},
+		postalCode: {
+			type: String,
+			trim: true,
+		},
+	},
+
+	// Logo
+	logoUrl: {
 		type: String,
 		trim: true,
-		default: '#3B82F6', // Default blue color
+	},
+
+	// Subscription Information
+	subscriptionTier: {
+		type: String,
+		enum: ['free', 'basic', 'pro', 'enterprise'],
+		default: 'free',
+	},
+	subscriptionStatus: {
+		type: String,
+		enum: ['active', 'inactive', 'trial', 'expired'],
+		default: 'active',
+	},
+
+	// Onboarding
+	isOnboardingCompleted: {
+		type: Boolean,
+		default: false,
+	},
+	onboardingStep: {
+		type: Number,
+		default: 1,
+		min: 1,
+		max: 5,
+	},
+
+	// Onboarding preferences
+	themeColor: {
+		type: String,
+		default: '#3B82F6',
+		trim: true,
 	},
 	customLogoEnabled: {
 		type: Boolean,
 		default: false,
 	},
-	// System preferences for onboarding
 	defaultLanguage: {
 		type: String,
-		enum: ['en', 'zh', 'es', 'fr', 'de', 'ja'],
 		default: 'en',
+		trim: true,
 	},
 	autoNotifyCandidate: {
 		type: Boolean,
 		default: true,
 	},
-	// Onboarding completion status
-	isOnboardingCompleted: {
-		type: Boolean,
-		default: false,
+
+	// Settings
+	settings: {
+		timezone: {
+			type: String,
+			default: 'UTC',
+		},
+		language: {
+			type: String,
+			default: 'en',
+		},
+		dateFormat: {
+			type: String,
+			default: 'MM/DD/YYYY',
+		},
+		emailNotifications: {
+			type: Boolean,
+			default: true,
+		},
 	},
+
+	// Metadata
 	createdAt: {
 		type: Date,
 		default: Date.now,
@@ -75,15 +144,34 @@ const companySchema = new mongoose.Schema({
 		type: Date,
 		default: Date.now,
 	},
+	isActive: {
+		type: Boolean,
+		default: true,
+	},
 });
 
-// 更新时自动设置 updatedAt
+// Update the updatedAt timestamp before saving
 companySchema.pre('save', function (next) {
 	this.updatedAt = new Date();
 	next();
 });
 
-// Index for efficient queries
-companySchema.index({ name: 1 });
+// Virtual for full address
+companySchema.virtual('fullAddress').get(function () {
+	const parts = [];
+	if (this.address.street) parts.push(this.address.street);
+	if (this.address.city) parts.push(this.address.city);
+	if (this.address.state) parts.push(this.address.state);
+	if (this.address.country) parts.push(this.address.country);
+	if (this.address.postalCode) parts.push(this.address.postalCode);
+	return parts.join(', ');
+});
 
-module.exports = mongoose.model('Company', companySchema);
+// Ensure virtual fields are included in JSON output
+companySchema.set('toJSON', {
+	virtuals: true,
+});
+
+const Company = mongoose.model('Company', companySchema);
+
+module.exports = Company;

@@ -22,9 +22,7 @@ const AdminHeader: React.FC = () => {
 				<h1 className='text-3xl font-bold text-gray-900'>
 					{t('dashboard.title', { companyName })}
 				</h1>
-				<p className='text-gray-600 mt-1'>
-					{t('dashboard.subtitle')}
-				</p>
+				<p className='text-gray-600 mt-1'>{t('dashboard.subtitle')}</p>
 			</div>
 			<div className='flex items-center gap-3'>
 				<LanguageSwitcher />

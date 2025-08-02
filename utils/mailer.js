@@ -28,13 +28,13 @@ function sendMail({ to, subject, html, text }) {
 	console.log(`收件人: ${to}`);
 	console.log(`主题: ${subject}`);
 	console.log(`内容: ${html.substring(0, 100)}...`);
-	
+
 	// 返回成功的Promise
 	return Promise.resolve({
 		messageId: 'fake-' + Date.now(),
-		response: '250 OK: Message accepted for delivery'
+		response: '250 OK: Message accepted for delivery',
 	});
-	
+
 	// 原始发送代码（已注释）
 	/*
 	return transporter.sendMail({

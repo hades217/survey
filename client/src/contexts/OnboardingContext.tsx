@@ -25,13 +25,17 @@ export interface OnboardingStep4Data {
 	autoNotifyCandidate: boolean;
 }
 
-export interface OnboardingData extends OnboardingStep1Data, OnboardingStep2Data, OnboardingStep3Data, OnboardingStep4Data {}
+export interface OnboardingData
+	extends OnboardingStep1Data,
+		OnboardingStep2Data,
+		OnboardingStep3Data,
+		OnboardingStep4Data {}
 
 interface OnboardingContextType {
 	// Current step (1-4)
 	currentStep: number;
 	setCurrentStep: (step: number) => void;
-	
+
 	// Form data for each step
 	step1Data: OnboardingStep1Data;
 	setStep1Data: (data: Partial<OnboardingStep1Data>) => void;
@@ -41,21 +45,21 @@ interface OnboardingContextType {
 	setStep3Data: (data: Partial<OnboardingStep3Data>) => void;
 	step4Data: OnboardingStep4Data;
 	setStep4Data: (data: Partial<OnboardingStep4Data>) => void;
-	
+
 	// Company data
 	company: Company | null;
 	setCompany: (company: Company | null) => void;
-	
+
 	// Actions
 	saveStepData: (stepData: Partial<OnboardingData>) => Promise<boolean>;
 	completeOnboarding: () => Promise<boolean>;
 	fetchCompanyData: () => Promise<void>;
-	
+
 	// UI state
 	loading: boolean;
 	error: string | null;
 	setError: (error: string | null) => void;
-	
+
 	// Upload state
 	uploading: boolean;
 	setUploading: (uploading: boolean) => void;
@@ -73,7 +77,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [uploading, setUploading] = useState(false);
-	
+
 	// Step form data
 	const [step1Data, setStep1DataState] = useState<OnboardingStep1Data>({
 		companyName: '',
@@ -81,40 +85,40 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
 		industry: '',
 		size: '',
 	});
-	
+
 	const [step2Data, setStep2DataState] = useState<OnboardingStep2Data>({
 		contactName: '',
 		contactEmail: '',
 		role: '',
 	});
-	
+
 	const [step3Data, setStep3DataState] = useState<OnboardingStep3Data>({
 		themeColor: '#3B82F6',
 		customLogoEnabled: false,
 	});
-	
+
 	const [step4Data, setStep4DataState] = useState<OnboardingStep4Data>({
 		defaultLanguage: 'en',
 		autoNotifyCandidate: true,
 	});
-	
+
 	// Update step data functions
 	const setStep1Data = (data: Partial<OnboardingStep1Data>) => {
 		setStep1DataState(prev => ({ ...prev, ...data }));
 	};
-	
+
 	const setStep2Data = (data: Partial<OnboardingStep2Data>) => {
 		setStep2DataState(prev => ({ ...prev, ...data }));
 	};
-	
+
 	const setStep3Data = (data: Partial<OnboardingStep3Data>) => {
 		setStep3DataState(prev => ({ ...prev, ...data }));
 	};
-	
+
 	const setStep4Data = (data: Partial<OnboardingStep4Data>) => {
 		setStep4DataState(prev => ({ ...prev, ...data }));
 	};
-	
+
 	// Fetch company data
 	const fetchCompanyData = async () => {
 		try {
@@ -123,7 +127,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
 			if (response.data.success) {
 				const companyData = response.data.company;
 				setCompany(companyData);
-				
+
 				// Populate form data if company exists
 				setStep1Data({
 					companyName: companyData.name || '',
@@ -131,21 +135,24 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
 					industry: companyData.industry || '',
 					size: companyData.size || '',
 				});
-				
+
 				setStep2Data({
 					contactName: companyData.contactName || '',
 					contactEmail: companyData.contactEmail || '',
 					role: companyData.role || '',
 				});
-				
+
 				setStep3Data({
 					themeColor: companyData.themeColor || '#3B82F6',
 					customLogoEnabled: companyData.customLogoEnabled || false,
 				});
-				
+
 				setStep4Data({
 					defaultLanguage: companyData.defaultLanguage || 'en',
-					autoNotifyCandidate: companyData.autoNotifyCandidate !== undefined ? companyData.autoNotifyCandidate : true,
+					autoNotifyCandidate:
+						companyData.autoNotifyCandidate !== undefined
+							? companyData.autoNotifyCandidate
+							: true,
 				});
 			}
 		} catch (error) {
@@ -158,15 +165,15 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
 			setLoading(false);
 		}
 	};
-	
+
 	// Save step data
 	const saveStepData = async (stepData: Partial<OnboardingData>): Promise<boolean> => {
 		try {
 			setLoading(true);
 			setError(null);
-			
+
 			const response = await api.patch('/companies/current', stepData);
-			
+
 			if (response.data.success) {
 				setCompany(response.data.company);
 				return true;
@@ -182,15 +189,15 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
 			setLoading(false);
 		}
 	};
-	
+
 	// Complete onboarding
 	const completeOnboarding = async (): Promise<boolean> => {
 		try {
 			setLoading(true);
 			setError(null);
-			
+
 			const response = await api.post('/companies/complete-onboarding');
-			
+
 			if (response.data.success) {
 				setCompany(response.data.company);
 				return true;
@@ -206,12 +213,12 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
 			setLoading(false);
 		}
 	};
-	
+
 	// Load company data on mount
 	useEffect(() => {
 		fetchCompanyData();
 	}, []);
-	
+
 	const value: OnboardingContextType = {
 		currentStep,
 		setCurrentStep,
@@ -234,12 +241,8 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
 		uploading,
 		setUploading,
 	};
-	
-	return (
-		<OnboardingContext.Provider value={value}>
-			{children}
-		</OnboardingContext.Provider>
-	);
+
+	return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;
 };
 
 export const useOnboarding = (): OnboardingContextType => {

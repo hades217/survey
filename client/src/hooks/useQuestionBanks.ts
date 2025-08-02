@@ -239,7 +239,11 @@ export const useQuestionBanks = () => {
 		}
 	};
 
-	const updateQuestionBankQuestion = async (questionBankId: string, questionIndex: number, formData: unknown) => {
+	const updateQuestionBankQuestion = async (
+		questionBankId: string,
+		questionIndex: number,
+		formData: unknown
+	) => {
 		if (!selectedQuestionBankDetail) return;
 		const question = selectedQuestionBankDetail.questions[questionIndex];
 		if (!question) return;
@@ -267,7 +271,7 @@ export const useQuestionBanks = () => {
 
 	const deleteQuestionBankQuestion = async (questionBankId: string, questionIndex: number) => {
 		if (!window.confirm('Are you sure you want to delete this question?')) return;
-		
+
 		if (!selectedQuestionBankDetail) return;
 		const question = selectedQuestionBankDetail.questions[questionIndex];
 		if (!question) return;
@@ -290,7 +294,6 @@ export const useQuestionBanks = () => {
 			setError(err.response?.data?.error || 'Failed to delete question');
 		}
 	};
-
 
 	return {
 		questionBanks,

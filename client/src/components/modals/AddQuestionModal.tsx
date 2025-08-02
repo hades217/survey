@@ -114,14 +114,15 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 						</label>
 						<ImageUpload
 							imageUrl={form.descriptionImage || null}
-							onImageUpload={(url) => onChange('descriptionImage', url)}
+							onImageUpload={url => onChange('descriptionImage', url)}
 							onImageRemove={() => onChange('descriptionImage', '')}
 							placeholder='Upload image to illustrate question content'
 							uploadMethod='cloudinary'
 							className='w-full'
 						/>
 						<div className='text-xs text-gray-500 mt-1'>
-							Add an image to help explain the question context (charts, diagrams, scenarios, etc.)
+							Add an image to help explain the question context (charts, diagrams,
+							scenarios, etc.)
 						</div>
 					</div>
 
@@ -164,20 +165,31 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 							{form.options && form.options.length > 0 ? (
 								<div className='space-y-4'>
 									{form.options.map((option, index) => {
-										const optionText = typeof option === 'string' ? option : option.text || '';
-										const optionImageUrl = typeof option === 'object' ? option.imageUrl : undefined;
-										
+										const optionText =
+											typeof option === 'string' ? option : option.text || '';
+										const optionImageUrl =
+											typeof option === 'object'
+												? option.imageUrl
+												: undefined;
+
 										return (
-											<div key={index} className='border border-gray-200 rounded-lg p-3 space-y-3'>
+											<div
+												key={index}
+												className='border border-gray-200 rounded-lg p-3 space-y-3'
+											>
 												<div className='flex items-center gap-2'>
 													<input
 														className='input-field flex-1'
 														placeholder={`Option ${index + 1} text`}
 														value={optionText}
 														onChange={e => {
-															const newOption = typeof option === 'string' 
-																? e.target.value 
-																: { ...option, text: e.target.value };
+															const newOption =
+																typeof option === 'string'
+																	? e.target.value
+																	: {
+																		...option,
+																		text: e.target.value,
+																	};
 															onOptionChange(index, newOption);
 														}}
 													/>
@@ -191,23 +203,31 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 														</button>
 													)}
 												</div>
-												
+
 												<div>
 													<label className='block text-xs font-medium text-gray-600 mb-1'>
 														Option Image (Optional)
 													</label>
 													<ImageUpload
 														imageUrl={optionImageUrl || null}
-														onImageUpload={(url) => {
-															const newOption = typeof option === 'string' 
-																? { text: option, imageUrl: url }
-																: { ...option, imageUrl: url };
+														onImageUpload={url => {
+															const newOption =
+																typeof option === 'string'
+																	? {
+																		text: option,
+																		imageUrl: url,
+																	}
+																	: { ...option, imageUrl: url };
 															onOptionChange(index, newOption);
 														}}
 														onImageRemove={() => {
-															const newOption = typeof option === 'string' 
-																? option
-																: { ...option, imageUrl: undefined };
+															const newOption =
+																typeof option === 'string'
+																	? option
+																	: {
+																		...option,
+																		imageUrl: undefined,
+																	};
 															onOptionChange(index, newOption);
 														}}
 														placeholder='Add image for this option'
@@ -258,8 +278,10 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 								</label>
 								<div className='space-y-2'>
 									{form.options.map((opt, idx) => {
-										const optionText = typeof opt === 'string' ? opt : opt.text || '';
-										const optionImageUrl = typeof opt === 'object' ? opt.imageUrl : undefined;
+										const optionText =
+											typeof opt === 'string' ? opt : opt.text || '';
+										const optionImageUrl =
+											typeof opt === 'object' ? opt.imageUrl : undefined;
 										if (!optionText.trim()) return null;
 										const isCorrect = Array.isArray(form.correctAnswer)
 											? form.correctAnswer.includes(idx)

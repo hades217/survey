@@ -57,14 +57,18 @@ const StudentAssessment: React.FC = () => {
 	const [form, setForm] = useState<FormState>({ name: '', email: '', answers: {} });
 	const [currentStep, setCurrentStep] = useState<StepType>('instructions');
 	const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-	const [timer, setTimer] = useState<TimerState>({ timeLeft: 0, isActive: false, isExpired: false });
+	const [timer, setTimer] = useState<TimerState>({
+		timeLeft: 0,
+		isActive: false,
+		isExpired: false,
+	});
 	const [submitted, setSubmitted] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
 	const [assessmentResults, setAssessmentResults] = useState<AssessmentResult[]>([]);
 	const [startTime, setStartTime] = useState<Date | null>(null);
 	const [invitationInfo, setInvitationInfo] = useState<Invitation | null>(null);
-	
+
 	// Question timing tracking
 	const [questionTimings, setQuestionTimings] = useState<Record<string, QuestionTiming>>({});
 	const [currentQuestionStartTime, setCurrentQuestionStartTime] = useState<number | null>(null);
@@ -83,7 +87,7 @@ const StudentAssessment: React.FC = () => {
 						src={company.logoUrl}
 						alt={company.name || 'Company Logo'}
 						className='h-10 md:h-12 w-auto object-contain'
-						onError={(e) => {
+						onError={e => {
 							// If logo loading fails, hide element
 							const element = e.currentTarget.parentElement?.parentElement;
 							if (element) {
@@ -103,7 +107,10 @@ const StudentAssessment: React.FC = () => {
 		setError('');
 		setInvitationInfo(null);
 
-		const loadSurveyAndQuestions = async (surveyData: Survey, invitationData: Invitation | null = null) => {
+		const loadSurveyAndQuestions = async (
+			surveyData: Survey,
+			invitationData: Invitation | null = null
+		) => {
 			try {
 				setSurvey(surveyData);
 				setInvitationInfo(invitationData);
@@ -117,15 +124,22 @@ const StudentAssessment: React.FC = () => {
 				}
 
 				// If it's a question bank type survey, need to load questions additionally
-				if (surveyData.sourceType === 'question_bank' && (!surveyData.questions || surveyData.questions.length === 0)) {
+				if (
+					surveyData.sourceType === 'question_bank' &&
+					(!surveyData.questions || surveyData.questions.length === 0)
+				) {
 					try {
 						const questionsResponse = await api.get(`/survey/${slug}/questions`, {
 							params: { email: form.email || 'anonymous' },
 						});
-						setSurvey(prev => prev ? {
-							...prev,
-							questions: questionsResponse.data.questions || []
-						} : null);
+						setSurvey(prev =>
+							prev
+								? {
+									...prev,
+									questions: questionsResponse.data.questions || [],
+								}
+								: null
+						);
 					} catch (questionsError) {
 						console.error('Failed to load questions:', questionsError);
 					}
@@ -143,7 +157,9 @@ const StudentAssessment: React.FC = () => {
 			try {
 				if (isInvitationCode(slug)) {
 					// Access through invitation code
-					const response = await api.get<AssessmentAccessResponse>(`/invitations/access/${slug}`);
+					const response = await api.get<AssessmentAccessResponse>(
+						`/invitations/access/${slug}`
+					);
 					await loadSurveyAndQuestions(response.data.survey, response.data.invitation);
 				} else {
 					// Access directly through slug
@@ -208,7 +224,7 @@ const StudentAssessment: React.FC = () => {
 	const startAssessment = () => {
 		setCurrentStep('questions');
 		setStartTime(new Date());
-		
+
 		// Start timing for the first question
 		if (survey?.questions && survey.questions.length > 0) {
 			const firstQuestionId = survey.questions[0]._id;
@@ -216,10 +232,10 @@ const StudentAssessment: React.FC = () => {
 			setCurrentQuestionStartTime(startTime);
 			setQuestionTimings(prev => ({
 				...prev,
-				[firstQuestionId]: { startTime }
+				[firstQuestionId]: { startTime },
 			}));
 		}
-		
+
 		if (survey?.timeLimit) {
 			setTimer(prev => ({ ...prev, isActive: true }));
 		}
@@ -237,34 +253,34 @@ const StudentAssessment: React.FC = () => {
 
 	const nextQuestion = () => {
 		if (!survey) return;
-		
+
 		// Record end time for current question
 		const currentQuestion = survey.questions[currentQuestionIndex];
 		if (currentQuestion && currentQuestionStartTime) {
 			const endTime = Date.now();
 			const duration = Math.round((endTime - currentQuestionStartTime) / 1000); // Convert to seconds
-			
+
 			setQuestionTimings(prev => ({
 				...prev,
 				[currentQuestion._id]: {
 					...prev[currentQuestion._id],
 					endTime,
-					duration
-				}
+					duration,
+				},
 			}));
 		}
-		
+
 		if (currentQuestionIndex < survey.questions.length - 1) {
 			const nextIndex = currentQuestionIndex + 1;
 			setCurrentQuestionIndex(nextIndex);
-			
+
 			// Start timing for next question
 			const nextQuestion = survey.questions[nextIndex];
 			const startTime = Date.now();
 			setCurrentQuestionStartTime(startTime);
 			setQuestionTimings(prev => ({
 				...prev,
-				[nextQuestion._id]: { startTime }
+				[nextQuestion._id]: { startTime },
 			}));
 		} else {
 			// Last question, can show submit button or auto-submit
@@ -274,26 +290,26 @@ const StudentAssessment: React.FC = () => {
 
 	const prevQuestion = () => {
 		if (!survey || currentQuestionIndex <= 0) return;
-		
+
 		// Record end time for current question (but don't finalize duration since user might come back)
 		const currentQuestion = survey.questions[currentQuestionIndex];
 		if (currentQuestion && currentQuestionStartTime) {
 			const endTime = Date.now();
 			const duration = Math.round((endTime - currentQuestionStartTime) / 1000);
-			
+
 			setQuestionTimings(prev => ({
 				...prev,
 				[currentQuestion._id]: {
 					...prev[currentQuestion._id],
 					endTime,
-					duration: (prev[currentQuestion._id]?.duration || 0) + duration // Accumulate time
-				}
+					duration: (prev[currentQuestion._id]?.duration || 0) + duration, // Accumulate time
+				},
 			}));
 		}
-		
+
 		const prevIndex = currentQuestionIndex - 1;
 		setCurrentQuestionIndex(prevIndex);
-		
+
 		// Start timing for previous question (user might modify their answer)
 		const prevQuestion = survey.questions[prevIndex];
 		const startTime = Date.now();
@@ -302,8 +318,8 @@ const StudentAssessment: React.FC = () => {
 			...prev,
 			[prevQuestion._id]: {
 				...prev[prevQuestion._id],
-				startTime // Update start time for re-entry
-			}
+				startTime, // Update start time for re-entry
+			},
 		}));
 	};
 
@@ -322,14 +338,16 @@ const StudentAssessment: React.FC = () => {
 				if (currentQuestion) {
 					const endTime = Date.now();
 					const duration = Math.round((endTime - currentQuestionStartTime) / 1000);
-					
+
 					finalQuestionTimings = {
 						...finalQuestionTimings,
 						[currentQuestion._id]: {
 							...finalQuestionTimings[currentQuestion._id],
 							endTime,
-							duration: (finalQuestionTimings[currentQuestion._id]?.duration || 0) + duration
-						}
+							duration:
+								(finalQuestionTimings[currentQuestion._id]?.duration || 0) +
+								duration,
+						},
 					};
 				}
 			}
@@ -345,18 +363,25 @@ const StudentAssessment: React.FC = () => {
 
 				if (q.correctAnswer !== undefined && userAnswer !== undefined) {
 					if (q.type === 'single_choice') {
-						const userOptionIndex = q.options?.findIndex(opt => 
+						const userOptionIndex = q.options?.findIndex(opt =>
 							typeof opt === 'string' ? opt === userAnswer : opt.text === userAnswer
 						);
 						isCorrect = userOptionIndex === q.correctAnswer;
-					} else if (q.type === 'multiple_choice' && Array.isArray(userAnswer) && Array.isArray(q.correctAnswer)) {
-						const userOptionIndices = userAnswer.map(ans => 
-							q.options?.findIndex(opt => 
-								typeof opt === 'string' ? opt === ans : opt.text === ans
+					} else if (
+						q.type === 'multiple_choice' &&
+						Array.isArray(userAnswer) &&
+						Array.isArray(q.correctAnswer)
+					) {
+						const userOptionIndices = userAnswer
+							.map(ans =>
+								q.options?.findIndex(opt =>
+									typeof opt === 'string' ? opt === ans : opt.text === ans
+								)
 							)
-						).filter(idx => idx !== -1);
+							.filter(idx => idx !== -1);
 						const correctIndices = q.correctAnswer as number[];
-						isCorrect = userOptionIndices.length === correctIndices.length && 
+						isCorrect =
+							userOptionIndices.length === correctIndices.length &&
 							userOptionIndices.every(idx => correctIndices.includes(idx));
 					} else if (q.type === 'short_text') {
 						isCorrect = userAnswer === q.correctAnswer;
@@ -370,14 +395,17 @@ const StudentAssessment: React.FC = () => {
 				return {
 					questionId: q._id,
 					questionText: q.text,
-					userAnswer: Array.isArray(userAnswer) ? userAnswer.join(', ') : String(userAnswer || 'No answer'),
-					correctAnswer: typeof q.correctAnswer === 'number' 
-						? (q.options?.[q.correctAnswer] ? 
-							(typeof q.options[q.correctAnswer] === 'string' 
-								? q.options[q.correctAnswer] as string
-								: (q.options[q.correctAnswer] as any).text || 'N/A'
-							) : 'N/A'
-						) : String(q.correctAnswer || 'N/A'),
+					userAnswer: Array.isArray(userAnswer)
+						? userAnswer.join(', ')
+						: String(userAnswer || 'No answer'),
+					correctAnswer:
+						typeof q.correctAnswer === 'number'
+							? q.options?.[q.correctAnswer]
+								? typeof q.options[q.correctAnswer] === 'string'
+									? (q.options[q.correctAnswer] as string)
+									: (q.options[q.correctAnswer] as any).text || 'N/A'
+								: 'N/A'
+							: String(q.correctAnswer || 'N/A'),
 					isCorrect,
 					pointsAwarded,
 					maxPoints,
@@ -422,7 +450,7 @@ const StudentAssessment: React.FC = () => {
 
 			setSubmitted(true);
 			setCurrentStep('results');
-			
+
 			// Stop timer
 			setTimer(prev => ({ ...prev, isActive: false }));
 		} catch (error: any) {
@@ -453,10 +481,7 @@ const StudentAssessment: React.FC = () => {
 					<div className='text-red-500 text-6xl mb-4'>⚠️</div>
 					<h2 className='text-2xl font-bold text-gray-800 mb-2'>Error</h2>
 					<p className='text-gray-600 mb-4'>{error}</p>
-					<button
-						onClick={() => navigate('/')}
-						className='btn-primary'
-					>
+					<button onClick={() => navigate('/')} className='btn-primary'>
 						Return Home
 					</button>
 				</div>
@@ -471,11 +496,10 @@ const StudentAssessment: React.FC = () => {
 				<div className='max-w-md mx-auto text-center bg-white rounded-lg shadow-lg p-8'>
 					<div className='text-gray-400 text-6xl mb-4'>📝</div>
 					<h2 className='text-2xl font-bold text-gray-800 mb-2'>Assessment Not Found</h2>
-					<p className='text-gray-600 mb-4'>The assessment you're looking for doesn't exist or is no longer available.</p>
-					<button
-						onClick={() => navigate('/')}
-						className='btn-primary'
-					>
+					<p className='text-gray-600 mb-4'>
+						The assessment you're looking for doesn't exist or is no longer available.
+					</p>
+					<button onClick={() => navigate('/')} className='btn-primary'>
 						Return Home
 					</button>
 				</div>
@@ -497,7 +521,9 @@ const StudentAssessment: React.FC = () => {
 				{currentStep === 'instructions' && (
 					<div className='max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8'>
 						<div className='text-center mb-8'>
-							<h1 className='text-3xl font-bold text-gray-800 mb-4'>{survey.title}</h1>
+							<h1 className='text-3xl font-bold text-gray-800 mb-4'>
+								{survey.title}
+							</h1>
 							{survey.description && (
 								<p className='text-gray-600 text-lg mb-6'>{survey.description}</p>
 							)}
@@ -519,7 +545,9 @@ const StudentAssessment: React.FC = () => {
 									type='text'
 									className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 									value={form.name}
-									onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))}
+									onChange={e =>
+										setForm(prev => ({ ...prev, name: e.target.value }))
+									}
 									required
 									placeholder='Enter your full name'
 								/>
@@ -532,7 +560,9 @@ const StudentAssessment: React.FC = () => {
 									type='email'
 									className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 									value={form.email}
-									onChange={e => setForm(prev => ({ ...prev, email: e.target.value }))}
+									onChange={e =>
+										setForm(prev => ({ ...prev, email: e.target.value }))
+									}
 									required
 									placeholder='Enter your email address'
 								/>
@@ -546,7 +576,8 @@ const StudentAssessment: React.FC = () => {
 									<div>
 										<p className='font-semibold text-yellow-800'>Time Limit</p>
 										<p className='text-yellow-700'>
-											You have {survey.timeLimit} minutes to complete this assessment.
+											You have {survey.timeLimit} minutes to complete this
+											assessment.
 										</p>
 									</div>
 								</div>
@@ -582,9 +613,11 @@ const StudentAssessment: React.FC = () => {
 								</div>
 							</div>
 							{timer.isActive && (
-								<div className={`text-sm font-medium ${
-									timer.timeLeft < 60 ? 'text-red-600' : 'text-gray-600'
-								}`}>
+								<div
+									className={`text-sm font-medium ${
+										timer.timeLeft < 60 ? 'text-red-600' : 'text-gray-600'
+									}`}
+								>
 									⏱️ {formatTime(timer.timeLeft)}
 								</div>
 							)}
@@ -612,12 +645,19 @@ const StudentAssessment: React.FC = () => {
 							{currentQuestion.type !== 'short_text' && currentQuestion.options && (
 								<div className='space-y-3'>
 									{currentQuestion.options.map((option, index) => {
-										const optionText = typeof option === 'string' ? option : option.text || '';
-										const optionImage = typeof option === 'object' ? option.imageUrl : null;
-										const isSelected = currentQuestion.type === 'single_choice'
-											? form.answers[currentQuestion._id] === optionText
-											: Array.isArray(form.answers[currentQuestion._id]) && 
-											  form.answers[currentQuestion._id].includes(optionText);
+										const optionText =
+											typeof option === 'string' ? option : option.text || '';
+										const optionImage =
+											typeof option === 'object' ? option.imageUrl : null;
+										const isSelected =
+											currentQuestion.type === 'single_choice'
+												? form.answers[currentQuestion._id] === optionText
+												: Array.isArray(
+													form.answers[currentQuestion._id]
+												) &&
+													form.answers[currentQuestion._id].includes(
+														optionText
+													);
 
 										return (
 											<label
@@ -629,19 +669,33 @@ const StudentAssessment: React.FC = () => {
 												}`}
 											>
 												<input
-													type={currentQuestion.type === 'single_choice' ? 'radio' : 'checkbox'}
+													type={
+														currentQuestion.type === 'single_choice'
+															? 'radio'
+															: 'checkbox'
+													}
 													name={currentQuestion._id}
 													className='mt-1 mr-3'
 													checked={isSelected}
 													onChange={() => {
-														if (currentQuestion.type === 'single_choice') {
-															handleAnswerChange(currentQuestion._id, optionText);
+														if (
+															currentQuestion.type === 'single_choice'
+														) {
+															handleAnswerChange(
+																currentQuestion._id,
+																optionText
+															);
 														} else {
-															const currentAnswers = form.answers[currentQuestion._id] as string[] || [];
+															const currentAnswers =
+																(form.answers[
+																	currentQuestion._id
+																] as string[]) || [];
 															if (isSelected) {
 																handleAnswerChange(
 																	currentQuestion._id,
-																	currentAnswers.filter(a => a !== optionText)
+																	currentAnswers.filter(
+																		a => a !== optionText
+																	)
 																);
 															} else {
 																handleAnswerChange(
@@ -679,7 +733,9 @@ const StudentAssessment: React.FC = () => {
 									className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 									rows={4}
 									value={form.answers[currentQuestion._id] || ''}
-									onChange={e => handleAnswerChange(currentQuestion._id, e.target.value)}
+									onChange={e =>
+										handleAnswerChange(currentQuestion._id, e.target.value)
+									}
 									placeholder='Enter your answer here...'
 								/>
 							)}
@@ -704,10 +760,7 @@ const StudentAssessment: React.FC = () => {
 									{loading ? 'Submitting...' : 'Submit Assessment'}
 								</button>
 							) : (
-								<button
-									onClick={nextQuestion}
-									className='btn-primary'
-								>
+								<button onClick={nextQuestion} className='btn-primary'>
 									Next
 								</button>
 							)}
@@ -720,7 +773,9 @@ const StudentAssessment: React.FC = () => {
 					<div className='max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8'>
 						<div className='text-center mb-8'>
 							<div className='text-green-500 text-6xl mb-4'>✅</div>
-							<h1 className='text-3xl font-bold text-gray-800 mb-2'>Assessment Completed!</h1>
+							<h1 className='text-3xl font-bold text-gray-800 mb-2'>
+								Assessment Completed!
+							</h1>
 							<p className='text-gray-600'>Thank you for taking the assessment.</p>
 						</div>
 
@@ -743,7 +798,12 @@ const StudentAssessment: React.FC = () => {
 									</div>
 									<div>
 										<div className='text-2xl font-bold text-blue-600'>
-											{Math.round((assessmentResults.filter(r => r.isCorrect).length / assessmentResults.length) * 100)}%
+											{Math.round(
+												(assessmentResults.filter(r => r.isCorrect).length /
+													assessmentResults.length) *
+													100
+											)}
+											%
 										</div>
 										<div className='text-sm text-gray-600'>Score</div>
 									</div>
@@ -770,15 +830,39 @@ const StudentAssessment: React.FC = () => {
 											</div>
 											{result.durationInSeconds !== undefined && (
 												<div className='flex items-center text-sm text-gray-500 ml-4'>
-													<svg className='w-4 h-4 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-														<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+													<svg
+														className='w-4 h-4 mr-1'
+														fill='none'
+														stroke='currentColor'
+														viewBox='0 0 24 24'
+													>
+														<path
+															strokeLinecap='round'
+															strokeLinejoin='round'
+															strokeWidth={2}
+															d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+														/>
 													</svg>
-													<span className={result.durationInSeconds > 90 ? 'text-red-500 font-medium' : ''}>
+													<span
+														className={
+															result.durationInSeconds > 90
+																? 'text-red-500 font-medium'
+																: ''
+														}
+													>
 														用时: {result.durationInSeconds}秒
 													</span>
 													{result.durationInSeconds > 90 && (
-														<svg className='w-4 h-4 ml-1 text-red-500' fill='currentColor' viewBox='0 0 20 20'>
-															<path fillRule='evenodd' d='M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z' clipRule='evenodd' />
+														<svg
+															className='w-4 h-4 ml-1 text-red-500'
+															fill='currentColor'
+															viewBox='0 0 20 20'
+														>
+															<path
+																fillRule='evenodd'
+																d='M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z'
+																clipRule='evenodd'
+															/>
 														</svg>
 													)}
 												</div>
@@ -786,14 +870,26 @@ const StudentAssessment: React.FC = () => {
 										</div>
 										<div className='grid md:grid-cols-2 gap-4 text-sm'>
 											<div>
-												<span className='font-medium text-gray-600'>Your Answer:</span>
-												<p className={result.isCorrect ? 'text-green-700' : 'text-red-700'}>
+												<span className='font-medium text-gray-600'>
+													Your Answer:
+												</span>
+												<p
+													className={
+														result.isCorrect
+															? 'text-green-700'
+															: 'text-red-700'
+													}
+												>
 													{result.userAnswer}
 												</p>
 											</div>
 											<div>
-												<span className='font-medium text-gray-600'>Correct Answer:</span>
-												<p className='text-green-700'>{result.correctAnswer}</p>
+												<span className='font-medium text-gray-600'>
+													Correct Answer:
+												</span>
+												<p className='text-green-700'>
+													{result.correctAnswer}
+												</p>
 											</div>
 										</div>
 									</div>
@@ -802,10 +898,7 @@ const StudentAssessment: React.FC = () => {
 						)}
 
 						<div className='text-center'>
-							<button
-								onClick={() => navigate('/')}
-								className='btn-primary'
-							>
+							<button onClick={() => navigate('/')} className='btn-primary'>
 								Return Home
 							</button>
 						</div>

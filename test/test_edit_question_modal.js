@@ -1,7 +1,8 @@
 const axios = require('axios');
 
 const BASE_URL = 'http://localhost:5050';
-const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MzM2Njk0NywiZXhwIjoxNzUzOTcxNzQ3fQ.KSDOGnrSuseMeyQbQmWuQVb2VFdDb6lgatlLKeOc8Ok';
+const JWT_TOKEN =
+	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MzM2Njk0NywiZXhwIjoxNzUzOTcxNzQ3fQ.KSDOGnrSuseMeyQbQmWuQVb2VFdDb6lgatlLKeOc8Ok';
 
 async function testEditQuestionModal() {
 	console.log('🧪 开始测试编辑问题弹窗功能...\n');
@@ -38,7 +39,9 @@ async function testEditQuestionModal() {
 		const updatedQuestion = {
 			...question,
 			text: `[编辑] ${question.text}`,
-			options: question.options ? question.options.map((opt, idx) => `[编辑] ${opt}`) : question.options,
+			options: question.options
+				? question.options.map((opt, idx) => `[编辑] ${opt}`)
+				: question.options,
 		};
 
 		const updatedQuestions = [...survey.questions];
@@ -58,11 +61,18 @@ async function testEditQuestionModal() {
 		const verifyResponse = await axios.get(`${BASE_URL}/api/admin/surveys/${survey._id}`);
 		const updatedSurvey = verifyResponse.data;
 
-		if (updatedSurvey.questions && updatedSurvey.questions[0] && updatedSurvey.questions[0].text === updatedQuestion.text) {
+		if (
+			updatedSurvey.questions &&
+			updatedSurvey.questions[0] &&
+			updatedSurvey.questions[0].text === updatedQuestion.text
+		) {
 			console.log('✅ 编辑结果验证成功');
 		} else {
 			console.log('❌ 编辑结果验证失败');
-			console.log('   更新后的问题:', updatedSurvey.questions ? updatedSurvey.questions[0] : 'undefined');
+			console.log(
+				'   更新后的问题:',
+				updatedSurvey.questions ? updatedSurvey.questions[0] : 'undefined'
+			);
 		}
 
 		console.log('\n🎉 编辑问题弹窗功能测试完成！');
@@ -73,7 +83,6 @@ async function testEditQuestionModal() {
 		console.log('✅ 编辑按钮现在打开弹窗而不是内联编辑');
 		console.log('✅ 弹窗包含完整的问题编辑功能');
 		console.log('✅ 支持问题文本、类型、选项、图片等编辑');
-
 	} catch (error) {
 		console.error('❌ 测试失败:', error.response?.data || error.message);
 	}

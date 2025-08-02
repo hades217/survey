@@ -78,12 +78,12 @@ const TakeSurvey: React.FC = () => {
 
 	// Enable anti-cheating measures for assessments and quizzes
 	const isAssessmentType = survey && TYPES_REQUIRING_ANSWERS.includes(survey.type);
-	
+
 	// Debug logging
 	console.log('Survey type:', survey?.type);
 	console.log('Is assessment type:', isAssessmentType);
 	console.log('TYPES_REQUIRING_ANSWERS:', TYPES_REQUIRING_ANSWERS);
-	
+
 	// Use both hooks for comprehensive protection
 	const { getInputProps } = useAntiCheating({
 		enabled: false, // Disable complex hook for now
@@ -127,17 +127,20 @@ const TakeSurvey: React.FC = () => {
 				.then(res => {
 					console.log('Survey data received:', res.data);
 					console.log('Questions length:', res.data.questions?.length);
-					
+
 					// Debug: Check for descriptionImage in questions
 					if (res.data.questions && res.data.questions.length > 0) {
-						console.log('Questions with descriptionImage:', res.data.questions.map((q, idx) => ({
-							index: idx,
-							text: q.text?.substring(0, 50),
-							hasDescriptionImage: !!q.descriptionImage,
-							descriptionImage: q.descriptionImage
-						})));
+						console.log(
+							'Questions with descriptionImage:',
+							res.data.questions.map((q, idx) => ({
+								index: idx,
+								text: q.text?.substring(0, 50),
+								hasDescriptionImage: !!q.descriptionImage,
+								descriptionImage: q.descriptionImage,
+							}))
+						);
 					}
-					
+
 					setSurvey(res.data);
 
 					// For manual surveys, load questions immediately
@@ -361,7 +364,7 @@ const TakeSurvey: React.FC = () => {
 						src={company.logoUrl}
 						alt={company.name || 'Company Logo'}
 						className='h-12 md:h-16 w-auto object-contain'
-						onError={(e) => {
+						onError={e => {
 							// 如果logo加载失败，隐藏元素
 							e.currentTarget.parentElement?.parentElement?.remove();
 						}}
@@ -376,7 +379,7 @@ const TakeSurvey: React.FC = () => {
 			<div className={`mx-auto px-4 ${slug ? 'max-w-2xl' : 'max-w-6xl'}`}>
 				{/* 显示公司Logo */}
 				<CompanyLogo company={survey?.company} />
-				
+
 				{!slug && (
 					<div className='mb-8'>
 						<div className='text-center mb-8'>
@@ -483,7 +486,10 @@ const TakeSurvey: React.FC = () => {
 							)}
 						</div>
 
-						<form onSubmit={handleSubmit} className={`space-y-6 ${isAssessmentType ? 'anti-cheat-container' : ''}`}>
+						<form
+							onSubmit={handleSubmit}
+							className={`space-y-6 ${isAssessmentType ? 'anti-cheat-container' : ''}`}
+						>
 							<div className='grid md:grid-cols-2 gap-6'>
 								<div>
 									<label className='block mb-2 font-semibold text-gray-700'>
@@ -534,11 +540,14 @@ const TakeSurvey: React.FC = () => {
 										)}
 									</div>
 									{questions.map((q, index) => (
-										<div key={q._id} className={`bg-gray-50 rounded-lg p-6 ${isAssessmentType ? 'anti-cheat-container' : ''}`}>
+										<div
+											key={q._id}
+											className={`bg-gray-50 rounded-lg p-6 ${isAssessmentType ? 'anti-cheat-container' : ''}`}
+										>
 											<label className='block mb-4 font-semibold text-gray-800 text-lg'>
 												{index + 1}. {q.text}
 											</label>
-											
+
 											{/* Main question image */}
 											{q.imageUrl && (
 												<div className='mb-4'>
@@ -547,17 +556,23 @@ const TakeSurvey: React.FC = () => {
 														alt='Question image'
 														className='max-w-full h-auto rounded-lg border border-gray-300'
 														onLoad={() => {
-															console.log('Main image loaded successfully:', q.imageUrl);
+															console.log(
+																'Main image loaded successfully:',
+																q.imageUrl
+															);
 														}}
-														onError={(e) => {
-															console.error('Main image failed to load:', q.imageUrl);
+														onError={e => {
+															console.error(
+																'Main image failed to load:',
+																q.imageUrl
+															);
 															console.error('Error event:', e);
 															e.currentTarget.style.display = 'none';
 														}}
 													/>
 												</div>
 											)}
-											
+
 											{/* Description image */}
 											{q.descriptionImage && (
 												<div className='mb-4'>
@@ -566,17 +581,31 @@ const TakeSurvey: React.FC = () => {
 														alt='Question illustration'
 														className='max-w-full h-auto rounded-lg border border-gray-300'
 														onLoad={() => {
-															console.log('Description image loaded successfully:', q.descriptionImage);
+															console.log(
+																'Description image loaded successfully:',
+																q.descriptionImage
+															);
 														}}
-														onError={(e) => {
-															console.error('Description image failed to load:', q.descriptionImage);
+														onError={e => {
+															console.error(
+																'Description image failed to load:',
+																q.descriptionImage
+															);
 															console.error('Error event:', e);
 															e.currentTarget.style.display = 'none';
 														}}
 													/>
 												</div>
 											)}
-											{(q.imageUrl || q.descriptionImage) && console.log('Rendering images for question', index, 'imageUrl:', q.imageUrl, 'descriptionImage:', q.descriptionImage)}
+											{(q.imageUrl || q.descriptionImage) &&
+												console.log(
+													'Rendering images for question',
+													index,
+													'imageUrl:',
+													q.imageUrl,
+													'descriptionImage:',
+													q.descriptionImage
+												)}
 											{q.type === QUESTION_TYPE.SHORT_TEXT ? (
 												<div className='space-y-3'>
 													<textarea
@@ -598,53 +627,73 @@ const TakeSurvey: React.FC = () => {
 												<div className='space-y-3'>
 													{q.options &&
 														q.options.map((opt, optIndex) => {
-															const optionValue = typeof opt === 'string' ? opt : opt.text;
-															const optionText = typeof opt === 'string' ? opt : opt.text;
-															const optionImage = typeof opt === 'object' ? opt.imageUrl : null;
+															const optionValue =
+																typeof opt === 'string'
+																	? opt
+																	: opt.text;
+															const optionText =
+																typeof opt === 'string'
+																	? opt
+																	: opt.text;
+															const optionImage =
+																typeof opt === 'object'
+																	? opt.imageUrl
+																	: null;
 															return (
-															<label
-																key={`${q._id}-${optIndex}-${optionText}`}
-																className='flex items-start p-3 bg-white rounded-lg border border-gray-200 hover:border-primary-300 cursor-pointer transition-colors'
-															>
-																<input
-																	type='radio'
-																	name={q._id}
-																	className='mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 mt-1'
-																	value={optionValue}
-																	checked={
-																		form.answers[q._id] === optionValue
-																	}
-																	onChange={() =>
-																		handleAnswerChange(
-																			q._id,
+																<label
+																	key={`${q._id}-${optIndex}-${optionText}`}
+																	className='flex items-start p-3 bg-white rounded-lg border border-gray-200 hover:border-primary-300 cursor-pointer transition-colors'
+																>
+																	<input
+																		type='radio'
+																		name={q._id}
+																		className='mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 mt-1'
+																		value={optionValue}
+																		checked={
+																			form.answers[q._id] ===
 																			optionValue
-																		)
-																	}
-																	required
-																/>
-																<div className='flex-1'>
-																	{optionText && (
-																		<span className='text-gray-700 block mb-2'>
-																			{optionText}
-																		</span>
-																	)}
-																	{optionImage && (
-																		<img
-																			src={optionImage}
-																			alt={`Option ${optIndex + 1}`}
-																			className='max-w-full h-auto rounded border border-gray-300'
-																			style={{ maxHeight: '200px' }}
-																			onLoad={() => {
-																				console.log('Option image loaded successfully:', optionImage);
-																			}}
-																			onError={(e) => {
-																				console.error('Option image failed to load:', optionImage);
-																				e.currentTarget.style.display = 'none';
-																			}}
-																		/>
-																	)}
-																</div>
-															</label>
+																		}
+																		onChange={() =>
+																			handleAnswerChange(
+																				q._id,
+																				optionValue
+																			)
+																		}
+																		required
+																	/>
+																	<div className='flex-1'>
+																		{optionText && (
+																			<span className='text-gray-700 block mb-2'>
+																				{optionText}
+																			</span>
+																		)}
+																		{optionImage && (
+																			<img
+																				src={optionImage}
+																				alt={`Option ${optIndex + 1}`}
+																				className='max-w-full h-auto rounded border border-gray-300'
+																				style={{
+																					maxHeight:
+																						'200px',
+																				}}
+																				onLoad={() => {
+																					console.log(
+																						'Option image loaded successfully:',
+																						optionImage
+																					);
+																				}}
+																				onError={e => {
+																					console.error(
+																						'Option image failed to load:',
+																						optionImage
+																					);
+																					e.currentTarget.style.display =
+																						'none';
+																				}}
+																			/>
+																		)}
+																	</div>
+																</label>
 															);
 														})}
 												</div>
@@ -742,8 +791,9 @@ const TakeSurvey: React.FC = () => {
 																		src={result.descriptionImage}
 																		alt='Question illustration'
 																		className='max-w-full h-auto rounded-lg border border-gray-300'
-																		onError={(e) => {
-																			e.currentTarget.style.display = 'none';
+																		onError={e => {
+																			e.currentTarget.style.display =
+																			'none';
 																		}}
 																	/>
 																</div>

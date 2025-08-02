@@ -246,32 +246,30 @@ router.get(
 	'/surveys',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-		const surveys = await Survey.find()
-			.populate('questionBankId', 'name description');
+		const surveys = await Survey.find().populate('questionBankId', 'name description');
 
 		// Add lastActivity and responseCount for each survey
 		const surveysWithStats = await Promise.all(
-			surveys.map(async (survey) => {
+			surveys.map(async survey => {
 				const surveyObj = survey.toObject();
-				
+
 				// Get response count - use ObjectId directly
-				const responseCount = await Response.countDocuments({ 
-					surveyId: survey._id 
+				const responseCount = await Response.countDocuments({
+					surveyId: survey._id,
 				});
-				
+
 				// Get last activity (most recent response)
-				const lastResponse = await Response.findOne({ 
-					surveyId: survey._id 
+				const lastResponse = await Response.findOne({
+					surveyId: survey._id,
 				})
 					.sort({ createdAt: -1 })
 					.select('createdAt')
 					.lean();
-				
-				
+
 				return {
 					...surveyObj,
 					responseCount,
-					lastActivity: lastResponse ? lastResponse.createdAt : null
+					lastActivity: lastResponse ? lastResponse.createdAt : null,
 				};
 			})
 		);
@@ -493,7 +491,7 @@ router.put(
 
 		// Fix: Normalize ALL questions' options to the new object format before saving
 		// This prevents validation errors when some questions have legacy string array format
-		survey.questions.forEach((q) => {
+		survey.questions.forEach(q => {
 			if (q.type !== 'short_text' && q.options && Array.isArray(q.options)) {
 				q.options = q.options.map(option => {
 					if (typeof option === 'string') {
@@ -716,16 +714,23 @@ router.patch(
 
 		// Fix: Normalize ALL questions' options to the new object format before saving
 		// This is needed because Mongoose validates the entire document, not just the updated question
-		console.log('Before normalization - questions with options:', survey.questions.map((q, idx) => ({
-			index: idx,
-			type: q.type,
-			optionsCount: q.options?.length || 0,
-			firstOptionType: typeof q.options?.[0],
-			firstOption: q.options?.[0]
-		})));
+		console.log(
+			'Before normalization - questions with options:',
+			survey.questions.map((q, idx) => ({
+				index: idx,
+				type: q.type,
+				optionsCount: q.options?.length || 0,
+				firstOptionType: typeof q.options?.[0],
+				firstOption: q.options?.[0],
+			}))
+		);
 
 		survey.questions.forEach((question, idx) => {
-			if (question.type !== 'short_text' && question.options && Array.isArray(question.options)) {
+			if (
+				question.type !== 'short_text' &&
+				question.options &&
+				Array.isArray(question.options)
+			) {
 				console.log(`Normalizing question ${idx} options:`, question.options);
 				question.options = question.options.map(option => {
 					if (typeof option === 'string') {
@@ -754,13 +759,16 @@ router.patch(
 			}
 		});
 
-		console.log('After normalization - questions with options:', survey.questions.map((q, idx) => ({
-			index: idx,
-			type: q.type,
-			optionsCount: q.options?.length || 0,
-			firstOptionType: typeof q.options?.[0],
-			firstOption: q.options?.[0]
-		})));
+		console.log(
+			'After normalization - questions with options:',
+			survey.questions.map((q, idx) => ({
+				index: idx,
+				type: q.type,
+				optionsCount: q.options?.length || 0,
+				firstOptionType: typeof q.options?.[0],
+				firstOption: q.options?.[0],
+			}))
+		);
 
 		try {
 			await survey.save();
