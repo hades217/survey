@@ -63,7 +63,12 @@ const Step3BrandSettings: React.FC = () => {
 		setCurrentStep(2);
 	};
 	
-	const handleSkip = () => {
+	const handleSkip = async () => {
+		// Save current data even when skipping
+		await saveStepData({
+			themeColor: step3Data.themeColor,
+			customLogoEnabled: step3Data.customLogoEnabled
+		});
 		setCurrentStep(4);
 	};
 	
