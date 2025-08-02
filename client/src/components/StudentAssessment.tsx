@@ -23,6 +23,12 @@ interface FormState {
 	answers: Record<string, string | string[]>;
 }
 
+interface QuestionTiming {
+	startTime: number;
+	endTime?: number;
+	duration?: number;
+}
+
 interface TimerState {
 	timeLeft: number;
 	isActive: boolean;
@@ -37,6 +43,7 @@ interface AssessmentResult {
 	isCorrect: boolean;
 	pointsAwarded: number;
 	maxPoints: number;
+	durationInSeconds?: number;
 }
 
 type StepType = 'instructions' | 'questions' | 'results';
@@ -57,6 +64,10 @@ const StudentAssessment: React.FC = () => {
 	const [assessmentResults, setAssessmentResults] = useState<AssessmentResult[]>([]);
 	const [startTime, setStartTime] = useState<Date | null>(null);
 	const [invitationInfo, setInvitationInfo] = useState<Invitation | null>(null);
+	
+	// Question timing tracking
+	const [questionTimings, setQuestionTimings] = useState<Record<string, QuestionTiming>>({});
+	const [currentQuestionStartTime, setCurrentQuestionStartTime] = useState<number | null>(null);
 
 	const timerRef = useRef<NodeJS.Timeout | null>(null);
 	const autoSubmitRef = useRef(false);
@@ -197,6 +208,18 @@ const StudentAssessment: React.FC = () => {
 	const startAssessment = () => {
 		setCurrentStep('questions');
 		setStartTime(new Date());
+		
+		// Start timing for the first question
+		if (survey?.questions && survey.questions.length > 0) {
+			const firstQuestionId = survey.questions[0]._id;
+			const startTime = Date.now();
+			setCurrentQuestionStartTime(startTime);
+			setQuestionTimings(prev => ({
+				...prev,
+				[firstQuestionId]: { startTime }
+			}));
+		}
+		
 		if (survey?.timeLimit) {
 			setTimer(prev => ({ ...prev, isActive: true }));
 		}
@@ -213,8 +236,36 @@ const StudentAssessment: React.FC = () => {
 	};
 
 	const nextQuestion = () => {
-		if (survey && currentQuestionIndex < survey.questions.length - 1) {
-			setCurrentQuestionIndex(prev => prev + 1);
+		if (!survey) return;
+		
+		// Record end time for current question
+		const currentQuestion = survey.questions[currentQuestionIndex];
+		if (currentQuestion && currentQuestionStartTime) {
+			const endTime = Date.now();
+			const duration = Math.round((endTime - currentQuestionStartTime) / 1000); // Convert to seconds
+			
+			setQuestionTimings(prev => ({
+				...prev,
+				[currentQuestion._id]: {
+					...prev[currentQuestion._id],
+					endTime,
+					duration
+				}
+			}));
+		}
+		
+		if (currentQuestionIndex < survey.questions.length - 1) {
+			const nextIndex = currentQuestionIndex + 1;
+			setCurrentQuestionIndex(nextIndex);
+			
+			// Start timing for next question
+			const nextQuestion = survey.questions[nextIndex];
+			const startTime = Date.now();
+			setCurrentQuestionStartTime(startTime);
+			setQuestionTimings(prev => ({
+				...prev,
+				[nextQuestion._id]: { startTime }
+			}));
 		} else {
 			// Last question, can show submit button or auto-submit
 			setCurrentStep('results');
@@ -222,9 +273,38 @@ const StudentAssessment: React.FC = () => {
 	};
 
 	const prevQuestion = () => {
-		if (currentQuestionIndex > 0) {
-			setCurrentQuestionIndex(prev => prev - 1);
+		if (!survey || currentQuestionIndex <= 0) return;
+		
+		// Record end time for current question (but don't finalize duration since user might come back)
+		const currentQuestion = survey.questions[currentQuestionIndex];
+		if (currentQuestion && currentQuestionStartTime) {
+			const endTime = Date.now();
+			const duration = Math.round((endTime - currentQuestionStartTime) / 1000);
+			
+			setQuestionTimings(prev => ({
+				...prev,
+				[currentQuestion._id]: {
+					...prev[currentQuestion._id],
+					endTime,
+					duration: (prev[currentQuestion._id]?.duration || 0) + duration // Accumulate time
+				}
+			}));
 		}
+		
+		const prevIndex = currentQuestionIndex - 1;
+		setCurrentQuestionIndex(prevIndex);
+		
+		// Start timing for previous question (user might modify their answer)
+		const prevQuestion = survey.questions[prevIndex];
+		const startTime = Date.now();
+		setCurrentQuestionStartTime(startTime);
+		setQuestionTimings(prev => ({
+			...prev,
+			[prevQuestion._id]: {
+				...prev[prevQuestion._id],
+				startTime // Update start time for re-entry
+			}
+		}));
 	};
 
 	const handleSubmit = async (e: React.FormEvent | null, isAutoSubmit = false) => {
@@ -235,6 +315,25 @@ const StudentAssessment: React.FC = () => {
 		autoSubmitRef.current = true;
 
 		try {
+			// Record end time for the last question if we're still on a question
+			let finalQuestionTimings = { ...questionTimings };
+			if (currentStep === 'questions' && currentQuestionStartTime) {
+				const currentQuestion = survey.questions[currentQuestionIndex];
+				if (currentQuestion) {
+					const endTime = Date.now();
+					const duration = Math.round((endTime - currentQuestionStartTime) / 1000);
+					
+					finalQuestionTimings = {
+						...finalQuestionTimings,
+						[currentQuestion._id]: {
+							...finalQuestionTimings[currentQuestion._id],
+							endTime,
+							duration: (finalQuestionTimings[currentQuestion._id]?.duration || 0) + duration
+						}
+					};
+				}
+			}
+
 			const timeSpent = startTime ? Math.floor((Date.now() - startTime.getTime()) / 1000) : 0;
 
 			// Calculate results
@@ -282,10 +381,20 @@ const StudentAssessment: React.FC = () => {
 					isCorrect,
 					pointsAwarded,
 					maxPoints,
+					durationInSeconds: finalQuestionTimings[q._id]?.duration || 0,
 				};
 			});
 
 			setAssessmentResults(results);
+
+			// Prepare answer durations for API
+			const answerDurations: Record<string, number> = {};
+			Object.keys(finalQuestionTimings).forEach(questionId => {
+				const timing = finalQuestionTimings[questionId];
+				if (timing.duration !== undefined) {
+					answerDurations[questionId] = timing.duration;
+				}
+			});
 
 			// Submit to backend
 			const responseData: ResponseCreateRequest = {
@@ -295,6 +404,7 @@ const StudentAssessment: React.FC = () => {
 				answers: form.answers,
 				timeSpent,
 				isAutoSubmit,
+				answerDurations,
 			};
 
 			await api.post('/responses', responseData);
@@ -654,8 +764,25 @@ const StudentAssessment: React.FC = () => {
 												: 'border-red-500 bg-red-50'
 										}`}
 									>
-										<div className='font-medium text-gray-800 mb-2'>
-											Question {index + 1}: {result.questionText}
+										<div className='flex justify-between items-start mb-2'>
+											<div className='font-medium text-gray-800'>
+												Question {index + 1}: {result.questionText}
+											</div>
+											{result.durationInSeconds !== undefined && (
+												<div className='flex items-center text-sm text-gray-500 ml-4'>
+													<svg className='w-4 h-4 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+														<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+													</svg>
+													<span className={result.durationInSeconds > 90 ? 'text-red-500 font-medium' : ''}>
+														用时: {result.durationInSeconds}秒
+													</span>
+													{result.durationInSeconds > 90 && (
+														<svg className='w-4 h-4 ml-1 text-red-500' fill='currentColor' viewBox='0 0 20 20'>
+															<path fillRule='evenodd' d='M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z' clipRule='evenodd' />
+														</svg>
+													)}
+												</div>
+											)}
 										</div>
 										<div className='grid md:grid-cols-2 gap-4 text-sm'>
 											<div>

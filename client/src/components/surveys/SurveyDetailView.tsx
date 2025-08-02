@@ -1587,23 +1587,69 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																</div>
 															</div>
 															<div className='space-y-2'>
-																{Object.entries(
-																	response.answers
-																).map(([question, answer]) => (
-																	<div
-																		key={question}
-																		className='border-l-4 border-blue-200 pl-3'
-																	>
-																		<div className='font-medium text-gray-700 text-sm'>
-																			{question}
-																		</div>
+																{/* Show question snapshots with durations if available */}
+																{response.questionSnapshots && response.questionSnapshots.length > 0 ? (
+																	response.questionSnapshots.map((snapshot, qIdx) => (
 																		<div
-																			className={`text-sm ${answer === 'No answer' ? 'text-gray-400 italic' : 'text-gray-900'}`}
+																			key={snapshot.questionIndex}
+																			className='border-l-4 border-blue-200 pl-3'
 																		>
-																			{answer}
+																			<div className='flex justify-between items-start mb-1'>
+																				<div className='font-medium text-gray-700 text-sm'>
+																					Q{snapshot.questionIndex + 1}: {snapshot.questionData.text}
+																				</div>
+																				{snapshot.durationInSeconds !== undefined && (
+																					<div className='flex items-center text-xs text-gray-500 ml-2'>
+																						<svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+																							<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+																						</svg>
+																						<span className={snapshot.durationInSeconds > 90 ? 'text-red-500 font-medium' : ''}>
+																							{snapshot.durationInSeconds}s
+																						</span>
+																						{snapshot.durationInSeconds > 90 && (
+																							<svg className='w-3 h-3 ml-1 text-red-500' fill='currentColor' viewBox='0 0 20 20'>
+																								<path fillRule='evenodd' d='M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z' clipRule='evenodd' />
+																							</svg>
+																						)}
+																					</div>
+																				)}
+																			</div>
+																			<div className='flex justify-between text-sm'>
+																				<div className={`${snapshot.userAnswer === null || snapshot.userAnswer === 'No answer' ? 'text-gray-400 italic' : 'text-gray-900'}`}>
+																					<span className='font-medium text-gray-600'>Answer: </span>
+																					{snapshot.userAnswer || 'No answer'}
+																				</div>
+																				{snapshot.scoring && (
+																					<div className={`text-xs px-2 py-1 rounded ${snapshot.scoring.isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+																						{snapshot.scoring.isCorrect ? '✓ Correct' : '✗ Wrong'}
+																						{snapshot.scoring.pointsAwarded !== undefined && (
+																							<span className='ml-1'>
+																								({snapshot.scoring.pointsAwarded}/{snapshot.scoring.maxPoints}pts)
+																							</span>
+																						)}
+																					</div>
+																				)}
+																			</div>
 																		</div>
-																	</div>
-																))}
+																	))
+																) : (
+																	// Fallback to old format
+																	Object.entries(response.answers).map(([question, answer]) => (
+																		<div
+																			key={question}
+																			className='border-l-4 border-blue-200 pl-3'
+																		>
+																			<div className='font-medium text-gray-700 text-sm'>
+																				{question}
+																			</div>
+																			<div
+																				className={`text-sm ${answer === 'No answer' ? 'text-gray-400 italic' : 'text-gray-900'}`}
+																			>
+																				{answer}
+																			</div>
+																		</div>
+																	))
+																)}
 															</div>
 														</div>
 													))}

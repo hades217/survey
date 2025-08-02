@@ -324,6 +324,8 @@ export interface ResponseCreateRequest {
   answers: unknown[] | Record<string, unknown>;
   timeSpent?: number;
   isAutoSubmit?: boolean;
+  // Answer durations for each question (questionId -> duration in seconds)
+  answerDurations?: Record<string, number>;
   metadata?: {
     userAgent?: string;
     ipAddress?: string;
