@@ -3,8 +3,6 @@ services:
         image: mongo:7.0
         restart: unless-stopped
         environment:
-            MONGO_INITDB_ROOT_USERNAME: admin
-            MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password123}
             MONGO_INITDB_DATABASE: survey
         volumes:
             - mongodb_data:/data/db
@@ -21,7 +19,7 @@ services:
             context: .
             dockerfile: Dockerfile.backend
         environment:
-            MONGODB_URI: mongodb://admin:${MONGO_ROOT_PASSWORD:-password123}@mongodb:27017/survey?authSource=admin
+            MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/survey}
             PORT: 5050
             NODE_ENV: production
             ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}

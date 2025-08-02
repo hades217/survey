@@ -53,7 +53,7 @@ pipeline {
 					ls -la
 
 					# Stop and remove existing survey containers (ignore .env file missing)
-					docker-compose down || true
+					docker-compose -f docker-compose.prod.yml down || true
 
 					# Remove only survey-related images
 					docker images | grep survey | awk '{print $3}' | xargs -r docker rmi -f || true
@@ -103,15 +103,15 @@ pipeline {
 							echo "Complete .env file content:"
 							cat .env
 
-							# Build and start services using existing docker-compose.yml
-							docker-compose up --build -d
+							# Build and start services using production docker-compose file
+							docker-compose -f docker-compose.prod.yml up --build -d
 
 							# Wait for services to be ready
 							echo "Waiting for services to be ready..."
 							sleep 30
 
 							# Check service status
-							docker-compose ps
+							docker-compose -f docker-compose.prod.yml ps
 						"""
 					}
 				}
@@ -131,10 +131,10 @@ pipeline {
 						echo "Frontend is healthy"
 					'''
 
-					// Test backend API
+					// Test backend API - check if backend is accessible through frontend proxy
 					sh '''
 						curl -f http://localhost:80/api/surveys || exit 1
-						echo "Backend API is accessible"
+						echo "Backend API is accessible through frontend"
 					'''
 
 					// Test admin dashboard

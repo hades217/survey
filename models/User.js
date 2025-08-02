@@ -71,6 +71,7 @@ const userSchema = new mongoose.Schema({
 	subscriptionStatus: {
 		type: String,
 		enum: [
+			null,
 			'active',
 			'canceled',
 			'incomplete',

@@ -3,7 +3,7 @@ FROM node:20-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -15,10 +15,13 @@ RUN npm ci --only=production
 FROM base AS runner
 WORKDIR /app
 
+# Install wget for health check
+RUN apk add --no-cache wget
+
 ENV NODE_ENV production
 
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN adduser --system --uid 1001 backend
 
 # Copy the backend application
 COPY --from=deps /app/node_modules ./node_modules
@@ -36,10 +39,10 @@ COPY package.json ./
 
 # Create uploads directory and set permissions
 RUN mkdir -p uploads uploads/images uploads/documents uploads/temp
-RUN chown -R nextjs:nodejs uploads
+RUN chown -R backend:nodejs uploads
 RUN chmod -R 755 uploads
 
-USER nextjs
+USER backend
 
 EXPOSE 5050
 
