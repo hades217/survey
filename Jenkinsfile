@@ -145,18 +145,18 @@ pipeline {
 
 							# Build and start services with detailed logging
 							echo "=== Building and starting services ==="
-							echo "Using compose file: \$COMPOSE_FILE"
+							echo "Using compose file: $COMPOSE_FILE"
 
 							# Show docker-compose configuration for debugging
 							echo "=== Docker Compose Configuration ==="
-							docker-compose -f \$COMPOSE_FILE config
+							docker-compose -f $COMPOSE_FILE config
 
 							# Build and start services
 							echo "=== Starting docker-compose build ==="
-							if ! docker-compose -f \$COMPOSE_FILE up --build -d; then
+							if ! docker-compose -f $COMPOSE_FILE up --build -d; then
 								echo "ERROR: docker-compose up failed!"
 								echo "=== Docker Compose Logs ==="
-								docker-compose -f \$COMPOSE_FILE logs
+								docker-compose -f $COMPOSE_FILE logs
 								echo "=== System Resources ==="
 								df -h
 								free -h 2>/dev/null || echo "free command not available"
@@ -166,7 +166,7 @@ pipeline {
 
 							# Check if containers started successfully
 							echo "=== Immediate container status after start ==="
-							docker-compose -f \$COMPOSE_FILE ps
+							docker-compose -f $COMPOSE_FILE ps
 
 							# Show any containers that might have exited
 							echo "=== All containers (including exited) ==="
@@ -178,20 +178,20 @@ pipeline {
 
 							# Check service status again after wait
 							echo "=== Final service status after wait ==="
-							docker-compose -f \$COMPOSE_FILE ps
+							docker-compose -f $COMPOSE_FILE ps
 
 							# Show logs of all services for debugging
 							echo "=== Container Logs for Debugging ==="
 							echo "Showing logs for all services:"
-							docker-compose -f \$COMPOSE_FILE logs --tail 50 || echo "Could not get compose logs"
+							docker-compose -f $COMPOSE_FILE logs --tail 50 || echo "Could not get compose logs"
 							
 							# Also show individual container logs if compose doesn't work
 							echo "=== Individual Container Logs ==="
-							for container_id in \$(docker ps -aq --filter "label=com.docker.compose.project"); do
-								if [ -n "\$container_id" ]; then
-									container_name=\$(docker ps -a --format "{{.Names}}" --filter "id=\$container_id")
-									echo "--- Logs for \$container_name ---"
-									docker logs --tail 30 \$container_id 2>&1 || echo "Could not get logs for \$container_name"
+							for container_id in $(docker ps -aq --filter "label=com.docker.compose.project"); do
+								if [ -n "$container_id" ]; then
+									container_name=$(docker ps -a --format "{{.Names}}" --filter "id=$container_id")
+									echo "--- Logs for $container_name ---"
+									docker logs --tail 30 $container_id 2>&1 || echo "Could not get logs for $container_name"
 									echo ""
 								fi
 							done
