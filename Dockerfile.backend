@@ -34,8 +34,11 @@ COPY services ./services
 COPY shared ./shared
 COPY utils ./utils
 COPY controllers ./controllers
+COPY interfaces ./interfaces
+COPY config ./config
 COPY questions.json ./
 COPY package.json ./
+COPY client/dist ./client/dist
 
 # Create uploads directory and set permissions
 RUN mkdir -p uploads uploads/images uploads/documents uploads/temp

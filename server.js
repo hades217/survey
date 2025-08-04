@@ -10,9 +10,12 @@ const surveysRouter = require('./routes/surveys');
 const usersRouter = require('./routes/users');
 const invitationsRouter = require('./routes/invitations');
 const questionBanksRouter = require('./routes/questionBanks');
-const stripeRouter = require('./routes/stripe');
+const subscriptionRouter = require('./routes/subscription');
 const companiesRouter = require('./routes/companies');
 const errorHandler = require('./middlewares/errorHandler');
+
+// Initialize service container
+const serviceContainer = require('./services/ServiceContainer');
 
 const app = express();
 const PORT = process.env.PORT || 5050;
@@ -45,7 +48,7 @@ app.use('/api/admin', adminRouter);
 app.use('/api/admin/users', usersRouter);
 app.use('/api/admin/question-banks', questionBanksRouter);
 app.use('/api/invitations', invitationsRouter);
-app.use('/api/stripe', stripeRouter);
+app.use('/api/subscription', subscriptionRouter);
 app.use('/api/companies', companiesRouter);
 app.use(errorHandler);
 

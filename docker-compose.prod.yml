@@ -14,27 +14,21 @@ services:
                 max-size: '10m'
                 max-file: '3'
 
-    backend:
+    app:
         build:
             context: .
             dockerfile: Dockerfile.backend
         environment:
             MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/survey}
-            PORT: 5050
+            PORT: ${PORT:-5050}
             NODE_ENV: production
             ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
             ADMIN_PASSWORD: ${ADMIN_PASSWORD:-password}
+        ports:
+            - '${PORT:-5050}:${PORT:-5050}'
         restart: unless-stopped
         depends_on:
             - mongodb
-        healthcheck:
-            test:
-                - 'CMD-SHELL'
-                - 'wget --no-verbose --tries=1 --spider http://localhost:5050/api/surveys || exit 1'
-            interval: 30s
-            timeout: 10s
-            retries: 3
-            start_period: 60s
         logging:
             driver: 'json-file'
             options:
@@ -44,19 +38,7 @@ services:
             - survey-network
         volumes:
             - uploads:/app/uploads
-
-    frontend:
-        build:
-            context: .
-            dockerfile: Dockerfile.frontend
-        ports:
-            - '80:80'
-        restart: unless-stopped
-        depends_on:
-            backend:
-                condition: service_healthy
-        networks:
-            - survey-network
+            - ./client/dist:/app/client/dist
 
 networks:
     survey-network:
