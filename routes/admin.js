@@ -84,9 +84,23 @@ router.post(
 			}).select('+password');
 
 			if (!user) {
+				// Check if user exists but with different role
+				const userWithDifferentRole = await User.findOne({
+					email: username.toLowerCase(),
+				});
+				
+				if (userWithDifferentRole) {
+					return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+						success: false,
+						error: 'Account found but not authorized for admin access',
+						errorType: 'unauthorized_role'
+					});
+				}
+				
 				return res.status(HTTP_STATUS.UNAUTHORIZED).json({
 					success: false,
-					error: 'Invalid credentials',
+					error: 'No account found with this email address',
+					errorType: 'user_not_found'
 				});
 			}
 
@@ -94,7 +108,8 @@ router.post(
 			if (!isPasswordValid) {
 				return res.status(HTTP_STATUS.UNAUTHORIZED).json({
 					success: false,
-					error: 'Invalid credentials',
+					error: 'Incorrect password',
+					errorType: 'wrong_password'
 				});
 			}
 
@@ -138,6 +153,14 @@ router.post(
 	asyncHandler(async (req, res) => {
 		const { name, email, password, companyName } = req.body;
 
+		console.log('Registration request received:', {
+			name,
+			email: email ? email.toLowerCase() : 'undefined',
+			companyName,
+			hasPassword: !!password,
+			passwordLength: password ? password.length : 0
+		});
+
 		// Validation
 		if (!name || !email || !password) {
 			return res.status(HTTP_STATUS.BAD_REQUEST).json({
@@ -154,28 +177,44 @@ router.post(
 		}
 
 		// Check if user already exists
+		console.log('Checking for existing user with email:', email.toLowerCase());
 		const existingUser = await User.findOne({ email: email.toLowerCase() });
 		if (existingUser) {
+			console.log('User already exists with this email');
 			return res.status(HTTP_STATUS.BAD_REQUEST).json({
 				success: false,
 				error: 'An account with this email already exists',
+				errorType: 'user_exists'
 			});
 		}
+		console.log('No existing user found, proceeding with registration');
 
 		try {
 			// Hash password
+			console.log('Hashing password...');
 			const hashedPassword = await bcrypt.hash(password, 12);
+			console.log('Password hashing successful');
 
 			// Create company if provided
 			let company = null;
 			if (companyName) {
+				console.log('Creating company:', companyName);
 				company = new Company({
 					name: companyName,
 				});
 				await company.save();
+				console.log('Company created successfully with ID:', company._id);
 			}
 
 			// Create user
+			console.log('Creating user with data:', {
+				name,
+				email: email.toLowerCase(),
+				role: 'admin',
+				companyId: company ? company._id : undefined,
+				hasHashedPassword: !!hashedPassword
+			});
+			
 			const user = new User({
 				name,
 				email: email.toLowerCase(),
@@ -184,9 +223,12 @@ router.post(
 				companyId: company ? company._id : undefined,
 			});
 
+			console.log('Saving user to database...');
 			await user.save();
+			console.log('User saved successfully with ID:', user._id);
 
 			// Generate JWT token
+			console.log('Generating JWT token for user:', user._id);
 			const token = jwt.sign(
 				{
 					id: user._id,
@@ -196,7 +238,9 @@ router.post(
 				JWT_SECRET,
 				{ expiresIn: '7d' }
 			);
+			console.log('JWT token generated successfully');
 
+			console.log('Registration completed successfully, sending response');
 			res.status(HTTP_STATUS.CREATED).json({
 				success: true,
 				token,
@@ -209,9 +253,48 @@ router.post(
 			});
 		} catch (error) {
 			console.error('Registration error:', error);
+			console.error('Error details:', {
+				message: error.message,
+				name: error.name,
+				code: error.code,
+				stack: error.stack
+			});
+			
+			// More specific error messages
+			let errorMessage = 'Registration failed. Please try again.';
+			let errorType = 'registration_failed';
+			
+			if (error.code === 11000) {
+				errorMessage = 'This email is already registered.';
+				errorType = 'duplicate_email';
+			} else if (error.name === 'ValidationError') {
+				errorMessage = 'Invalid data provided. Please check your input.';
+				errorType = 'validation_error';
+				// Add validation details
+				if (error.errors) {
+					const validationErrors = Object.keys(error.errors).map(field => 
+						`${field}: ${error.errors[field].message}`
+					);
+					console.error('Validation errors:', validationErrors);
+					errorMessage += ' (' + validationErrors.join(', ') + ')';
+				}
+			} else if (error.message && error.message.includes('bcrypt')) {
+				errorMessage = 'Password encryption failed. Please try again.';
+				errorType = 'bcrypt_error';
+			} else if (error.name === 'MongooseError' || error.name === 'MongoError') {
+				errorMessage = 'Database error. Please try again later.';
+				errorType = 'database_error';
+			}
+			
 			res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
 				success: false,
-				error: 'Registration failed. Please try again.',
+				error: errorMessage,
+				errorType: errorType,
+				debug: process.env.NODE_ENV === 'development' ? {
+					originalError: error.message,
+					errorName: error.name,
+					errorCode: error.code
+				} : undefined
 			});
 		}
 	})

@@ -363,7 +363,29 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 				setError(response.data.error || 'Login failed');
 			}
 		} catch (err: unknown) {
-			setError(err.response?.data?.error || 'Login failed');
+			const errorData = err.response?.data;
+			let errorMessage = 'Login failed';
+			
+			if (errorData?.error) {
+				errorMessage = errorData.error;
+			} else if (errorData?.errorType) {
+				// Handle specific error types with more helpful messages
+				switch (errorData.errorType) {
+					case 'user_not_found':
+						errorMessage = 'No account found with this email address. Please check your email or register for a new account.';
+						break;
+					case 'wrong_password':
+						errorMessage = 'Incorrect password. Please check your password and try again.';
+						break;
+					case 'unauthorized_role':
+						errorMessage = 'This account does not have admin privileges. Please contact your administrator.';
+						break;
+					default:
+						errorMessage = errorData.error || 'Login failed';
+				}
+			}
+			
+			setError(errorMessage);
 		} finally {
 			setLoading(false);
 		}
