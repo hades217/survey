@@ -355,6 +355,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 				// Save JWT token to localStorage
 				localStorage.setItem('adminToken', response.data.token);
 				setLoggedIn(true);
+				// Only clear form on successful login
 				setLoginForm({ username: '', password: '' });
 				// Load profile data after successful login
 				await loadProfile();

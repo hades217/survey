@@ -19,7 +19,11 @@ export default defineConfig({
 		host: '0.0.0.0',
 		port: 5173,
 		proxy: {
-			'/api': 'http://localhost:5050',
+			'/api': {
+				target: 'http://backend:5050',
+				changeOrigin: true,
+				secure: false,
+			},
 		},
 		allowedHosts: ['localhost', '127.0.0.1', 'survey.jiangren.com.au', '*.jiangren.com.au'],
 	},

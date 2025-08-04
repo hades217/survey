@@ -29,9 +29,16 @@ api.interceptors.response.use(
 	},
 	error => {
 		if (error.response?.status === 401) {
-			// Token expired or invalid, remove it and redirect to login
-			localStorage.removeItem('adminToken');
-			window.location.href = '/admin';
+			// Only redirect on token expiration for authenticated endpoints
+			// Skip redirect for login/register endpoints
+			const requestUrl = error.config?.url || '';
+			const isAuthEndpoint = requestUrl.includes('/login') || requestUrl.includes('/register');
+			
+			if (!isAuthEndpoint) {
+				// Token expired or invalid for authenticated endpoint, remove it and redirect to login
+				localStorage.removeItem('adminToken');
+				window.location.href = '/admin';
+			}
 		}
 		return Promise.reject(error);
 	}

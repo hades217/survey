@@ -56,8 +56,8 @@ RUN chmod -R 755 uploads
 
 USER backend
 
-EXPOSE 5173
+EXPOSE 5050
 
-ENV PORT 5173
+ENV PORT 5050
 
 CMD ["node", "server.js"]

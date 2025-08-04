@@ -1529,9 +1529,16 @@ router.get(
 	'/profile',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-		// For now, we'll use a default admin user since we're using simple auth
-		// In a real application, you'd get the user from req.user.id
-		let adminUser = await User.findOne({ role: 'admin' }).populate('companyId');
+		// Get the current user from JWT token
+		let adminUser = null;
+		
+		if (req.user.id && req.user.id !== 'admin') {
+			// Find user by JWT token ID (for registered users)
+			adminUser = await User.findById(req.user.id).populate('companyId');
+		} else {
+			// Fallback to legacy admin user lookup
+			adminUser = await User.findOne({ role: 'admin' }).populate('companyId');
+		}
 
 		// If no admin user exists, create a default one
 		if (!adminUser) {
