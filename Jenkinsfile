@@ -59,7 +59,7 @@ pipeline {
 						echo "✗ docker-compose.aws.yml missing"
 					fi
 					if [ -f "docker-compose.prod.yml" ]; then
-						echo "✓ docker-compose.prod.yml exists"  
+						echo "✓ docker-compose.prod.yml exists"
 					else
 						echo "✗ docker-compose.prod.yml missing"
 					fi
@@ -99,7 +99,7 @@ pipeline {
 			steps {
 				echo 'Building and deploying survey application...'
 				withVault([configuration: [ vaultUrl: 'https://vault.jiangren.com.au', vaultCredentialId: 'Vault Credential', timeout: 120],
-					vaultSecrets: [[path: 'jenkins_jr_academy/prod',
+					vaultSecrets: [[path: 'jr-survey/prod',
 						secretValues: [
 							[vaultKey: 'MONGO_URI']
 						]
@@ -126,20 +126,20 @@ EOF
 
 							echo "=== Starting Docker Containers ==="
 							echo "Using compose file: $COMPOSE_FILE"
-							
+
 							# Stop any existing containers
 							docker-compose -f $COMPOSE_FILE down || true
-							
+
 							# Build and start services
 							docker-compose -f $COMPOSE_FILE up --build -d
-							
+
 							# Wait for services to start
 							sleep 15
-							
+
 							# Check container status
 							echo "=== Container Status ==="
 							docker-compose -f $COMPOSE_FILE ps
-							
+
 							# Show logs if there are issues
 							if ! docker-compose -f $COMPOSE_FILE ps | grep -q "Up"; then
 								echo "=== Container Logs ==="
@@ -158,16 +158,16 @@ EOF
 				echo 'Performing health checks...'
 				script {
 					sleep 10
-					
+
 					def composeFile = 'docker-compose.prod.yml'
-					
+
 					withEnv(["COMPOSE_FILE=${composeFile}"]) {
 						sh '''
 						echo "=== Health Check ==="
-						
+
 						# Check container status
 						docker-compose -f $COMPOSE_FILE ps
-						
+
 						# Test application on port 5173
 						echo "Testing application..."
 						if curl -f --connect-timeout 10 --max-time 30 -s http://localhost:5173 >/dev/null 2>&1; then
@@ -178,14 +178,14 @@ EOF
 							docker-compose -f $COMPOSE_FILE logs --tail 20
 							exit 1
 						fi
-						
+
 						# Test API endpoint
 						if curl -f --connect-timeout 10 --max-time 30 -s http://localhost:5173/api/surveys >/dev/null 2>&1; then
 							echo "✅ API endpoint is working"
 						else
 							echo "⚠️ API endpoint test failed but continuing..."
 						fi
-						
+
 						echo "=== Health Check Completed ==="
 						'''
 					}

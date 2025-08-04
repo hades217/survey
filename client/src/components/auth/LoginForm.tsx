@@ -35,7 +35,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
 							<input
 								id='username'
 								name='username'
-								type='email'
+								type='text'
 								required
 								className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500'
 								placeholder='Enter your email address'
@@ -75,7 +75,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
 									<p className='text-sm font-medium'>{error}</p>
 									{error.includes('No account found') && (
 										<p className='mt-2 text-sm text-red-600'>
-											💡 <strong>Tip:</strong> Make sure you're using your email address, not a username.
+											💡 <strong>Tip:</strong> Make sure you&apos;re using your email address, not a username.
 										</p>
 									)}
 									{error.includes('Incorrect password') && (
