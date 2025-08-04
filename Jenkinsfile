@@ -149,26 +149,36 @@ pipeline {
 							echo "Using production configuration file: $COMPOSE_FILE"
 						fi
 						
-						# Show detailed container status
-						echo "=== Docker Container Status ==="
-						docker ps -a --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"
+						# Show only survey-related container status
+						echo "=== Survey Application Container Status ==="
+						docker ps -a --filter "name=survey" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}" || echo "No survey containers found"
 						
-						# Show container logs for debugging
-						echo "=== Container Logs (last 20 lines) ==="
-						for container in $(docker ps -q); do
-							container_name=$(docker ps --format "{{.Names}}" --filter "id=$container")
-							echo "--- Logs for $container_name ---"
-							docker logs --tail 20 $container 2>&1 || echo "Failed to get logs for $container_name"
-							echo ""
-						done
+						# Also check by label if containers are labeled
+						echo "=== Survey Containers by Compose Project ==="
+						docker-compose -f $COMPOSE_FILE ps 2>/dev/null || echo "Could not get compose status"
 						
-						# Check network connectivity
-						echo "=== Network Status ==="
-						docker network ls
+						# Show container logs only for survey containers
+						echo "=== Survey Container Logs (last 20 lines) ==="
+						survey_containers=$(docker ps -q --filter "name=survey" 2>/dev/null)
+						if [ -n "$survey_containers" ]; then
+							for container in $survey_containers; do
+								container_name=$(docker ps --format "{{.Names}}" --filter "id=$container")
+								echo "--- Logs for $container_name ---"
+								docker logs --tail 20 $container 2>&1 || echo "Failed to get logs for $container_name"
+								echo ""
+							done
+						else
+							echo "No survey containers found to show logs"
+						fi
 						
-						# Show which ports are actually listening
-						echo "=== Listening Ports ==="
-						netstat -tlnp 2>/dev/null | grep LISTEN || ss -tlnp | grep LISTEN || echo "Could not check listening ports"
+						# Show survey-specific network information
+						echo "=== Survey Network Status ==="
+						docker network ls --filter "name=survey" || echo "No survey networks found"
+						
+						# Show only survey-related listening ports (5050, 80)
+						echo "=== Survey Application Listening Ports ==="
+						echo "Checking ports 80 and 5050:"
+						netstat -tlnp 2>/dev/null | grep -E ":80 |:5050 " || ss -tlnp 2>/dev/null | grep -E ":80 |:5050 " || echo "Ports 80 and 5050 are not listening"
 						
 						# Check if services are responding on expected ports
 						echo "=== Port Connectivity Tests ==="
@@ -197,25 +207,35 @@ pipeline {
 						if [ -z "$PORT" ]; then
 							echo "=== DEBUGGING: No ports accessible ==="
 							
-							# Check if containers are actually running
-							echo "Running containers:"
-							docker ps --format "{{.Names}}: {{.Status}}"
+							# Check if survey containers are actually running
+							echo "Survey containers status:"
+							docker ps --filter "name=survey" --format "{{.Names}}: {{.Status}}" || echo "No survey containers running"
 							
-							# Check container health if health checks are defined
-							echo "Container health status:"
-							docker ps --format "{{.Names}}: {{.Status}}" | while read line; do
-								container_name=$(echo $line | cut -d: -f1)
-								echo "Health check for $container_name:"
-								docker inspect $container_name --format='{{.State.Health.Status}}' 2>/dev/null || echo "No health check defined"
-							done
+							# Check container health for survey containers only
+							echo "Survey container health status:"
+							survey_containers=$(docker ps -q --filter "name=survey" 2>/dev/null)
+							if [ -n "$survey_containers" ]; then
+								for container in $survey_containers; do
+									container_name=$(docker ps --format "{{.Names}}" --filter "id=$container")
+									echo "Health check for $container_name:"
+									docker inspect $container --format='{{.State.Health.Status}}' 2>/dev/null || echo "No health check defined for $container_name"
+								done
+							else
+								echo "No survey containers found for health check"
+							fi
 							
-							# Show recent container events
-							echo "Recent Docker events:"
-							docker events --since 2m --until now 2>/dev/null || echo "Could not get Docker events"
+							# Show recent Docker events for survey containers only
+							echo "Recent Docker events for survey containers:"
+							docker events --filter "container=survey" --since 2m --until now 2>/dev/null || echo "Could not get Docker events for survey containers"
 							
-							# Check if MongoDB is accessible (if using external DB)
-							echo "Testing MongoDB connectivity from containers:"
-							docker exec $(docker ps -q | head -1) nc -zv mongodb 27017 2>&1 || echo "MongoDB connectivity test failed"
+							# Check if MongoDB is accessible from survey containers
+							echo "Testing MongoDB connectivity from survey containers:"
+							if [ -n "$survey_containers" ]; then
+								first_survey_container=$(echo $survey_containers | cut -d' ' -f1)
+								docker exec $first_survey_container nc -zv mongodb 27017 2>&1 || echo "MongoDB connectivity test failed from survey container"
+							else
+								echo "No survey containers available for MongoDB test"
+							fi
 							
 							echo "Health check failed - no accessible ports found"
 							exit 1
