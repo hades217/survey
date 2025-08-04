@@ -115,86 +115,39 @@ pipeline {
 
 						withEnv(["COMPOSE_FILE=${composeFile}"]) {
 							sh '''
-							# Verify docker-compose files exist
-							if [ ! -f "docker-compose.prod.yml" ] && [ ! -f "docker-compose.aws.yml" ]; then
-								echo "Error: No docker-compose configuration files found"
-								exit 1
-							fi
-
-							# Create .env file with actual environment variable values
+							# Create .env file with environment variables
 							cat > .env << EOF
-							# Database Configuration
-							MONGODB_URI=${MONGO_URI}
+MONGODB_URI=${MONGO_URI}
+PORT=5050
+NODE_ENV=production
+ADMIN_USERNAME=${ADMIN_USERNAME}
+ADMIN_PASSWORD=${ADMIN_PASSWORD}
+EOF
 
-							# Application Configuration
-							PORT=5050
-							NODE_ENV=production
-
-							# Admin Configuration
-							ADMIN_USERNAME=${ADMIN_USERNAME}
-							ADMIN_PASSWORD=${ADMIN_PASSWORD}
-							EOF
-
-							# Show the complete .env file for debugging
-							echo "Complete .env file content:"
-							cat .env
-
-							# Build and start services with detailed logging
-							echo "=== Building and starting services ==="
+							echo "=== Starting Docker Containers ==="
 							echo "Using compose file: $COMPOSE_FILE"
-
-							# Show docker-compose configuration for debugging
-							echo "=== Docker Compose Configuration ==="
-							docker-compose -f $COMPOSE_FILE config
-
+							
+							# Stop any existing containers
+							docker-compose -f $COMPOSE_FILE down || true
+							
 							# Build and start services
-							echo "=== Starting docker-compose build ==="
-							if ! docker-compose -f $COMPOSE_FILE up --build -d; then
-								echo "ERROR: docker-compose up failed!"
-								echo "=== Docker Compose Logs ==="
+							docker-compose -f $COMPOSE_FILE up --build -d
+							
+							# Wait for services to start
+							sleep 15
+							
+							# Check container status
+							echo "=== Container Status ==="
+							docker-compose -f $COMPOSE_FILE ps
+							
+							# Show logs if there are issues
+							if ! docker-compose -f $COMPOSE_FILE ps | grep -q "Up"; then
+								echo "=== Container Logs ==="
 								docker-compose -f $COMPOSE_FILE logs
-								echo "=== System Resources ==="
-								df -h
-								free -h 2>/dev/null || echo "free command not available"
-								docker system df
 								exit 1
 							fi
-
-							# Check if containers started successfully
-							echo "=== Immediate container status after start ==="
-							docker-compose -f $COMPOSE_FILE ps
-
-							# Show any containers that might have exited
-							echo "=== All containers (including exited) ==="
-							docker ps -a --filter "label=com.docker.compose.project"
-
-							# Wait for services to be ready
-							echo "Waiting for services to be ready..."
-							sleep 30
-
-							# Check service status again after wait
-							echo "=== Final service status after wait ==="
-							docker-compose -f $COMPOSE_FILE ps
-
-							# Show logs of all services for debugging
-							echo "=== Container Logs for Debugging ==="
-							echo "Showing logs for all services:"
-							docker-compose -f $COMPOSE_FILE logs --tail 50 || echo "Could not get compose logs"
-						'''
+							'''
 						}
-						
-						// Show individual container logs in a separate sh block to avoid Groovy parsing issues
-						sh '''
-							echo "=== Individual Container Logs ==="
-							for container_id in $(docker ps -aq --filter "label=com.docker.compose.project"); do
-								if [ -n "$container_id" ]; then
-									container_name=$(docker ps -a --format "{{.Names}}" --filter "id=$container_id")
-									echo "--- Logs for $container_name ---"
-									docker logs --tail 30 $container_id 2>&1 || echo "Could not get logs for $container_name"
-									echo ""
-								fi
-							done
-						'''
 					}
 				}
 			}
@@ -204,240 +157,37 @@ pipeline {
 			steps {
 				echo 'Performing health checks...'
 				script {
-					// Wait for services to be ready
 					sleep 10
-
-					// Use production compose file only
+					
 					def composeFile = 'docker-compose.prod.yml'
-					echo "Using compose file for health check: ${composeFile}"
-
+					
 					withEnv(["COMPOSE_FILE=${composeFile}"]) {
 						sh '''
-							echo "=== Starting Health Check Debug Information ==="
-
-							# Show current time
-							echo "Current time: $(date)"
-
-							echo "Using configuration file: $COMPOSE_FILE"
-
-							# Check the exact 2 containers we expect: mongodb and app
-							echo "=== Checking Expected Containers Status ==="
-							
-							# Check compose project status first
-							echo "Docker Compose Status:"
-							docker-compose -f $COMPOSE_FILE ps || echo "Could not get compose status"
-							
-							echo ""
-							echo "=== Individual Container Analysis ==="
-							
-							# Check MongoDB container specifically
-							echo "1. MongoDB Container Status:"
-							MONGODB_CONTAINER=$(docker ps -a --filter "name=mongodb" --format "{{.Names}}" | head -1)
-							if [ -n "$MONGODB_CONTAINER" ]; then
-								echo "   Container name: $MONGODB_CONTAINER"
-								echo "   Status: $(docker ps -a --filter "name=mongodb" --format "{{.Status}}" | head -1)"
-								echo "   Health: $(docker inspect $MONGODB_CONTAINER --format='{{.State.Health.Status}}' 2>/dev/null || echo 'No health check')"
-								echo "   Running: $(docker inspect $MONGODB_CONTAINER --format='{{.State.Running}}' 2>/dev/null || echo 'Unknown')"
-								if [ "$(docker inspect $MONGODB_CONTAINER --format='{{.State.Running}}' 2>/dev/null)" != "true" ]; then
-									echo "   ❌ MongoDB is NOT running"
-									echo "   Exit Code: $(docker inspect $MONGODB_CONTAINER --format='{{.State.ExitCode}}' 2>/dev/null || echo 'Unknown')"
-									echo "   Error: $(docker inspect $MONGODB_CONTAINER --format='{{.State.Error}}' 2>/dev/null || echo 'None')"
-									echo "   Recent logs:"
-									docker logs --tail 10 $MONGODB_CONTAINER 2>&1 || echo "Could not get logs"
-								else
-									echo "   ✅ MongoDB is running correctly"
-								fi
-							else
-								echo "   ❌ MongoDB container not found!"
-							fi
-							
-							echo ""
-							echo "2. App Container Status:" 
-							APP_CONTAINER=$(docker ps -a --filter "name=app" --format "{{.Names}}" | head -1)
-							if [ -n "$APP_CONTAINER" ]; then
-								echo "   Container name: $APP_CONTAINER"
-								echo "   Status: $(docker ps -a --filter "name=app" --format "{{.Status}}" | head -1)"
-								echo "   Health: $(docker inspect $APP_CONTAINER --format='{{.State.Health.Status}}' 2>/dev/null || echo 'No health check')"
-								echo "   Running: $(docker inspect $APP_CONTAINER --format='{{.State.Running}}' 2>/dev/null || echo 'Unknown')"
-								echo "   Ports: $(docker ps -a --filter "name=app" --format "{{.Ports}}" | head -1)"
-								if [ "$(docker inspect $APP_CONTAINER --format='{{.State.Running}}' 2>/dev/null)" != "true" ]; then
-									echo "   ❌ App container is NOT running"
-									echo "   Exit Code: $(docker inspect $APP_CONTAINER --format='{{.State.ExitCode}}' 2>/dev/null || echo 'Unknown')"
-									echo "   Error: $(docker inspect $APP_CONTAINER --format='{{.State.Error}}' 2>/dev/null || echo 'None')"
-									echo "   Recent logs:"
-									docker logs --tail 15 $APP_CONTAINER 2>&1 || echo "Could not get logs"
-								else
-									echo "   ✅ App container is running"
-									echo "   Internal port check (5050):"
-									docker exec $APP_CONTAINER netstat -tlnp 2>/dev/null | grep :5050 || echo "   Port 5050 not listening inside container"
-								fi
-							else
-								echo "   ❌ App container not found!"
-							fi
-
-						# Show container logs from compose project
-						echo "=== Application Container Logs (last 20 lines) ==="
-						# Get all containers from our compose project
-						compose_containers=$(docker ps -q --filter "label=com.docker.compose.project" 2>/dev/null)
-						if [ -n "$compose_containers" ]; then
-							for container in $compose_containers; do
-								container_name=$(docker ps --format "{{.Names}}" --filter "id=$container")
-								echo "--- Logs for $container_name ---"
-								docker logs --tail 20 $container 2>&1 || echo "Failed to get logs for $container_name"
-								echo ""
-							done
-						else
-							# Fallback to check app and mongodb containers specifically
-							echo "No compose project containers found, checking app and mongodb containers:"
-							app_containers=$(docker ps -aq --filter "name=app" 2>/dev/null)
-							mongodb_containers=$(docker ps -aq --filter "name=mongodb" 2>/dev/null)
-
-							for container in $app_containers $mongodb_containers; do
-								if [ -n "$container" ]; then
-									container_name=$(docker ps -a --format "{{.Names}}" --filter "id=$container")
-									echo "--- Logs for $container_name ---"
-									docker logs --tail 20 $container 2>&1 || echo "Failed to get logs for $container_name"
-									echo ""
-								fi
-							done
-
-							if [ -z "$app_containers" ] && [ -z "$mongodb_containers" ]; then
-								echo "No application containers found to show logs"
-							fi
-						fi
-
-						echo ""
-						echo "=== Port Configuration Analysis ==="
+						echo "=== Health Check ==="
 						
-						# Using production configuration - port 5050
-						EXPECTED_PORT=5050
-						INTERNAL_PORT=5050
-						echo "Using production configuration - expecting port 5050"
+						# Check container status
+						docker-compose -f $COMPOSE_FILE ps
 						
-						echo "Expected external port: $EXPECTED_PORT"
-						echo "Internal container port: $INTERNAL_PORT"
-						
-						# Check if the expected port is listening
-						echo ""
-						echo "=== Host Port Status ==="
-						echo "Checking if port $EXPECTED_PORT is listening on host:"
-						if netstat -tlnp 2>/dev/null | grep ":$EXPECTED_PORT " || ss -tlnp 2>/dev/null | grep ":$EXPECTED_PORT "; then
-							echo "✅ Port $EXPECTED_PORT is listening on host"
-							PORT=$EXPECTED_PORT
+						# Test application on port 5050
+						echo "Testing application..."
+						if curl -f --connect-timeout 10 --max-time 30 -s http://localhost:5050 >/dev/null 2>&1; then
+							echo "✅ Application is accessible on port 5050"
 						else
-							echo "❌ Port $EXPECTED_PORT is NOT listening on host"
-							echo "All listening ports:"
-							netstat -tlnp 2>/dev/null || ss -tlnp 2>/dev/null || echo "Could not get port information"
-						fi
-
-						# Test the expected port
-						echo ""
-						echo "=== Application Connectivity Test ==="
-						echo "Testing HTTP connection to port $EXPECTED_PORT..."
-						if curl -f --connect-timeout 10 --max-time 30 -s http://localhost:$EXPECTED_PORT >/dev/null 2>&1; then
-							echo "✅ Port $EXPECTED_PORT is accessible and responding"
-							PORT=$EXPECTED_PORT
-						else
-							echo "❌ Port $EXPECTED_PORT connection failed"
-							echo "Attempting to get response anyway for debugging:"
-							curl -v --connect-timeout 5 --max-time 10 http://localhost:$EXPECTED_PORT 2>&1 | head -20 || echo "Could not connect at all"
-						fi
-
-						# If no port worked, show more debugging info
-						if [ -z "$PORT" ]; then
-							echo "=== DEBUGGING: No ports accessible ==="
-
-							# Check if application containers are actually running
-							echo "Application containers status:"
-							docker ps --filter "label=com.docker.compose.project" --format "{{.Names}}: {{.Status}}" || echo "No compose project containers running"
-
-							# Also check app and mongodb specifically
-							echo "App and MongoDB containers status:"
-							docker ps --filter "name=app" --format "{{.Names}}: {{.Status}}" || echo "No app containers running"
-							docker ps --filter "name=mongodb" --format "{{.Names}}: {{.Status}}" || echo "No mongodb containers running"
-
-							# Check container health for application containers
-							echo "Application container health status:"
-							compose_containers=$(docker ps -q --filter "label=com.docker.compose.project" 2>/dev/null)
-							app_containers=$(docker ps -q --filter "name=app" 2>/dev/null)
-							mongodb_containers=$(docker ps -q --filter "name=mongodb" 2>/dev/null)
-
-							all_containers="$compose_containers $app_containers $mongodb_containers"
-							if [ -n "$all_containers" ]; then
-								for container in $all_containers; do
-									if [ -n "$container" ]; then
-										container_name=$(docker ps --format "{{.Names}}" --filter "id=$container")
-										echo "Health check for $container_name:"
-										docker inspect $container --format='{{.State.Health.Status}}' 2>/dev/null || echo "No health check defined for $container_name"
-									fi
-								done
-							else
-								echo "No application containers found for health check"
-							fi
-
-							# Show recent Docker events for application containers
-							echo "Recent Docker events for application containers:"
-							docker events --since 2m --until now 2>/dev/null | grep -E "(app|mongodb)" || echo "No recent events for app/mongodb containers"
-
-							# Check if MongoDB is accessible from app containers
-							echo "Testing MongoDB connectivity from app containers:"
-							if [ -n "$app_containers" ]; then
-								first_app_container=$(echo $app_containers | cut -d' ' -f1)
-								docker exec $first_app_container nc -zv mongodb 27017 2>&1 || echo "MongoDB connectivity test failed from app container"
-							else
-								echo "No app containers available for MongoDB test"
-							fi
-
-							echo "Health check failed - no accessible ports found"
+							echo "❌ Application health check failed"
+							echo "Container logs:"
+							docker-compose -f $COMPOSE_FILE logs --tail 20
 							exit 1
 						fi
-
-						# Only proceed with detailed tests if we have a working port
-						if [ -n "$PORT" ]; then
-							echo ""
-							echo "=== Application Health Tests on Port $PORT ==="
-
-							# Test application homepage
-							echo "1. Testing homepage..."
-							if curl -f --connect-timeout 10 --max-time 30 -s http://localhost:$PORT >/dev/null 2>&1; then
-								echo "   ✅ Homepage is accessible"
-							else
-								echo "   ❌ Homepage test failed"
-								echo "   Response details:"
-								curl -v --connect-timeout 5 --max-time 10 http://localhost:$PORT 2>&1 | head -10 || echo "   Could not get response"
-							fi
-
-							# Test backend API
-							echo ""
-							echo "2. Testing API endpoint (/api/surveys)..."
-							if curl -f --connect-timeout 10 --max-time 30 -s http://localhost:$PORT/api/surveys >/dev/null 2>&1; then
-								echo "   ✅ API endpoint is accessible"
-							else
-								echo "   ❌ API endpoint test failed"
-								echo "   Response details:"
-								curl -v --connect-timeout 5 --max-time 10 http://localhost:$PORT/api/surveys 2>&1 | head -10 || echo "   Could not get response"
-							fi
-
-							# Test admin dashboard
-							echo ""
-							echo "3. Testing admin dashboard (/admin)..."
-							if curl -f --connect-timeout 10 --max-time 30 -s http://localhost:$PORT/admin >/dev/null 2>&1; then
-								echo "   ✅ Admin dashboard is accessible"
-							else
-								echo "   ❌ Admin dashboard test failed"
-								echo "   Response details:"
-								curl -v --connect-timeout 5 --max-time 10 http://localhost:$PORT/admin 2>&1 | head -10 || echo "   Could not get response"
-							fi
+						
+						# Test API endpoint
+						if curl -f --connect-timeout 10 --max-time 30 -s http://localhost:5050/api/surveys >/dev/null 2>&1; then
+							echo "✅ API endpoint is working"
 						else
-							echo ""
-							echo "❌ HEALTH CHECK FAILED - No accessible port found"
-							echo "Cannot proceed with application tests"
-							exit 1
+							echo "⚠️ API endpoint test failed but continuing..."
 						fi
-
-						echo "=== Health Check Completed Successfully ==="
-						echo "Application is running on port $PORT"
-					'''
+						
+						echo "=== Health Check Completed ==="
+						'''
 					}
 				}
 			}
