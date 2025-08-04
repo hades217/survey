@@ -51,8 +51,9 @@ pipeline {
 					pwd
 					ls -la
 
-					# Stop and remove existing survey containers (ignore .env file missing)
+					# Stop and remove existing survey containers
 					docker-compose -f docker-compose.prod.yml down || true
+					docker-compose -f docker-compose.aws.yml down || true
 
 					# Remove only survey-related images
 					docker images | grep survey | awk '{print $3}' | xargs -r docker rmi -f || true
@@ -78,9 +79,9 @@ pipeline {
 						echo "MONGO_URI: ${MONGO_URI}"
 
 						sh """
-							# Verify docker-compose.yml exists
-							if [ ! -f "docker-compose.yml" ]; then
-								echo "Error: docker-compose.yml not found in current directory"
+							# Verify docker-compose files exist
+							if [ ! -f "docker-compose.prod.yml" ] && [ ! -f "docker-compose.aws.yml" ]; then
+								echo "Error: No docker-compose configuration files found"
 								exit 1
 							fi
 
