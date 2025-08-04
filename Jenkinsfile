@@ -184,8 +184,10 @@ pipeline {
 							echo "=== Container Logs for Debugging ==="
 							echo "Showing logs for all services:"
 							docker-compose -f $COMPOSE_FILE logs --tail 50 || echo "Could not get compose logs"
-							
-							# Also show individual container logs if compose doesn't work
+						"""
+						
+						// Show individual container logs in a separate sh block to avoid Groovy parsing issues
+						sh '''
 							echo "=== Individual Container Logs ==="
 							for container_id in $(docker ps -aq --filter "label=com.docker.compose.project"); do
 								if [ -n "$container_id" ]; then
@@ -195,7 +197,7 @@ pipeline {
 									echo ""
 								fi
 							done
-						"""
+						'''
 					}
 				}
 			}
