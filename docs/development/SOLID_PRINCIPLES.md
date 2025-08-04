@@ -101,11 +101,11 @@ class IPaymentService {
     async createCheckoutSession(user, planType, successUrl, cancelUrl) {
         throw new Error('Method not implemented');
     }
-    
+
     async createPortalSession(user, returnUrl) {
         throw new Error('Method not implemented');
     }
-    
+
     // 其他方法...
 }
 ```
@@ -116,7 +116,7 @@ class StripePaymentService extends IPaymentService {
     async createCheckoutSession(user, planType, successUrl, cancelUrl) {
         // Stripe特定实现
     }
-    
+
     async createPortalSession(user, returnUrl) {
         // Stripe特定实现
     }
@@ -155,7 +155,7 @@ class SubscriptionController {
         this.subscriptionService = subscriptionService;
         this.paymentService = paymentService;
     }
-    
+
     // 只使用需要的服务方法
 }
 ```
@@ -301,13 +301,13 @@ config.addPlan('enterprise', {
 const { requireFeature, checkLimit } = require('../middlewares/subscriptionAuth');
 
 // 检查功能访问
-router.post('/csv-import', 
-    requireFeature('csvImport'), 
+router.post('/csv-import',
+    requireFeature('csvImport'),
     csvImportController.import
 );
 
 // 检查限制
-router.post('/surveys', 
+router.post('/surveys',
     checkLimit('maxSurveys', async (req) => {
         return await Survey.countDocuments({ createdBy: req.user._id });
     }),
@@ -348,7 +348,7 @@ describe('Subscription Flow', () => {
             .post('/api/subscription/create-checkout-session')
             .send({ planType: 'basic' })
             .expect(200);
-        
+
         expect(response.body).toHaveProperty('sessionId');
     });
 });
@@ -386,4 +386,4 @@ describe('Subscription Flow', () => {
 4. **更低的耦合度** - 模块间通过接口交互
 5. **更好的可重用性** - 服务可以在不同场景中重用
 
-这种架构为系统的长期维护和扩展奠定了坚实的基础。 
+这种架构为系统的长期维护和扩展奠定了坚实的基础。

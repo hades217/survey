@@ -36,4 +36,4 @@ router.get('/feature-access/:feature', authenticateToken, (req, res) => {
 	subscriptionController.checkFeatureAccess(req, res);
 });
 
-module.exports = router; 
+module.exports = router;

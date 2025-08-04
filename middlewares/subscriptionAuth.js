@@ -95,4 +95,4 @@ module.exports = {
 	requireFeature,
 	checkLimit,
 	requireActiveSubscription,
-}; 
+};

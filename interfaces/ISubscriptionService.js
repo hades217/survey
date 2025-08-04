@@ -94,4 +94,4 @@ class ISubscriptionService {
 	}
 }
 
-module.exports = ISubscriptionService; 
+module.exports = ISubscriptionService;

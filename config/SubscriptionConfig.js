@@ -170,4 +170,4 @@ class SubscriptionConfig {
 	}
 }
 
-module.exports = SubscriptionConfig; 
+module.exports = SubscriptionConfig;

@@ -12,12 +12,7 @@ if [ ! -f .env ]; then
     echo "📝 Please edit .env file with your configuration"
 fi
 
-# Build client
-echo "📦 Building client..."
-cd client
-npm install
-npm run build
-cd ..
+# Client will be built inside Docker
 
 # Stop existing containers
 echo "🛑 Stopping existing containers..."

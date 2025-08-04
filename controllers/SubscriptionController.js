@@ -236,4 +236,4 @@ class SubscriptionController {
 	}
 }
 
-module.exports = SubscriptionController; 
+module.exports = SubscriptionController;

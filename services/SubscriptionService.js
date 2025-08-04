@@ -37,13 +37,13 @@ class SubscriptionService extends ISubscriptionService {
 	 */
 	getPlanTypeFromSubscription(subscription) {
 		const priceId = subscription.items.data[0].price.id;
-		
+
 		if (priceId === process.env.STRIPE_BASIC_PRICE_ID) {
 			return 'basic';
 		} else if (priceId === process.env.STRIPE_PRO_PRICE_ID) {
 			return 'pro';
 		}
-		
+
 		return null;
 	}
 
@@ -106,7 +106,7 @@ class SubscriptionService extends ISubscriptionService {
 		try {
 			const customer = await this.paymentService.stripe.customers.retrieve(subscription.customer);
 			const userId = customer.metadata.userId;
-			
+
 			if (userId) {
 				const planType = this.getPlanTypeFromSubscription(subscription);
 				await this.updateUserSubscription(userId, subscription, planType);
@@ -126,7 +126,7 @@ class SubscriptionService extends ISubscriptionService {
 		try {
 			const customer = await this.paymentService.stripe.customers.retrieve(subscription.customer);
 			const userId = customer.metadata.userId;
-			
+
 			if (userId) {
 				await User.findByIdAndUpdate(userId, {
 					stripeSubscriptionId: null,
@@ -154,7 +154,7 @@ class SubscriptionService extends ISubscriptionService {
 				const subscription = await this.paymentService.getSubscriptionDetails(invoice.subscription);
 				const customer = await this.paymentService.stripe.customers.retrieve(subscription.customer);
 				const userId = customer.metadata.userId;
-				
+
 				if (userId) {
 					const planType = this.getPlanTypeFromSubscription(subscription);
 					await this.updateUserSubscription(userId, subscription, planType);
@@ -177,7 +177,7 @@ class SubscriptionService extends ISubscriptionService {
 				const subscription = await this.paymentService.getSubscriptionDetails(invoice.subscription);
 				const customer = await this.paymentService.stripe.customers.retrieve(subscription.customer);
 				const userId = customer.metadata.userId;
-				
+
 				if (userId) {
 					await User.findByIdAndUpdate(userId, {
 						subscriptionStatus: subscription.status,
@@ -248,4 +248,4 @@ class SubscriptionService extends ISubscriptionService {
 	}
 }
 
-module.exports = SubscriptionService; 
+module.exports = SubscriptionService;

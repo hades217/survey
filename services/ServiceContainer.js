@@ -84,4 +84,4 @@ serviceContainer.register('subscriptionConfig', (container) => {
 	return new SubscriptionConfig();
 });
 
-module.exports = serviceContainer; 
+module.exports = serviceContainer;

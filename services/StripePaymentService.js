@@ -257,4 +257,4 @@ class StripePaymentService extends IPaymentService {
 	}
 }
 
-module.exports = StripePaymentService; 
+module.exports = StripePaymentService;

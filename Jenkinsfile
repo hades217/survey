@@ -5,9 +5,8 @@ pipeline {
 		// Application configuration
 		APP_NAME = 'survey-app'
 
-		// Application ports
-		BACKEND_PORT = '5050'
-		FRONTEND_PORT = '5173'
+		// Application port
+		APP_PORT = '5050'
 
 		ADMIN_USERNAME = 'admin'
 		ADMIN_PASSWORD = 'password'
@@ -103,15 +102,24 @@ pipeline {
 							echo "Complete .env file content:"
 							cat .env
 
-							# Build and start services using production docker-compose file
-							docker-compose -f docker-compose.prod.yml up --build -d
+							# Use AWS-specific config if available, otherwise use standard prod config
+							if [ -f "docker-compose.aws.yml" ]; then
+								echo "Using AWS-specific configuration..."
+								COMPOSE_FILE="docker-compose.aws.yml"
+							else
+								echo "Using standard production configuration..."
+								COMPOSE_FILE="docker-compose.prod.yml"
+							fi
+
+							# Build and start services
+							docker-compose -f \$COMPOSE_FILE up --build -d
 
 							# Wait for services to be ready
 							echo "Waiting for services to be ready..."
 							sleep 30
 
 							# Check service status
-							docker-compose -f docker-compose.prod.yml ps
+							docker-compose -f \$COMPOSE_FILE ps
 						"""
 					}
 				}
@@ -125,21 +133,25 @@ pipeline {
 					// Wait for services to be ready
 					sleep 10
 
-					// Test frontend
+					// Test application on both ports (80 for AWS, 5050 for standard)
 					sh '''
-						curl -f http://localhost:80 || exit 1
-						echo "Frontend is healthy"
-					'''
-
-					// Test backend API - check if backend is accessible through frontend proxy
-					sh '''
-						curl -f http://localhost:80/api/surveys || exit 1
-						echo "Backend API is accessible through frontend"
-					'''
-
-					// Test admin dashboard
-					sh '''
-						curl -f http://localhost:80/admin || exit 1
+						# Try port 80 first (AWS config)
+						if curl -f http://localhost:80 2>/dev/null; then
+							PORT=80
+						else
+							PORT=5050
+						fi
+						
+						# Test application homepage
+						curl -f http://localhost:$PORT || exit 1
+						echo "Application is healthy on port $PORT"
+						
+						# Test backend API
+						curl -f http://localhost:$PORT/api/surveys || exit 1
+						echo "Backend API is accessible"
+						
+						# Test admin dashboard
+						curl -f http://localhost:$PORT/admin || exit 1
 						echo "Admin dashboard is accessible"
 					'''
 				}
@@ -155,9 +167,9 @@ pipeline {
 		success {
 			echo 'Deployment successful!'
 			echo 'Access your application at:'
-			echo "  Application: http://localhost:80"
-			echo "  Admin Dashboard: http://localhost:80/admin"
-			echo "  API: http://localhost:80/api"
+			echo "  Application: http://localhost:5050"
+			echo "  Admin Dashboard: http://localhost:5050/admin"
+			echo "  API: http://localhost:5050/api"
 			// You can add notifications here (Slack, email, etc.)
 		}
 		failure {

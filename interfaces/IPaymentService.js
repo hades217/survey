@@ -82,4 +82,4 @@ class IPaymentService {
 	}
 }
 
-module.exports = IPaymentService; 
+module.exports = IPaymentService;

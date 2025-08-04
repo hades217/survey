@@ -1,9 +1,16 @@
 # Backend Dockerfile for Survey AI
 FROM node:20-alpine AS base
 
+# Build client
+FROM base AS client-builder
+WORKDIR /app
+COPY client/package*.json ./
+RUN npm ci
+COPY client/ ./
+RUN npm run build
+
 # Install dependencies only when needed
 FROM base AS deps
-
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -38,7 +45,9 @@ COPY interfaces ./interfaces
 COPY config ./config
 COPY questions.json ./
 COPY package.json ./
-COPY client/dist ./client/dist
+
+# Copy client build from client-builder stage
+COPY --from=client-builder /app/dist ./client/dist
 
 # Create uploads directory and set permissions
 RUN mkdir -p uploads uploads/images uploads/documents uploads/temp
