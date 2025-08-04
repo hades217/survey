@@ -112,15 +112,46 @@ pipeline {
 								COMPOSE_FILE="docker-compose.prod.yml"
 							fi
 
+							# Build and start services with detailed logging
+							echo "=== Building and starting services ==="
+							echo "Using compose file: \$COMPOSE_FILE"
+							
+							# Show docker-compose configuration for debugging
+							echo "=== Docker Compose Configuration ==="
+							docker-compose -f \$COMPOSE_FILE config
+							
 							# Build and start services
+							echo "=== Starting docker-compose build ==="
 							docker-compose -f \$COMPOSE_FILE up --build -d
-
+							
+							# Check if containers started successfully
+							echo "=== Immediate container status after start ==="
+							docker-compose -f \$COMPOSE_FILE ps
+							
+							# Show any containers that might have exited
+							echo "=== All containers (including exited) ==="
+							docker ps -a --filter "label=com.docker.compose.project"
+							
 							# Wait for services to be ready
 							echo "Waiting for services to be ready..."
 							sleep 30
 
-							# Check service status
+							# Check service status again after wait
+							echo "=== Final service status after wait ==="
 							docker-compose -f \$COMPOSE_FILE ps
+							
+							# Show logs of failed containers if any
+							echo "=== Checking for failed containers ==="
+							failed_containers=\$(docker-compose -f \$COMPOSE_FILE ps --services --filter "status=exited")
+							if [ -n "\$failed_containers" ]; then
+								echo "Found failed containers: \$failed_containers"
+								for service in \$failed_containers; do
+									echo "=== Logs for failed service \$service ==="
+									docker-compose -f \$COMPOSE_FILE logs --tail 50 \$service
+								done
+							else
+								echo "No failed containers found"
+							fi
 						"""
 					}
 				}
@@ -149,26 +180,49 @@ pipeline {
 							echo "Using production configuration file: $COMPOSE_FILE"
 						fi
 						
-						# Show only survey-related container status
+						# Show containers from this compose project
 						echo "=== Survey Application Container Status ==="
-						docker ps -a --filter "name=survey" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}" || echo "No survey containers found"
+						# Try different filters to find our containers
+						echo "Looking for containers by project label:"
+						docker ps -a --filter "label=com.docker.compose.project" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}" || echo "No compose project containers found"
+						
+						echo "Looking for containers by service name (app, mongodb):"
+						docker ps -a --filter "name=app" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}" || echo "No app containers found"
+						docker ps -a --filter "name=mongodb" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}" || echo "No mongodb containers found"
 						
 						# Also check by label if containers are labeled
 						echo "=== Survey Containers by Compose Project ==="
 						docker-compose -f $COMPOSE_FILE ps 2>/dev/null || echo "Could not get compose status"
 						
-						# Show container logs only for survey containers
-						echo "=== Survey Container Logs (last 20 lines) ==="
-						survey_containers=$(docker ps -q --filter "name=survey" 2>/dev/null)
-						if [ -n "$survey_containers" ]; then
-							for container in $survey_containers; do
+						# Show container logs from compose project
+						echo "=== Application Container Logs (last 20 lines) ==="
+						# Get all containers from our compose project
+						compose_containers=$(docker ps -q --filter "label=com.docker.compose.project" 2>/dev/null)
+						if [ -n "$compose_containers" ]; then
+							for container in $compose_containers; do
 								container_name=$(docker ps --format "{{.Names}}" --filter "id=$container")
 								echo "--- Logs for $container_name ---"
 								docker logs --tail 20 $container 2>&1 || echo "Failed to get logs for $container_name"
 								echo ""
 							done
 						else
-							echo "No survey containers found to show logs"
+							# Fallback to check app and mongodb containers specifically
+							echo "No compose project containers found, checking app and mongodb containers:"
+							app_containers=$(docker ps -aq --filter "name=app" 2>/dev/null)
+							mongodb_containers=$(docker ps -aq --filter "name=mongodb" 2>/dev/null)
+							
+							for container in $app_containers $mongodb_containers; do
+								if [ -n "$container" ]; then
+									container_name=$(docker ps -a --format "{{.Names}}" --filter "id=$container")
+									echo "--- Logs for $container_name ---"
+									docker logs --tail 20 $container 2>&1 || echo "Failed to get logs for $container_name"
+									echo ""
+								fi
+							done
+							
+							if [ -z "$app_containers" ] && [ -z "$mongodb_containers" ]; then
+								echo "No application containers found to show logs"
+							fi
 						fi
 						
 						# Show survey-specific network information
@@ -207,34 +261,45 @@ pipeline {
 						if [ -z "$PORT" ]; then
 							echo "=== DEBUGGING: No ports accessible ==="
 							
-							# Check if survey containers are actually running
-							echo "Survey containers status:"
-							docker ps --filter "name=survey" --format "{{.Names}}: {{.Status}}" || echo "No survey containers running"
+							# Check if application containers are actually running
+							echo "Application containers status:"
+							docker ps --filter "label=com.docker.compose.project" --format "{{.Names}}: {{.Status}}" || echo "No compose project containers running"
 							
-							# Check container health for survey containers only
-							echo "Survey container health status:"
-							survey_containers=$(docker ps -q --filter "name=survey" 2>/dev/null)
-							if [ -n "$survey_containers" ]; then
-								for container in $survey_containers; do
-									container_name=$(docker ps --format "{{.Names}}" --filter "id=$container")
-									echo "Health check for $container_name:"
-									docker inspect $container --format='{{.State.Health.Status}}' 2>/dev/null || echo "No health check defined for $container_name"
+							# Also check app and mongodb specifically
+							echo "App and MongoDB containers status:"
+							docker ps --filter "name=app" --format "{{.Names}}: {{.Status}}" || echo "No app containers running"
+							docker ps --filter "name=mongodb" --format "{{.Names}}: {{.Status}}" || echo "No mongodb containers running"
+							
+							# Check container health for application containers
+							echo "Application container health status:"
+							compose_containers=$(docker ps -q --filter "label=com.docker.compose.project" 2>/dev/null)
+							app_containers=$(docker ps -q --filter "name=app" 2>/dev/null)
+							mongodb_containers=$(docker ps -q --filter "name=mongodb" 2>/dev/null)
+							
+							all_containers="$compose_containers $app_containers $mongodb_containers"
+							if [ -n "$all_containers" ]; then
+								for container in $all_containers; do
+									if [ -n "$container" ]; then
+										container_name=$(docker ps --format "{{.Names}}" --filter "id=$container")
+										echo "Health check for $container_name:"
+										docker inspect $container --format='{{.State.Health.Status}}' 2>/dev/null || echo "No health check defined for $container_name"
+									fi
 								done
 							else
-								echo "No survey containers found for health check"
+								echo "No application containers found for health check"
 							fi
 							
-							# Show recent Docker events for survey containers only
-							echo "Recent Docker events for survey containers:"
-							docker events --filter "container=survey" --since 2m --until now 2>/dev/null || echo "Could not get Docker events for survey containers"
+							# Show recent Docker events for application containers
+							echo "Recent Docker events for application containers:"
+							docker events --since 2m --until now 2>/dev/null | grep -E "(app|mongodb)" || echo "No recent events for app/mongodb containers"
 							
-							# Check if MongoDB is accessible from survey containers
-							echo "Testing MongoDB connectivity from survey containers:"
-							if [ -n "$survey_containers" ]; then
-								first_survey_container=$(echo $survey_containers | cut -d' ' -f1)
-								docker exec $first_survey_container nc -zv mongodb 27017 2>&1 || echo "MongoDB connectivity test failed from survey container"
+							# Check if MongoDB is accessible from app containers
+							echo "Testing MongoDB connectivity from app containers:"
+							if [ -n "$app_containers" ]; then
+								first_app_container=$(echo $app_containers | cut -d' ' -f1)
+								docker exec $first_app_container nc -zv mongodb 27017 2>&1 || echo "MongoDB connectivity test failed from app container"
 							else
-								echo "No survey containers available for MongoDB test"
+								echo "No app containers available for MongoDB test"
 							fi
 							
 							echo "Health check failed - no accessible ports found"
