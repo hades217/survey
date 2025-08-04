@@ -50,7 +50,8 @@
       "Bash(MONGODB_URI=\"mongodb://admin:testpass123@mongodb:27017/survey?authSource=admin\" ADMIN_USERNAME=\"admin\" ADMIN_PASSWORD=\"password\" docker-compose -f docker-compose.prod.yml up --build -d)",
       "Bash(./jenkins-test.sh)",
       "Bash(pm2 list:*)",
-      "Bash(./deploy-simple.sh)"
+      "Bash(./deploy-simple.sh)",
+      "Bash(git reset:*)"
     ],
     "deny": []
   }

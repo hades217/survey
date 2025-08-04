@@ -109,8 +109,8 @@ pipeline {
 						echo "Environment variables loaded from Vault"
 						echo "MONGO_URI: ${MONGO_URI}"
 
-						// Determine which compose file to use at Groovy level
-						def composeFile = fileExists('docker-compose.aws.yml') ? 'docker-compose.aws.yml' : 'docker-compose.prod.yml'
+						// Use production compose file only
+						def composeFile = 'docker-compose.prod.yml'
 						echo "Using compose file: ${composeFile}"
 
 						withEnv(["COMPOSE_FILE=${composeFile}"]) {
@@ -207,8 +207,8 @@ pipeline {
 					// Wait for services to be ready
 					sleep 10
 
-					// Determine which compose file to use (same as deploy stage)
-					def composeFile = fileExists('docker-compose.aws.yml') ? 'docker-compose.aws.yml' : 'docker-compose.prod.yml'
+					// Use production compose file only
+					def composeFile = 'docker-compose.prod.yml'
 					echo "Using compose file for health check: ${composeFile}"
 
 					withEnv(["COMPOSE_FILE=${composeFile}"]) {
@@ -309,16 +309,10 @@ pipeline {
 						echo ""
 						echo "=== Port Configuration Analysis ==="
 						
-						# Determine expected external port based on compose file
-						if [ "$COMPOSE_FILE" = "docker-compose.aws.yml" ]; then
-							EXPECTED_PORT=80
-							INTERNAL_PORT=5050
-							echo "Using AWS configuration - expecting external port 80 (mapped from internal 5050)"
-						else
-							EXPECTED_PORT=5050
-							INTERNAL_PORT=5050
-							echo "Using production configuration - expecting port 5050"
-						fi
+						# Using production configuration - port 5050
+						EXPECTED_PORT=5050
+						INTERNAL_PORT=5050
+						echo "Using production configuration - expecting port 5050"
 						
 						echo "Expected external port: $EXPECTED_PORT"
 						echo "Internal container port: $INTERNAL_PORT"
