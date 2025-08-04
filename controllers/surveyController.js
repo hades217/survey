@@ -139,6 +139,9 @@ async function createSurvey(req, res) {
 			data.slug = await SurveyModel.generateSlug(data.title);
 		}
 
+		// Add createdBy field from authenticated user
+		data.createdBy = req.user.id;
+
 		const survey = new SurveyModel(data);
 		await survey.save();
 

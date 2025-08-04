@@ -265,8 +265,18 @@ router.post(
 			let errorType = 'registration_failed';
 			
 			if (error.code === 11000) {
-				errorMessage = 'This email is already registered.';
-				errorType = 'duplicate_email';
+				// Handle different types of duplicate key errors
+				if (error.message.includes('users') && error.message.includes('email')) {
+					errorMessage = 'This email is already registered.';
+					errorType = 'duplicate_email';
+				} else if (error.message.includes('companies') && error.message.includes('slug')) {
+					errorMessage = 'Database configuration issue. Please contact support.';
+					errorType = 'database_index_error';
+					console.error('Company slug index error detected. Run: node scripts/fix_production_company_slug.js');
+				} else {
+					errorMessage = 'Duplicate data detected. Please check your input.';
+					errorType = 'duplicate_key_error';
+				}
 			} else if (error.name === 'ValidationError') {
 				errorMessage = 'Invalid data provided. Please check your input.';
 				errorType = 'validation_error';
@@ -329,7 +339,7 @@ router.get(
 	'/surveys',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-		const surveys = await Survey.find().populate('questionBankId', 'name description');
+		const surveys = await Survey.find({ createdBy: req.user.id }).populate('questionBankId', 'name description');
 
 		// Add lastActivity and responseCount for each survey
 		const surveysWithStats = await Promise.all(
@@ -374,7 +384,11 @@ router.put(
 			updateData.status = updateData.isActive ? 'active' : 'draft';
 		}
 
-		const survey = await Survey.findByIdAndUpdate(req.params.id, updateData, { new: true });
+		const survey = await Survey.findOneAndUpdate(
+			{ _id: req.params.id, createdBy: req.user.id }, 
+			updateData, 
+			{ new: true }
+		);
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
@@ -387,13 +401,168 @@ router.delete(
 	'/surveys/:id',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-		const survey = await Survey.findByIdAndDelete(req.params.id);
+		const survey = await Survey.findOneAndDelete({ _id: req.params.id, createdBy: req.user.id });
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
 		// Also delete all responses for this survey
 		await Response.deleteMany({ surveyId: req.params.id });
 		res.json({ message: 'Survey deleted successfully' });
+	})
+);
+
+// Question Banks Routes
+router.get(
+	'/question-banks',
+	jwtAuth,
+	asyncHandler(async (req, res) => {
+		const questionBanks = await QuestionBank.find({ createdBy: req.user.id })
+			.populate('createdBy', 'username')
+			.sort({ createdAt: -1 });
+		res.json(questionBanks);
+	})
+);
+
+router.post(
+	'/question-banks',
+	jwtAuth,
+	asyncHandler(async (req, res) => {
+		const { name, description } = req.body;
+		const questionBank = new QuestionBank({
+			name,
+			description,
+			createdBy: req.user.id,
+			questions: [],
+		});
+		await questionBank.save();
+		res.status(201).json(questionBank);
+	})
+);
+
+router.get(
+	'/question-banks/:id',
+	jwtAuth,
+	asyncHandler(async (req, res) => {
+		const questionBank = await QuestionBank.findOne({ 
+			_id: req.params.id, 
+			createdBy: req.user.id 
+		}).populate('createdBy', 'username');
+		
+		if (!questionBank) {
+			throw new AppError('Question bank not found', HTTP_STATUS.NOT_FOUND);
+		}
+		res.json(questionBank);
+	})
+);
+
+router.put(
+	'/question-banks/:id',
+	jwtAuth,
+	asyncHandler(async (req, res) => {
+		const { name, description } = req.body;
+		const questionBank = await QuestionBank.findOneAndUpdate(
+			{ _id: req.params.id, createdBy: req.user.id },
+			{ name, description, updatedAt: Date.now() },
+			{ new: true }
+		);
+		
+		if (!questionBank) {
+			throw new AppError('Question bank not found', HTTP_STATUS.NOT_FOUND);
+		}
+		res.json(questionBank);
+	})
+);
+
+router.delete(
+	'/question-banks/:id',
+	jwtAuth,
+	asyncHandler(async (req, res) => {
+		const questionBank = await QuestionBank.findOneAndDelete({ 
+			_id: req.params.id, 
+			createdBy: req.user.id 
+		});
+		
+		if (!questionBank) {
+			throw new AppError('Question bank not found', HTTP_STATUS.NOT_FOUND);
+		}
+		res.json({ message: 'Question bank deleted successfully' });
+	})
+);
+
+// Add question to question bank
+router.post(
+	'/question-banks/:id/questions',
+	jwtAuth,
+	asyncHandler(async (req, res) => {
+		const questionBank = await QuestionBank.findOne({ 
+			_id: req.params.id, 
+			createdBy: req.user.id 
+		});
+		
+		if (!questionBank) {
+			throw new AppError('Question bank not found', HTTP_STATUS.NOT_FOUND);
+		}
+
+		const { text, type, options, correctAnswer, explanation, points, tags, difficulty } = req.body;
+		
+		questionBank.questions.push({
+			text,
+			type: type || 'single_choice',
+			options,
+			correctAnswer,
+			explanation,
+			points: points || 1,
+			tags: tags || [],
+			difficulty: difficulty || 'medium',
+		});
+		
+		await questionBank.save();
+		res.json(questionBank);
+	})
+);
+
+// Update question in question bank
+router.put(
+	'/question-banks/:id/questions/:questionId',
+	jwtAuth,
+	asyncHandler(async (req, res) => {
+		const questionBank = await QuestionBank.findOne({ 
+			_id: req.params.id, 
+			createdBy: req.user.id 
+		});
+		
+		if (!questionBank) {
+			throw new AppError('Question bank not found', HTTP_STATUS.NOT_FOUND);
+		}
+
+		const question = questionBank.questions.id(req.params.questionId);
+		if (!question) {
+			throw new AppError('Question not found', HTTP_STATUS.NOT_FOUND);
+		}
+
+		Object.assign(question, req.body);
+		await questionBank.save();
+		res.json(questionBank);
+	})
+);
+
+// Delete question from question bank
+router.delete(
+	'/question-banks/:id/questions/:questionId',
+	jwtAuth,
+	asyncHandler(async (req, res) => {
+		const questionBank = await QuestionBank.findOne({ 
+			_id: req.params.id, 
+			createdBy: req.user.id 
+		});
+		
+		if (!questionBank) {
+			throw new AppError('Question bank not found', HTTP_STATUS.NOT_FOUND);
+		}
+
+		questionBank.questions.pull(req.params.questionId);
+		await questionBank.save();
+		res.json(questionBank);
 	})
 );
 
@@ -501,7 +670,7 @@ router.put(
 				.json({ error: 'Points must be a positive number' });
 		}
 
-		const survey = await Survey.findById(id);
+		const survey = await Survey.findOne({ _id: id, createdBy: req.user.id });
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
@@ -676,7 +845,7 @@ router.patch(
 				.json({ error: 'Points must be a positive number' });
 		}
 
-		const survey = await Survey.findById(id);
+		const survey = await Survey.findOne({ _id: id, createdBy: req.user.id });
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
@@ -872,7 +1041,7 @@ router.delete(
 	asyncHandler(async (req, res) => {
 		const { id, questionIndex } = req.params;
 
-		const survey = await Survey.findById(id);
+		const survey = await Survey.findOne({ _id: id, createdBy: req.user.id });
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
@@ -920,7 +1089,7 @@ router.put(
 			});
 		}
 
-		const survey = await Survey.findById(id);
+		const survey = await Survey.findOne({ _id: id, createdBy: req.user.id });
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
@@ -973,7 +1142,7 @@ router.get(
 		const { surveyId } = req.params;
 		const { name, email, fromDate, toDate, status } = req.query;
 
-		const survey = await Survey.findById(surveyId).lean();
+		const survey = await Survey.findOne({ _id: surveyId, createdBy: req.user.id }).lean();
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
@@ -1369,7 +1538,7 @@ router.post(
 			distributionSettings,
 		} = req.body;
 
-		const survey = await Survey.findById(req.params.id);
+		const survey = await Survey.findOne({ _id: req.params.id, createdBy: req.user.id });
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
@@ -1448,7 +1617,7 @@ router.post(
 	asyncHandler(async (req, res) => {
 		const { distributionMode, targetUsers, targetEmails, maxResponses, expiresAt } = req.body;
 
-		const survey = await Survey.findById(req.params.id);
+		const survey = await Survey.findOne({ _id: req.params.id, createdBy: req.user.id });
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
@@ -1549,7 +1718,7 @@ router.get(
 		]);
 
 		// Get recent activity
-		const recentSurveys = await Survey.find()
+		const recentSurveys = await Survey.find({ createdBy: req.user.id })
 			.sort({ createdAt: -1 })
 			.limit(5)
 			.select('title status createdAt');
@@ -1587,7 +1756,7 @@ router.put(
 	'/surveys/:id/toggle-status',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-		const survey = await Survey.findById(req.params.id);
+		const survey = await Survey.findOne({ _id: req.params.id, createdBy: req.user.id });
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}

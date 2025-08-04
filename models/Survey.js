@@ -332,6 +332,10 @@ const surveySchema = new mongoose.Schema({
 			},
 		},
 	},
+	createdBy: {
+		type: String,
+		required: true,
+	},
 	createdAt: {
 		type: Date,
 		default: Date.now,
