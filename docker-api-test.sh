@@ -6,7 +6,7 @@
 set -e
 
 COMPOSE_FILE="docker-compose.prod.yml"
-PORT=5050
+PORT=5173
 API_BASE="http://localhost:${PORT}"
 
 echo "======================================"
@@ -120,11 +120,11 @@ if [ -n "$app_container" ]; then
     app_running=$(docker inspect "$app_container" --format='{{.State.Running}}' 2>/dev/null)
     if [ "$app_running" = "true" ]; then
         echo "   ✅ App container is running"
-        # Check if port 5050 is listening inside container
-        if docker exec "$app_container" netstat -tlnp 2>/dev/null | grep :5050; then
-            echo "   ✅ Port 5050 is listening inside container"
+        # Check if port 5173 is listening inside container
+        if docker exec "$app_container" netstat -tlnp 2>/dev/null | grep :5173; then
+            echo "   ✅ Port 5173 is listening inside container"
         else
-            echo "   ❌ Port 5050 is not listening inside container"
+            echo "   ❌ Port 5173 is not listening inside container"
             echo "   Container processes:"
             docker exec "$app_container" ps aux
         fi

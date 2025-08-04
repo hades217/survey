@@ -6,7 +6,7 @@ pipeline {
 		APP_NAME = 'survey-app'
 
 		// Application port
-		APP_PORT = '5050'
+		APP_PORT = '5173'
 
 		ADMIN_USERNAME = 'admin'
 		ADMIN_PASSWORD = 'password'
@@ -118,7 +118,7 @@ pipeline {
 							# Create .env file with environment variables
 							cat > .env << EOF
 MONGODB_URI=${MONGO_URI}
-PORT=5050
+PORT=5173
 NODE_ENV=production
 ADMIN_USERNAME=${ADMIN_USERNAME}
 ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -168,10 +168,10 @@ EOF
 						# Check container status
 						docker-compose -f $COMPOSE_FILE ps
 						
-						# Test application on port 5050
+						# Test application on port 5173
 						echo "Testing application..."
-						if curl -f --connect-timeout 10 --max-time 30 -s http://localhost:5050 >/dev/null 2>&1; then
-							echo "✅ Application is accessible on port 5050"
+						if curl -f --connect-timeout 10 --max-time 30 -s http://localhost:5173 >/dev/null 2>&1; then
+							echo "✅ Application is accessible on port 5173"
 						else
 							echo "❌ Application health check failed"
 							echo "Container logs:"
@@ -180,7 +180,7 @@ EOF
 						fi
 						
 						# Test API endpoint
-						if curl -f --connect-timeout 10 --max-time 30 -s http://localhost:5050/api/surveys >/dev/null 2>&1; then
+						if curl -f --connect-timeout 10 --max-time 30 -s http://localhost:5173/api/surveys >/dev/null 2>&1; then
 							echo "✅ API endpoint is working"
 						else
 							echo "⚠️ API endpoint test failed but continuing..."
@@ -202,9 +202,9 @@ EOF
 		success {
 			echo 'Deployment successful!'
 			echo 'Access your application at:'
-			echo "  Application: http://localhost:5050"
-			echo "  Admin Dashboard: http://localhost:5050/admin"
-			echo "  API: http://localhost:5050/api"
+			echo "  Application: http://localhost:5173"
+			echo "  Admin Dashboard: http://localhost:5173/admin"
+			echo "  API: http://localhost:5173/api"
 			// You can add notifications here (Slack, email, etc.)
 		}
 		failure {

@@ -3,7 +3,7 @@
 # Simple Backend API Test Script
 # Quick test to verify backend API is working in Docker
 
-API_BASE="http://localhost:5050"
+API_BASE="http://localhost:5173"
 COMPOSE_FILE="docker-compose.prod.yml"
 
 echo "=========================================="

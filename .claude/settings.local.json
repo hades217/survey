@@ -51,7 +51,8 @@
       "Bash(./jenkins-test.sh)",
       "Bash(pm2 list:*)",
       "Bash(./deploy-simple.sh)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }
