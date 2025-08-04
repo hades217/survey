@@ -109,6 +109,10 @@ pipeline {
 						echo "Environment variables loaded from Vault"
 						echo "MONGO_URI: ${MONGO_URI}"
 
+						// Determine which compose file to use at Groovy level
+						def composeFile = fileExists('docker-compose.aws.yml') ? 'docker-compose.aws.yml' : 'docker-compose.prod.yml'
+						echo "Using compose file: ${composeFile}"
+
 						sh """
 							# Verify docker-compose files exist
 							if [ ! -f "docker-compose.prod.yml" ] && [ ! -f "docker-compose.aws.yml" ]; then
@@ -134,29 +138,20 @@ pipeline {
 							echo "Complete .env file content:"
 							cat .env
 
-							# Use AWS-specific config if available, otherwise use standard prod config
-							if [ -f "docker-compose.aws.yml" ]; then
-								echo "Using AWS-specific configuration..."
-								COMPOSE_FILE="docker-compose.aws.yml"
-							else
-								echo "Using standard production configuration..."
-								COMPOSE_FILE="docker-compose.prod.yml"
-							fi
-
 							# Build and start services with detailed logging
 							echo "=== Building and starting services ==="
-							echo "Using compose file: $COMPOSE_FILE"
+							echo "Using compose file: ${composeFile}"
 
 							# Show docker-compose configuration for debugging
 							echo "=== Docker Compose Configuration ==="
-							docker-compose -f $COMPOSE_FILE config
+							docker-compose -f ${composeFile} config
 
 							# Build and start services
 							echo "=== Starting docker-compose build ==="
-							if ! docker-compose -f $COMPOSE_FILE up --build -d; then
+							if ! docker-compose -f ${composeFile} up --build -d; then
 								echo "ERROR: docker-compose up failed!"
 								echo "=== Docker Compose Logs ==="
-								docker-compose -f $COMPOSE_FILE logs
+								docker-compose -f ${composeFile} logs
 								echo "=== System Resources ==="
 								df -h
 								free -h 2>/dev/null || echo "free command not available"
@@ -166,7 +161,7 @@ pipeline {
 
 							# Check if containers started successfully
 							echo "=== Immediate container status after start ==="
-							docker-compose -f $COMPOSE_FILE ps
+							docker-compose -f ${composeFile} ps
 
 							# Show any containers that might have exited
 							echo "=== All containers (including exited) ==="
@@ -178,12 +173,12 @@ pipeline {
 
 							# Check service status again after wait
 							echo "=== Final service status after wait ==="
-							docker-compose -f $COMPOSE_FILE ps
+							docker-compose -f ${composeFile} ps
 
 							# Show logs of all services for debugging
 							echo "=== Container Logs for Debugging ==="
 							echo "Showing logs for all services:"
-							docker-compose -f $COMPOSE_FILE logs --tail 50 || echo "Could not get compose logs"
+							docker-compose -f ${composeFile} logs --tail 50 || echo "Could not get compose logs"
 						"""
 						
 						// Show individual container logs in a separate sh block to avoid Groovy parsing issues
@@ -210,20 +205,17 @@ pipeline {
 					// Wait for services to be ready
 					sleep 10
 
-					sh '''
+					// Determine which compose file to use (same as deploy stage)
+					def composeFile = fileExists('docker-compose.aws.yml') ? 'docker-compose.aws.yml' : 'docker-compose.prod.yml'
+					echo "Using compose file for health check: ${composeFile}"
+
+					sh """
 						echo "=== Starting Health Check Debug Information ==="
 
 						# Show current time
-						echo "Current time: $(date)"
+						echo "Current time: \$(date)"
 
-						# Check which compose file was used
-						if [ -f "docker-compose.aws.yml" ]; then
-							COMPOSE_FILE="docker-compose.aws.yml"
-							echo "Using AWS configuration file: $COMPOSE_FILE"
-						else
-							COMPOSE_FILE="docker-compose.prod.yml"
-							echo "Using production configuration file: $COMPOSE_FILE"
-						fi
+						echo "Using configuration file: ${composeFile}"
 
 						# Show containers from this compose project
 						echo "=== Survey Application Container Status ==="
@@ -237,7 +229,7 @@ pipeline {
 
 						# Also check by label if containers are labeled
 						echo "=== Survey Containers by Compose Project ==="
-						docker-compose -f $COMPOSE_FILE ps 2>/dev/null || echo "Could not get compose status"
+						docker-compose -f ${composeFile} ps 2>/dev/null || echo "Could not get compose status"
 
 						# Show container logs from compose project
 						echo "=== Application Container Logs (last 20 lines) ==="
