@@ -6,8 +6,6 @@ services:
             MONGO_INITDB_DATABASE: survey
         volumes:
             - mongodb_data:/data/db
-        networks:
-            - survey-network
         logging:
             driver: 'json-file'
             options:
@@ -34,15 +32,9 @@ services:
             options:
                 max-size: '10m'
                 max-file: '3'
-        networks:
-            - survey-network
         volumes:
             - uploads:/app/uploads
             - ./client/dist:/app/client/dist
-
-networks:
-    survey-network:
-        driver: bridge
 
 volumes:
     mongodb_data:

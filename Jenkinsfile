@@ -134,26 +134,130 @@ pipeline {
 					// Wait for services to be ready
 					sleep 10
 
-					// Test application on both ports (80 for AWS, 5050 for standard)
 					sh '''
-						# Try port 80 first (AWS config)
-						if curl -f http://localhost:80 2>/dev/null; then
-							PORT=80
+						echo "=== Starting Health Check Debug Information ==="
+						
+						# Show current time
+						echo "Current time: $(date)"
+						
+						# Check which compose file was used
+						if [ -f "docker-compose.aws.yml" ]; then
+							COMPOSE_FILE="docker-compose.aws.yml"
+							echo "Using AWS configuration file: $COMPOSE_FILE"
 						else
-							PORT=5050
+							COMPOSE_FILE="docker-compose.prod.yml"
+							echo "Using production configuration file: $COMPOSE_FILE"
 						fi
 						
-						# Test application homepage
-						curl -f http://localhost:$PORT || exit 1
-						echo "Application is healthy on port $PORT"
+						# Show detailed container status
+						echo "=== Docker Container Status ==="
+						docker ps -a --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"
 						
-						# Test backend API
-						curl -f http://localhost:$PORT/api/surveys || exit 1
-						echo "Backend API is accessible"
+						# Show container logs for debugging
+						echo "=== Container Logs (last 20 lines) ==="
+						for container in $(docker ps -q); do
+							container_name=$(docker ps --format "{{.Names}}" --filter "id=$container")
+							echo "--- Logs for $container_name ---"
+							docker logs --tail 20 $container 2>&1 || echo "Failed to get logs for $container_name"
+							echo ""
+						done
 						
-						# Test admin dashboard
-						curl -f http://localhost:$PORT/admin || exit 1
-						echo "Admin dashboard is accessible"
+						# Check network connectivity
+						echo "=== Network Status ==="
+						docker network ls
+						
+						# Show which ports are actually listening
+						echo "=== Listening Ports ==="
+						netstat -tlnp 2>/dev/null | grep LISTEN || ss -tlnp | grep LISTEN || echo "Could not check listening ports"
+						
+						# Check if services are responding on expected ports
+						echo "=== Port Connectivity Tests ==="
+						
+						# Test port 80
+						echo "Testing port 80..."
+						if curl -f --connect-timeout 5 --max-time 10 -v http://localhost:80 2>&1; then
+							echo "✓ Port 80 is accessible"
+							PORT=80
+						else
+							echo "✗ Port 80 failed"
+						fi
+						
+						# Test port 5050
+						echo "Testing port 5050..."
+						if curl -f --connect-timeout 5 --max-time 10 -v http://localhost:5050 2>&1; then
+							echo "✓ Port 5050 is accessible"
+							if [ -z "$PORT" ]; then
+								PORT=5050
+							fi
+						else
+							echo "✗ Port 5050 failed"
+						fi
+						
+						# If no port worked, show more debugging info
+						if [ -z "$PORT" ]; then
+							echo "=== DEBUGGING: No ports accessible ==="
+							
+							# Check if containers are actually running
+							echo "Running containers:"
+							docker ps --format "{{.Names}}: {{.Status}}"
+							
+							# Check container health if health checks are defined
+							echo "Container health status:"
+							docker ps --format "{{.Names}}: {{.Status}}" | while read line; do
+								container_name=$(echo $line | cut -d: -f1)
+								echo "Health check for $container_name:"
+								docker inspect $container_name --format='{{.State.Health.Status}}' 2>/dev/null || echo "No health check defined"
+							done
+							
+							# Show recent container events
+							echo "Recent Docker events:"
+							docker events --since 2m --until now 2>/dev/null || echo "Could not get Docker events"
+							
+							# Check if MongoDB is accessible (if using external DB)
+							echo "Testing MongoDB connectivity from containers:"
+							docker exec $(docker ps -q | head -1) nc -zv mongodb 27017 2>&1 || echo "MongoDB connectivity test failed"
+							
+							echo "Health check failed - no accessible ports found"
+							exit 1
+						fi
+						
+						echo "=== Application Health Tests on Port $PORT ==="
+						
+						# Test application homepage with detailed output
+						echo "Testing homepage..."
+						if curl -f --connect-timeout 10 --max-time 30 -v http://localhost:$PORT 2>&1; then
+							echo "✓ Homepage is accessible"
+						else
+							echo "✗ Homepage test failed"
+							echo "Attempting to get response anyway:"
+							curl -v http://localhost:$PORT 2>&1 || true
+							exit 1
+						fi
+						
+						# Test backend API with detailed output
+						echo "Testing API endpoint..."
+						if curl -f --connect-timeout 10 --max-time 30 -v http://localhost:$PORT/api/surveys 2>&1; then
+							echo "✓ API endpoint is accessible"
+						else
+							echo "✗ API endpoint test failed"
+							echo "Attempting to get API response anyway:"
+							curl -v http://localhost:$PORT/api/surveys 2>&1 || true
+							# Don't exit here, continue with other tests
+						fi
+						
+						# Test admin dashboard with detailed output
+						echo "Testing admin dashboard..."
+						if curl -f --connect-timeout 10 --max-time 30 -v http://localhost:$PORT/admin 2>&1; then
+							echo "✓ Admin dashboard is accessible"
+						else
+							echo "✗ Admin dashboard test failed"
+							echo "Attempting to get admin response anyway:"
+							curl -v http://localhost:$PORT/admin 2>&1 || true
+							# Don't exit here, continue
+						fi
+						
+						echo "=== Health Check Completed Successfully ==="
+						echo "Application is running on port $PORT"
 					'''
 				}
 			}

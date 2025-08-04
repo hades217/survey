@@ -37,6 +37,7 @@ if [ ! -f "docker-compose.aws.yml" ]; then
     echo "⚠️  创建AWS配置文件..."
     cp docker-compose.prod.yml docker-compose.aws.yml
     sed -i 's/\${PORT:-5050}:\${PORT:-5050}/80:5050/g' docker-compose.aws.yml
+    sed -i 's/PORT: \${PORT:-5050}/PORT: 5050/g' docker-compose.aws.yml
 fi
 
 COMPOSE_FILE="docker-compose.aws.yml"
