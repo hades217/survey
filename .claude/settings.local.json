@@ -52,7 +52,8 @@
       "Bash(pm2 list:*)",
       "Bash(./deploy-simple.sh)",
       "Bash(git reset:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(nslookup:*)"
     ],
     "deny": []
   }

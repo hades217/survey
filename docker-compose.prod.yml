@@ -34,7 +34,6 @@ services:
                 max-file: '3'
         volumes:
             - uploads:/app/uploads
-            - ./client/dist:/app/client/dist
 
 volumes:
     mongodb_data:

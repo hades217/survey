@@ -55,8 +55,11 @@ app.use(errorHandler);
 // Serve uploaded images
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Serve static files from the React build
 const CLIENT_BUILD_PATH = path.join(__dirname, 'client', 'dist');
 app.use(express.static(CLIENT_BUILD_PATH));
+
+// Handle React routing, return all requests to React app
 app.get('*', (req, res) => {
 	res.sendFile(path.join(CLIENT_BUILD_PATH, 'index.html'));
 });
