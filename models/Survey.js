@@ -344,6 +344,11 @@ const surveySchema = new mongoose.Schema({
 		type: Boolean,
 		default: true,
 	},
+	isPublic: {
+		type: Boolean,
+		default: false,
+		description: 'Whether this survey should be visible in public survey list'
+	},
 });
 
 // Helper function to generate unique slug

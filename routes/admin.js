@@ -328,8 +328,28 @@ router.post(
 			surveyData.status = surveyData.isActive ? 'active' : 'draft';
 		}
 
+		// Add createdBy field from authenticated user
+		surveyData.createdBy = req.user.id;
+
 		const survey = new Survey(surveyData);
 		await survey.save();
+		res.json(survey);
+	})
+);
+
+// Get a single survey
+router.get(
+	'/surveys/:id',
+	jwtAuth,
+	asyncHandler(async (req, res) => {
+		const survey = await Survey.findOne({ 
+			_id: req.params.id, 
+			createdBy: req.user.id 
+		}).populate('questionBankId', 'name description');
+		
+		if (!survey) {
+			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+		}
 		res.json(survey);
 	})
 );

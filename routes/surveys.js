@@ -21,7 +21,10 @@ const router = express.Router();
 router.get(
 	'/surveys',
 	asyncHandler(async (req, res) => {
-		const surveys = await Survey.find({ status: SURVEY_STATUS.ACTIVE })
+		const surveys = await Survey.find({ 
+			status: SURVEY_STATUS.ACTIVE,
+			isPublic: true 
+		})
 			.select('title description slug createdAt status type')
 			.lean();
 
