@@ -113,8 +113,8 @@ pipeline {
 						def composeFile = fileExists('docker-compose.aws.yml') ? 'docker-compose.aws.yml' : 'docker-compose.prod.yml'
 						echo "Using compose file: ${composeFile}"
 
-						sh """
-							export COMPOSE_FILE="${composeFile}"
+						withEnv(["COMPOSE_FILE=${composeFile}"]) {
+							sh '''
 							# Verify docker-compose files exist
 							if [ ! -f "docker-compose.prod.yml" ] && [ ! -f "docker-compose.aws.yml" ]; then
 								echo "Error: No docker-compose configuration files found"
@@ -141,18 +141,18 @@ pipeline {
 
 							# Build and start services with detailed logging
 							echo "=== Building and starting services ==="
-							echo "Using compose file: \$COMPOSE_FILE"
+							echo "Using compose file: $COMPOSE_FILE"
 
 							# Show docker-compose configuration for debugging
 							echo "=== Docker Compose Configuration ==="
-							docker-compose -f \$COMPOSE_FILE config
+							docker-compose -f $COMPOSE_FILE config
 
 							# Build and start services
 							echo "=== Starting docker-compose build ==="
-							if ! docker-compose -f \$COMPOSE_FILE up --build -d; then
+							if ! docker-compose -f $COMPOSE_FILE up --build -d; then
 								echo "ERROR: docker-compose up failed!"
 								echo "=== Docker Compose Logs ==="
-								docker-compose -f \$COMPOSE_FILE logs
+								docker-compose -f $COMPOSE_FILE logs
 								echo "=== System Resources ==="
 								df -h
 								free -h 2>/dev/null || echo "free command not available"
@@ -162,7 +162,7 @@ pipeline {
 
 							# Check if containers started successfully
 							echo "=== Immediate container status after start ==="
-							docker-compose -f \$COMPOSE_FILE ps
+							docker-compose -f $COMPOSE_FILE ps
 
 							# Show any containers that might have exited
 							echo "=== All containers (including exited) ==="
@@ -174,13 +174,14 @@ pipeline {
 
 							# Check service status again after wait
 							echo "=== Final service status after wait ==="
-							docker-compose -f \$COMPOSE_FILE ps
+							docker-compose -f $COMPOSE_FILE ps
 
 							# Show logs of all services for debugging
 							echo "=== Container Logs for Debugging ==="
 							echo "Showing logs for all services:"
-							docker-compose -f \$COMPOSE_FILE logs --tail 50 || echo "Could not get compose logs"
-						"""
+							docker-compose -f $COMPOSE_FILE logs --tail 50 || echo "Could not get compose logs"
+						'''
+						}
 						
 						// Show individual container logs in a separate sh block to avoid Groovy parsing issues
 						sh '''
@@ -210,28 +211,28 @@ pipeline {
 					def composeFile = fileExists('docker-compose.aws.yml') ? 'docker-compose.aws.yml' : 'docker-compose.prod.yml'
 					echo "Using compose file for health check: ${composeFile}"
 
-					sh """
-						export COMPOSE_FILE="${composeFile}"
-						echo "=== Starting Health Check Debug Information ==="
+					withEnv(["COMPOSE_FILE=${composeFile}"]) {
+						sh '''
+							echo "=== Starting Health Check Debug Information ==="
 
-						# Show current time
-						echo "Current time: \$(date)"
+							# Show current time
+							echo "Current time: $(date)"
 
-						echo "Using configuration file: \$COMPOSE_FILE"
+							echo "Using configuration file: $COMPOSE_FILE"
 
-						# Show containers from this compose project
-						echo "=== Survey Application Container Status ==="
-						# Try different filters to find our containers
-						echo "Looking for containers by project label:"
-						docker ps -a --filter "label=com.docker.compose.project" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}" || echo "No compose project containers found"
+							# Show containers from this compose project
+							echo "=== Survey Application Container Status ==="
+							# Try different filters to find our containers
+							echo "Looking for containers by project label:"
+							docker ps -a --filter "label=com.docker.compose.project" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}" || echo "No compose project containers found"
 
-						echo "Looking for containers by service name (app, mongodb):"
-						docker ps -a --filter "name=app" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}" || echo "No app containers found"
-						docker ps -a --filter "name=mongodb" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}" || echo "No mongodb containers found"
+							echo "Looking for containers by service name (app, mongodb):"
+							docker ps -a --filter "name=app" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}" || echo "No app containers found"
+							docker ps -a --filter "name=mongodb" --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}" || echo "No mongodb containers found"
 
-						# Also check by label if containers are labeled
-						echo "=== Survey Containers by Compose Project ==="
-						docker-compose -f \$COMPOSE_FILE ps 2>/dev/null || echo "Could not get compose status"
+							# Also check by label if containers are labeled
+							echo "=== Survey Containers by Compose Project ==="
+							docker-compose -f $COMPOSE_FILE ps 2>/dev/null || echo "Could not get compose status"
 
 						# Show container logs from compose project
 						echo "=== Application Container Logs (last 20 lines) ==="
@@ -383,6 +384,7 @@ pipeline {
 						echo "=== Health Check Completed Successfully ==="
 						echo "Application is running on port $PORT"
 					'''
+					}
 				}
 			}
 		}
