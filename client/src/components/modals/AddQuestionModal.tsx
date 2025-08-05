@@ -66,21 +66,33 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 		onChange('correctAnswer', newCorrectAnswer);
 	};
 
-	const isFormValid = () => {
-		if (!form.text.trim()) return false;
-
-		if (form.type === 'short_text') {
-			return true; // Short text questions only need question text
+	const getValidationErrors = () => {
+		const errors: string[] = [];
+		
+		if (!form.text.trim()) {
+			errors.push('Question text is required');
 		}
 
-		return (
-			form.options &&
-			form.options.filter(opt => {
+		if (form.type !== 'short_text') {
+			const validOptions = form.options?.filter(opt => {
 				const text = typeof opt === 'string' ? opt : opt.text || '';
 				return text.trim();
-			}).length >= 2 &&
-			form.correctAnswer !== undefined
-		);
+			}) || [];
+			
+			if (validOptions.length < 2) {
+				errors.push('At least 2 valid options are required');
+			}
+			
+			if (form.correctAnswer === undefined) {
+				errors.push('Please select a correct answer');
+			}
+		}
+		
+		return errors;
+	};
+
+	const isFormValid = () => {
+		return getValidationErrors().length === 0;
 	};
 
 	return (
@@ -357,6 +369,17 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 							Points awarded for answering this question correctly
 						</div>
 					</div>
+
+					{/* Validation Errors */}
+					{!isFormValid() && (
+						<div className='mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded'>
+							<ul className='list-disc list-inside space-y-1'>
+								{getValidationErrors().map((error, index) => (
+									<li key={index}>{error}</li>
+								))}
+							</ul>
+						</div>
+					)}
 
 					<div className='flex justify-end gap-3 pt-4 border-t'>
 						<button type='button' onClick={onClose} className='btn-secondary'>
