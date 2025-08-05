@@ -153,6 +153,9 @@ export const useQuestionBanks = () => {
 			throw new Error('Question text is required');
 		}
 
+		// Declare filteredOptions in the outer scope
+		let filteredOptions: unknown[] = [];
+
 		// For choice-based questions, validate options and correct answer
 		if (currentForm.type !== 'short_text') {
 			if (!currentForm.options || currentForm.options.length < 2) {
@@ -161,7 +164,7 @@ export const useQuestionBanks = () => {
 			}
 
 			// Filter out empty options (handle both string and object formats)
-			const filteredOptions = currentForm.options.filter((opt: unknown) => {
+			filteredOptions = currentForm.options.filter((opt: unknown) => {
 				if (typeof opt === 'string') {
 					return opt.trim();
 				} else if (typeof opt === 'object' && opt !== null) {
