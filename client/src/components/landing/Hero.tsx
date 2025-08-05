@@ -21,16 +21,16 @@ const Hero: React.FC = () => {
 						<p className="body-xl mb-10 max-w-2xl">
 							{t('landing.hero.subtitle')}
 						</p>
-						<div className="flex flex-col sm:flex-row gap-4">
+						<div className="flex flex-col sm:flex-row gap-3">
 							<Link
 								to="/admin/register"
-								className="btn-primary inline-flex items-center justify-center px-8 py-4"
+								className="btn-primary btn-large inline-flex items-center justify-center"
 							>
 								{t('landing.hero.startFreeTrial')}
 							</Link>
 							<Link
 								to="/demo"
-								className="btn-secondary inline-flex items-center justify-center px-8 py-4"
+								className="btn-secondary btn-large inline-flex items-center justify-center"
 							>
 								{t('landing.hero.seeLiveDemo')}
 							</Link>

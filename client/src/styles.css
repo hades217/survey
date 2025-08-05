@@ -23,17 +23,26 @@ body {
 
 /* Custom styles */
 @layer components {
-	/* Airbnb-style buttons - Enhanced */
+	/* Airbnb-style buttons - Properly sized */
 	.btn-primary {
-		@apply bg-[#FF5A5F] hover:bg-[#E00007] text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 text-base shadow-lg hover:shadow-xl transform hover:-translate-y-1 hover:scale-105;
+		@apply bg-[#FF5A5F] hover:bg-[#E00007] text-white font-medium py-2.5 px-5 rounded-xl transition-all duration-200 text-sm shadow-sm hover:shadow-md transform hover:-translate-y-0.5;
 	}
 
 	.btn-secondary {
-		@apply bg-white hover:bg-gray-50 text-[#484848] font-semibold py-3 px-6 rounded-xl transition-all duration-200 text-base border-2 border-[#DDDDDD] hover:border-[#484848] shadow-md hover:shadow-lg transform hover:-translate-y-0.5;
+		@apply bg-white hover:bg-gray-50 text-[#484848] font-medium py-2 px-6 rounded-xl transition-all duration-200 text-sm border border-[#DDDDDD] hover:border-[#484848] shadow-sm hover:shadow-md;
 	}
 
 	.btn-outline {
-		@apply bg-transparent hover:bg-[#FF5A5F] text-[#FF5A5F] hover:text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 text-base border-2 border-[#FF5A5F] hover:shadow-lg transform hover:-translate-y-0.5;
+		@apply bg-transparent hover:bg-[#FF5A5F] text-[#FF5A5F] hover:text-white font-medium py-2 px-5 rounded-xl transition-all duration-200 text-sm border border-[#FF5A5F] hover:shadow-sm;
+	}
+
+	/* Additional button sizes */
+	.btn-small {
+		@apply py-1.5 px-3 text-xs;
+	}
+
+	.btn-large {
+		@apply py-3 px-8 text-base;
 	}
 
 	/* Airbnb-style inputs */
@@ -98,6 +107,10 @@ body {
 		animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 	}
 
+	.animate-slide-up {
+		animation: slideUp 0.3s ease-out;
+	}
+
 	@keyframes fadeIn {
 		from {
 			opacity: 0;
@@ -106,6 +119,15 @@ body {
 		to {
 			opacity: 1;
 			transform: translateY(0) scale(1);
+		}
+	}
+
+	@keyframes slideUp {
+		from {
+			transform: translateY(100%);
+		}
+		to {
+			transform: translateY(0);
 		}
 	}
 

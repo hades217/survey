@@ -99,7 +99,7 @@ const Pricing: React.FC = () => {
 								</ul>
 								<Link
 									to={plan.key === 'free' ? "/admin/register" : plan.key === 'business' ? "/contact-sales" : "/admin/register"}
-									className={`block w-full text-center py-3 px-4 rounded-lg font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 ${
+									className={`block w-full text-center py-2.5 px-5 rounded-xl font-medium text-sm transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 ${
 										plan.featured
 											? 'bg-[#FF5A5F] text-white hover:bg-[#E00007]'
 											: plan.key === 'free'

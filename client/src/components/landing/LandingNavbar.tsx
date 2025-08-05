@@ -68,7 +68,7 @@ const LandingNavbar: React.FC = () => {
 						</Link>
 						<Link
 							to="/admin/register"
-							className="btn-primary px-6 py-3"
+							className="btn-primary"
 						>
 							{t('landing.hero.startFreeTrial')}
 						</Link>

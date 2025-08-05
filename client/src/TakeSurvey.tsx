@@ -729,7 +729,7 @@ const TakeSurvey: React.FC = () => {
 
 							<div className='flex justify-end pt-6 border-t border-gray-200'>
 								<button
-									className='btn-primary px-8 py-3 text-lg'
+									className='btn-primary btn-large'
 									type='submit'
 									disabled={loading || !questionsLoaded}
 								>
