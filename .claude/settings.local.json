@@ -53,7 +53,13 @@
       "Bash(./deploy-simple.sh)",
       "Bash(git reset:*)",
       "Bash(cat:*)",
-      "Bash(nslookup:*)"
+      "Bash(nslookup:*)",
+      "Bash(if [ $? -eq 0 ])",
+      "Bash(then)",
+      "Bash(else)",
+      "Bash(fi)",
+      "Bash(__NEW_LINE__ echo \"Checking docker-compose.aws.yml:\")",
+      "Bash(__NEW_LINE__ echo \"Checking if MONGODB_URI is required (no fallback):\")"
     ],
     "deny": []
   }

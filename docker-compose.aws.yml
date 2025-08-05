@@ -1,23 +1,13 @@
+# AWS Production Docker Compose Configuration  
+# Note: MongoDB is deployed separately in UAT/Production environments
+# The MONGODB_URI environment variable should point to your external MongoDB instance
 services:
-    mongodb:
-        image: mongo:7.0
-        restart: unless-stopped
-        environment:
-            MONGO_INITDB_DATABASE: survey
-        volumes:
-            - mongodb_data:/data/db
-        logging:
-            driver: 'json-file'
-            options:
-                max-size: '10m'
-                max-file: '3'
-
     app:
         build:
             context: .
             dockerfile: Dockerfile.backend
         environment:
-            MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/survey}
+            MONGODB_URI: ${MONGODB_URI}
             PORT: 5050
             NODE_ENV: production
             ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
@@ -25,8 +15,6 @@ services:
         ports:
             - '80:5050'  # Map internal 5050 to external 80 for direct access
         restart: unless-stopped
-        depends_on:
-            - mongodb
         logging:
             driver: 'json-file'
             options:
@@ -42,5 +30,4 @@ services:
             start_period: 40s
 
 volumes:
-    mongodb_data:
     uploads:
