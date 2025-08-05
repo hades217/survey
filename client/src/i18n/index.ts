@@ -11,6 +11,118 @@ const resources = {
 				english: 'English',
 				chinese: '中文',
 			},
+			landing: {
+				hero: {
+					title: 'Sigma — Smarter Assessments for Smarter Teams',
+					subtitle: 'Create professional surveys and assessments in minutes. Track results, compare candidates, and make data-driven decisions.',
+					startFreeTrial: 'Start Free Trial',
+					seeLiveDemo: 'See Live Demo',
+				},
+				features: {
+					title: 'Powerful Features for Modern Teams',
+					feature1: {
+						title: 'Create professional assessments easily',
+						description: 'Use drag-and-drop survey builder or import CSV files to generate question banks.',
+					},
+					feature2: {
+						title: 'Visual analytics & reporting',
+						description: 'See score distribution, answer time, success rates, and more — all visualized.',
+					},
+					feature3: {
+						title: 'AI-powered insights',
+						description: 'Compare candidates, highlight top performers, and auto-generate reports.',
+					},
+					feature4: {
+						title: 'Question bank manager',
+						description: 'Centralized library with categories, tags, and reusable questions.',
+					},
+					feature5: {
+						title: 'Multilingual assessments',
+						description: 'Support for English, Chinese and more. Each user gets localized content.',
+					},
+					feature6: {
+						title: 'Branding & company customization',
+						description: 'Upload your logo, colors, and company info to personalize the experience.',
+					},
+				},
+				useCases: {
+					title: 'Who is Sigma for?',
+					hrTeams: {
+						title: 'HR Teams & Recruiters',
+						description: 'Screen candidates faster with standardized assessments.',
+					},
+					training: {
+						title: 'L&D / Internal Training',
+						description: 'Evaluate employee progress and training outcomes.',
+					},
+					startups: {
+						title: 'Startups & SMBs',
+						description: 'Build lightweight internal surveys without coding.',
+					},
+					universities: {
+						title: 'Universities / Bootcamps',
+						description: 'Assess student learning and export structured reports.',
+					},
+					international: {
+						title: 'International Teams',
+						description: 'Use multilingual assessments for global hiring.',
+					},
+				},
+				pricing: {
+					title: 'Simple, transparent pricing',
+					basic: {
+						title: 'Basic Plan',
+						price: '$19/month',
+						subtitle: 'Perfect for small teams',
+						features: [
+							'Up to 3 assessments',
+							'Up to 30 participants',
+							'No CSV import',
+							'No image-based questions',
+							'Basic reporting',
+						],
+						button: 'Start with Basic',
+					},
+					pro: {
+						title: 'Pro Plan',
+						price: '$49/month',
+						subtitle: 'For scaling companies',
+						features: [
+							'Unlimited assessments',
+							'Unlimited candidates',
+							'CSV import & image-based questions',
+							'PDF reports & visual analytics',
+							'Team accounts and branding',
+						],
+						button: 'Upgrade to Pro',
+					},
+				},
+				testimonials: {
+					title: 'What our customers say',
+					testimonial1: {
+						quote: 'Sigma helped streamline our internal evaluations — the PDF reports look very professional.',
+						author: 'Jane L., HR Manager',
+					},
+					testimonial2: {
+						quote: 'Love the ability to run assessments in Chinese and English. Easy to use and flexible.',
+						author: 'Kevin Y., CTO, EdTech Startup',
+					},
+				},
+				cta: {
+					title: 'Ready to get started with Sigma?',
+					subtitle: 'Create your first assessment today. No credit card required.',
+					button: 'Start Free Trial',
+					contactSales: 'Need a custom plan? Contact Sales',
+				},
+				footer: {
+					features: 'Features',
+					pricing: 'Pricing',
+					helpCenter: 'Help Center',
+					privacy: 'Privacy Policy',
+					terms: 'Terms of Use',
+					copyright: '© 2025 Sigma. All rights reserved.',
+				},
+			},
 			navigation: {
 				surveys: 'Surveys',
 				questionBanks: 'Question Banks',
@@ -101,6 +213,118 @@ const resources = {
 			language: {
 				english: 'English',
 				chinese: '中文',
+			},
+			landing: {
+				hero: {
+					title: 'Sigma — 更智能的团队评估解决方案',
+					subtitle: '在几分钟内创建专业的调研和评估。跟踪结果，比较候选人，做出数据驱动的决策。',
+					startFreeTrial: '开始免费试用',
+					seeLiveDemo: '查看在线演示',
+				},
+				features: {
+					title: '为现代团队打造的强大功能',
+					feature1: {
+						title: '轻松创建专业评估',
+						description: '使用拖放式问卷构建器或导入CSV文件生成题库。',
+					},
+					feature2: {
+						title: '可视化分析与报告',
+						description: '查看分数分布、答题时间、成功率等——一切都可视化呈现。',
+					},
+					feature3: {
+						title: 'AI驱动的洞察',
+						description: '比较候选人，突出表现优异者，自动生成报告。',
+					},
+					feature4: {
+						title: '题库管理器',
+						description: '具有分类、标签和可重用题目的集中式题库。',
+					},
+					feature5: {
+						title: '多语言评估',
+						description: '支持英语、中文等多种语言。每位用户都能获得本地化内容。',
+					},
+					feature6: {
+						title: '品牌与企业定制',
+						description: '上传您的Logo、颜色和公司信息，个性化用户体验。',
+					},
+				},
+				useCases: {
+					title: 'Sigma适合谁？',
+					hrTeams: {
+						title: '人力资源团队与招聘人员',
+						description: '通过标准化评估更快筛选候选人。',
+					},
+					training: {
+						title: '学习与发展/内部培训',
+						description: '评估员工进度和培训成果。',
+					},
+					startups: {
+						title: '创业公司与中小企业',
+						description: '无需编程即可构建轻量级内部调研。',
+					},
+					universities: {
+						title: '大学/训练营',
+						description: '评估学生学习情况并导出结构化报告。',
+					},
+					international: {
+						title: '国际团队',
+						description: '使用多语言评估进行全球招聘。',
+					},
+				},
+				pricing: {
+					title: '简单透明的定价',
+					basic: {
+						title: '基础版',
+						price: '¥19/月',
+						subtitle: '适合小团队',
+						features: [
+							'最多3个评估',
+							'最多30名参与者',
+							'不支持CSV导入',
+							'不支持图片题目',
+							'基础报告功能',
+						],
+						button: '选择基础版',
+					},
+					pro: {
+						title: '专业版',
+						price: '¥49/月',
+						subtitle: '适合成长型公司',
+						features: [
+							'无限评估数量',
+							'无限候选人数',
+							'CSV导入和图片题目',
+							'PDF报告和可视化分析',
+							'团队账户和品牌定制',
+						],
+						button: '升级到专业版',
+					},
+				},
+				testimonials: {
+					title: '客户评价',
+					testimonial1: {
+						quote: 'Sigma帮助简化了我们的内部评估流程——PDF报告看起来非常专业。',
+						author: 'Jane L., 人力资源经理',
+					},
+					testimonial2: {
+						quote: '喜欢能够用中英文进行评估的功能。易于使用且灵活。',
+						author: 'Kevin Y., 教育科技初创公司CTO',
+					},
+				},
+				cta: {
+					title: '准备开始使用Sigma了吗？',
+					subtitle: '立即创建您的第一个评估。无需信用卡。',
+					button: '开始免费试用',
+					contactSales: '需要定制方案？联系销售',
+				},
+				footer: {
+					features: '功能',
+					pricing: '定价',
+					helpCenter: '帮助中心',
+					privacy: '隐私政策',
+					terms: '使用条款',
+					copyright: '© 2025 Sigma. 保留所有权利。',
+				},
 			},
 			navigation: {
 				surveys: '问卷调研',
