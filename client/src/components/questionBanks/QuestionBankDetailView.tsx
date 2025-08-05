@@ -262,6 +262,7 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 	const addQuestionBankQuestionHandler = async (form: QuestionForm) => {
 		try {
 			setLoading(true);
+			setError(''); // Clear any previous errors
 			await addQuestionBankQuestion(qb._id, form);
 
 			// Reset form and close modal
@@ -279,7 +280,9 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 
 			setLoading(false);
 		} catch (err) {
-			setError('Failed to add question. Please try again.');
+			console.error('Error adding question:', err);
+			const errorMessage = err?.response?.data?.error || err?.message || 'Failed to add question. Please try again.';
+			setError(errorMessage);
 			setLoading(false);
 		}
 	};
@@ -370,6 +373,12 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 								<span>Questions: {qb.questions?.length || 0}</span>
 								<span>Created: {new Date(qb.createdAt).toLocaleDateString()}</span>
 							</div>
+							{/* Error Display */}
+							{error && (
+								<div className='mt-3 p-3 bg-red-100 border border-red-400 text-red-700 rounded'>
+									{error}
+								</div>
+							)}
 						</div>
 						<div className='flex items-center gap-2'>
 							<button
@@ -404,7 +413,10 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 								</button>
 								<button
 									className='btn-primary text-sm'
-									onClick={() => setShowAddQuestionModal(true)}
+									onClick={() => {
+										setError(''); // Clear any previous errors
+										setShowAddQuestionModal(true);
+									}}
 									type='button'
 								>
 									+ Add New Question

@@ -484,9 +484,9 @@ const StudentAssessment = () => {
 											<p>
 												• This is a
 												{survey.type === 'quiz'
-													? 'Quiz'
+													? ' Quiz '
 													: survey.type === 'assessment'
-														? 'Assessment'
+														? ' Assessment '
 														: 'IQ Test'}
 												with standard answers
 											</p>

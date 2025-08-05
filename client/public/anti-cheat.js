@@ -69,8 +69,8 @@ console.log('🚀 ULTIMATE Anti-cheat loading...');
 	// Check if we should activate protection based on URL
 	function shouldActivate() {
 		const path = window.location.pathname;
-		// Only activate on survey pages
-		return path.includes('/survey/');
+		// Only activate on user survey pages, NOT admin pages
+		return path.match(/^\/survey\/[^/]+$/);
 	}
 
 	// Immediate activation

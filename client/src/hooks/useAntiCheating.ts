@@ -33,6 +33,22 @@ export const useAntiCheating = (options: AntiCheatingOptions = {}) => {
 		[showWarnings]
 	);
 
+	const preventCopy = useCallback(
+		(e: React.ClipboardEvent) => {
+			e.preventDefault();
+			showWarning(t('survey.antiCheat.copyDisabled'));
+		},
+		[showWarning, t]
+	);
+
+	const preventPaste = useCallback(
+		(e: React.ClipboardEvent) => {
+			e.preventDefault();
+			showWarning(t('survey.antiCheat.pasteDisabled'));
+		},
+		[showWarning, t]
+	);
+
 	const preventKeyboardShortcuts = useCallback(
 		(e: KeyboardEvent) => {
 			if (!enabled) return;
@@ -149,6 +165,8 @@ export const useAntiCheating = (options: AntiCheatingOptions = {}) => {
 		};
 
 		const contextMenuHandler = (e: MouseEvent) => {
+			if (!enabled || !disableRightClick) return;
+			
 			e.preventDefault();
 			e.stopPropagation();
 			showWarning(
