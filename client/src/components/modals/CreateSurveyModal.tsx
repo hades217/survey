@@ -2,10 +2,16 @@ import React, { useState } from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
 import { useSurveys } from '../../hooks/useSurveys';
 import { useQuestionBanks } from '../../hooks/useQuestionBanks';
-import Modal from '../Modal';
+import Drawer from '../Drawer';
 import MultiQuestionBankModal from './MultiQuestionBankModal';
 import ManualQuestionSelectionModal from './ManualQuestionSelectionModal';
 import { SOURCE_TYPE, SURVEY_TYPE } from '../../constants';
+import { 
+	ClipboardDocumentListIcon, 
+	AcademicCapIcon, 
+	CheckBadgeIcon, 
+	PuzzlePieceIcon 
+} from '@heroicons/react/24/outline';
 
 const CreateSurveyModal: React.FC = () => {
 	const { showCreateModal, setShowCreateModal, newSurvey, setNewSurvey, loading, error } =
@@ -13,6 +19,34 @@ const CreateSurveyModal: React.FC = () => {
 
 	const { createSurvey } = useSurveys();
 	const { questionBanks } = useQuestionBanks();
+
+	// Survey type options with icons and descriptions
+	const surveyTypeOptions = [
+		{
+			value: SURVEY_TYPE.SURVEY,
+			label: 'Survey',
+			icon: ClipboardDocumentListIcon,
+			description: 'Collect feedback and opinions'
+		},
+		{
+			value: SURVEY_TYPE.QUIZ,
+			label: 'Quiz',
+			icon: PuzzlePieceIcon,
+			description: 'Test knowledge with scoring'
+		},
+		{
+			value: SURVEY_TYPE.ASSESSMENT,
+			label: 'Assessment',
+			icon: CheckBadgeIcon,
+			description: 'Professional evaluation tool'
+		},
+		{
+			value: SURVEY_TYPE.IQ,
+			label: 'IQ Test',
+			icon: AcademicCapIcon,
+			description: 'Intelligence assessment'
+		}
+	];
 
 	// Modal states for multi-question selection
 	const [showMultiBankModal, setShowMultiBankModal] = useState(false);
@@ -60,12 +94,31 @@ const CreateSurveyModal: React.FC = () => {
 	};
 
 	return (
-		<Modal
+		<Drawer
 			show={showCreateModal}
 			onClose={() => setShowCreateModal(false)}
 			title='Create New Survey'
+			actions={
+				<div className='flex justify-end space-x-3'>
+					<button
+						type='button'
+						onClick={() => setShowCreateModal(false)}
+						className='btn-secondary'
+					>
+						Cancel
+					</button>
+					<button
+						type='submit'
+						form='create-survey-form'
+						disabled={loading}
+						className='btn-primary disabled:opacity-50 disabled:cursor-not-allowed'
+					>
+						{loading ? 'Creating...' : 'Create Survey'}
+					</button>
+				</div>
+			}
 		>
-			<form onSubmit={createSurvey} className='space-y-6'>
+			<form id='create-survey-form' onSubmit={createSurvey} className='space-y-6'>
 				{/* Basic Information */}
 				<div>
 					<h3 className='text-lg font-medium text-gray-900 mb-4'>Basic Information</h3>
@@ -98,19 +151,63 @@ const CreateSurveyModal: React.FC = () => {
 						</div>
 
 						<div>
-							<label className='block text-sm font-medium text-gray-700 mb-1'>
+							<label className='block text-sm font-medium text-gray-700 mb-3'>
 								Type *
 							</label>
-							<select
-								value={newSurvey.type}
-								onChange={e => handleInputChange('type', e.target.value)}
-								className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-							>
-								<option value='survey'>Survey</option>
-								<option value='quiz'>Quiz</option>
-								<option value='assessment'>Assessment</option>
-								<option value='iq'>IQ Test</option>
-							</select>
+							<div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+								{surveyTypeOptions.map((option) => {
+									const IconComponent = option.icon;
+									const isSelected = newSurvey.type === option.value;
+									
+									return (
+										<label
+											key={option.value}
+											className={`relative flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md ${
+												isSelected
+													? 'border-[#FF5A5F] bg-[#FF5A5F]/5 shadow-sm'
+													: 'border-gray-200 hover:border-[#FF5A5F]/50'
+											}`}
+										>
+											<input
+												type="radio"
+												name="surveyType"
+												value={option.value}
+												checked={isSelected}
+												onChange={(e) => handleInputChange('type', e.target.value)}
+												className="sr-only"
+											/>
+											<div className="flex items-start space-x-3 w-full">
+												<div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
+													isSelected 
+														? 'bg-[#FF5A5F] text-white' 
+														: 'bg-gray-100 text-gray-600'
+												}`}>
+													<IconComponent className="w-5 h-5" />
+												</div>
+												<div className="flex-1 min-w-0">
+													<div className={`text-sm font-semibold ${
+														isSelected ? 'text-[#FF5A5F]' : 'text-gray-900'
+													}`}>
+														{option.label}
+													</div>
+													<div className="text-xs text-gray-500 mt-1">
+														{option.description}
+													</div>
+												</div>
+											</div>
+											{isSelected && (
+												<div className="absolute top-2 right-2">
+													<div className="w-4 h-4 bg-[#FF5A5F] rounded-full flex items-center justify-center">
+														<svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+															<path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+														</svg>
+													</div>
+												</div>
+											)}
+										</label>
+									);
+								})}
+							</div>
 						</div>
 					</div>
 				</div>
@@ -253,7 +350,7 @@ const CreateSurveyModal: React.FC = () => {
 									<button
 										type='button'
 										onClick={() => setShowMultiBankModal(true)}
-										className='mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors'
+										className='mt-3 btn-primary btn-small'
 									>
 										Configure Question Banks
 									</button>
@@ -289,7 +386,7 @@ const CreateSurveyModal: React.FC = () => {
 									<button
 										type='button'
 										onClick={() => setShowManualSelectionModal(true)}
-										className='mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors'
+										className='mt-3 btn-primary btn-small'
 									>
 										Select Questions
 									</button>
@@ -518,35 +615,10 @@ const CreateSurveyModal: React.FC = () => {
 
 				{/* Error Display */}
 				{error && (
-					<div className='bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md'>
+					<div className='bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg'>
 						{error}
 					</div>
 				)}
-
-				{/* Error Display */}
-				{error && (
-					<div className='mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded'>
-						{error}
-					</div>
-				)}
-
-				{/* Form Actions */}
-				<div className='flex justify-end space-x-3 pt-6 border-t'>
-					<button
-						type='button'
-						onClick={() => setShowCreateModal(false)}
-						className='px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors'
-					>
-						Cancel
-					</button>
-					<button
-						type='submit'
-						disabled={loading}
-						className='px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-					>
-						{loading ? 'Creating...' : 'Create Survey'}
-					</button>
-				</div>
 			</form>
 
 			{/* Multi-Question Bank Configuration Modal */}
@@ -564,7 +636,7 @@ const CreateSurveyModal: React.FC = () => {
 				onSave={handleManualSelectionSave}
 				initialSelection={newSurvey.selectedQuestions || []}
 			/>
-		</Modal>
+		</Drawer>
 	);
 };
 

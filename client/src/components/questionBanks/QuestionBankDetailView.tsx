@@ -382,7 +382,7 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 						</div>
 						<div className='flex items-center gap-2'>
 							<button
-								className='btn-primary text-sm px-3 py-1'
+								className='btn-primary btn-small'
 								onClick={() => {
 									setEditQuestionBankForm({
 										name: qb.name,
