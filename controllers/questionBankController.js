@@ -442,7 +442,7 @@ exports.importQuestionsFromCSV = async (req, res) => {
 			stream
 				.pipe(
 					csv({
-						headers: ['questionText', 'type', 'options', 'correctAnswers', 'tags'],
+						headers: ['questionText', 'type', 'options', 'correctAnswers', 'tags', 'explanation', 'points', 'difficulty', 'descriptionImage'],
 						skipEmptyLines: true,
 					})
 				)
@@ -476,10 +476,22 @@ exports.importQuestionsFromCSV = async (req, res) => {
 						const newQuestion = {
 							text: questionText,
 							type: questionType,
-							points: 1,
+							points: parseInt(row.points) || 1,
 							tags: [],
-							difficulty: 'medium',
+							difficulty: row.difficulty && ['easy', 'medium', 'hard'].includes(row.difficulty.toLowerCase()) 
+								? row.difficulty.toLowerCase() 
+								: 'medium',
 						};
+
+						// Handle explanation
+						if (row.explanation && row.explanation.trim()) {
+							newQuestion.explanation = row.explanation.trim();
+						}
+
+						// Handle description image
+						if (row.descriptionImage && row.descriptionImage.trim()) {
+							newQuestion.descriptionImage = row.descriptionImage.trim();
+						}
 
 						// Handle tags
 						if (row.tags && row.tags.trim()) {
@@ -606,10 +618,11 @@ exports.importQuestionsFromCSV = async (req, res) => {
 // Download CSV template
 exports.downloadCSVTemplate = async (req, res) => {
 	try {
-		const csvTemplate = `questionText,type,options,correctAnswers,tags
-你喜欢哪个颜色？,single,红色;绿色;蓝色,1,颜色,兴趣
-哪些是编程语言？,multiple,JavaScript;Python;Dog,0;1,技术,测试
-请简要说明你的人生目标,text,,,思辨`;
+		const csvTemplate = `questionText,type,options,correctAnswers,tags,explanation,points,difficulty,descriptionImage
+你喜欢哪个颜色？,single,红色;绿色;蓝色,1,"颜色,兴趣",这是一个关于颜色偏好的问题,1,easy,
+哪些是编程语言？,multiple,JavaScript;Python;HTML,0;1,"技术,测试",选择所有编程语言选项,2,medium,
+请简要说明你的人生目标,text,,,"思辨,职业规划",请用简洁的语言描述,1,medium,
+What is 2+2?,single,3;4;5,1,"数学,基础",基础数学运算题,1,easy,`;
 
 		res.setHeader('Content-Type', 'text/csv');
 		res.setHeader('Content-Disposition', 'attachment; filename="question_bank_template.csv"');
