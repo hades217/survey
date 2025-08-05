@@ -382,13 +382,21 @@ const TakeSurvey: React.FC = () => {
 
 				{!slug && (
 					<div className='mb-8'>
-						<div className='text-center mb-8'>
-							<h1 className='text-4xl font-bold text-gray-800 mb-4'>
-								Available Surveys
-							</h1>
-							<p className='text-gray-600 text-lg'>
-								Choose a survey to participate in
-							</p>
+						<div className='relative'>
+							<button
+								onClick={() => navigate('/admin/login')}
+								className='absolute top-0 right-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md'
+							>
+								Login Admin
+							</button>
+							<div className='text-center mb-8'>
+								<h1 className='text-4xl font-bold text-gray-800 mb-4'>
+									Available Surveys
+								</h1>
+								<p className='text-gray-600 text-lg'>
+									Choose a survey to participate in
+								</p>
+							</div>
 						</div>
 
 						{surveys.length === 0 ? (
