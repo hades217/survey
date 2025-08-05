@@ -6,7 +6,7 @@ const NavigationTabs: React.FC = () => {
 	const { tab, setTab, navigate } = useAdmin();
 	const { t } = useTranslation();
 
-	const handleTabClick = (newTab: 'list' | 'question-banks' | 'profile' | 'billing') => {
+	const handleTabClick = (newTab: 'list' | 'question-banks' | 'profile') => {
 		setTab(newTab);
 		if (newTab === 'list') {
 			navigate('/admin');
@@ -14,8 +14,6 @@ const NavigationTabs: React.FC = () => {
 			navigate('/admin/question-banks');
 		} else if (newTab === 'profile') {
 			navigate('/admin/profile');
-		} else if (newTab === 'billing') {
-			navigate('/admin/billing');
 		}
 	};
 
@@ -25,10 +23,10 @@ const NavigationTabs: React.FC = () => {
 	}
 
 	return (
-		<div className='flex space-x-1 rounded-lg bg-gray-100 p-1 mb-6'>
+		<div className='flex space-x-1 rounded-lg bg-gray-100 p-1 mb-6 overflow-x-auto'>
 			<button
 				onClick={() => handleTabClick('list')}
-				className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+				className={`flex-1 min-w-[80px] rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
 					tab === 'list'
 						? 'bg-white text-gray-900 shadow-sm'
 						: 'text-gray-600 hover:text-gray-900'
@@ -38,7 +36,7 @@ const NavigationTabs: React.FC = () => {
 			</button>
 			<button
 				onClick={() => handleTabClick('question-banks')}
-				className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+				className={`flex-1 min-w-[80px] rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
 					tab === 'question-banks'
 						? 'bg-white text-gray-900 shadow-sm'
 						: 'text-gray-600 hover:text-gray-900'
@@ -48,23 +46,13 @@ const NavigationTabs: React.FC = () => {
 			</button>
 			<button
 				onClick={() => handleTabClick('profile')}
-				className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+				className={`flex-1 min-w-[80px] rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
 					tab === 'profile'
 						? 'bg-white text-gray-900 shadow-sm'
 						: 'text-gray-600 hover:text-gray-900'
 				}`}
 			>
 				{t('navigation.profile')}
-			</button>
-			<button
-				onClick={() => handleTabClick('billing')}
-				className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-					tab === 'billing'
-						? 'bg-white text-gray-900 shadow-sm'
-						: 'text-gray-600 hover:text-gray-900'
-				}`}
-			>
-				{t('navigation.billing')}
 			</button>
 		</div>
 	);

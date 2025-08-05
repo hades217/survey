@@ -99,8 +99,7 @@ const ImportCSVModal: React.FC<ImportCSVModalProps> = ({ isOpen, onClose, onImpo
 						<h4 className='font-medium text-blue-800 mb-2'>CSV 文件格式说明：</h4>
 						<div className='text-blue-700 space-y-1'>
 							<p>
-								<strong>列名：</strong> questionText, type, options, correctAnswers,
-								tags
+								<strong>列名：</strong> questionText, type, options, correctAnswers, tags, explanation, points, difficulty, descriptionImage
 							</p>
 							<p>
 								<strong>类型：</strong> single (单选), multiple (多选), text (文本)
@@ -112,7 +111,19 @@ const ImportCSVModal: React.FC<ImportCSVModalProps> = ({ isOpen, onClose, onImpo
 								<strong>正确答案：</strong> 选项索引，从0开始，多个用分号分隔
 							</p>
 							<p>
-								<strong>标签：</strong> 用逗号(,)分隔
+								<strong>标签：</strong> 用逗号(,)分隔，需要用双引号包围
+							</p>
+							<p>
+								<strong>解释：</strong> 可选，答案解释
+							</p>
+							<p>
+								<strong>分数：</strong> 可选，默认为1
+							</p>
+							<p>
+								<strong>难度：</strong> easy, medium, hard (可选，默认medium)
+							</p>
+							<p>
+								<strong>描述图片：</strong> 可选，图片URL
 							</p>
 						</div>
 					</div>

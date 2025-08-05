@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAdmin } from '../../contexts/AdminContext';
 import ImageUpload from '../common/ImageUpload';
+import BillingView from '../billing/BillingView';
 
 const ProfileView: React.FC = () => {
 	const { t } = useTranslation();
@@ -22,7 +23,7 @@ const ProfileView: React.FC = () => {
 		setError,
 	} = useAdmin();
 
-	const [activeTab, setActiveTab] = useState<'personal' | 'company'>('personal');
+	const [activeTab, setActiveTab] = useState<'personal' | 'company' | 'billing'>('personal');
 
 	useEffect(() => {
 		loadProfile();
@@ -103,10 +104,10 @@ const ProfileView: React.FC = () => {
 
 				{/* Tab Navigation */}
 				<div className='px-6 py-4 border-b border-gray-200'>
-					<div className='flex space-x-1 bg-gray-100 p-1 rounded-lg'>
+					<div className='flex space-x-1 bg-gray-100 p-1 rounded-lg overflow-x-auto'>
 						<button
 							onClick={() => setActiveTab('personal')}
-							className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+							className={`flex-1 min-w-[80px] rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
 								activeTab === 'personal'
 									? 'bg-white text-gray-900 shadow-sm'
 									: 'text-gray-600 hover:text-gray-900'
@@ -116,13 +117,23 @@ const ProfileView: React.FC = () => {
 						</button>
 						<button
 							onClick={() => setActiveTab('company')}
-							className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+							className={`flex-1 min-w-[80px] rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
 								activeTab === 'company'
 									? 'bg-white text-gray-900 shadow-sm'
 									: 'text-gray-600 hover:text-gray-900'
 							}`}
 						>
 							{t('profile.companyInfo')}
+						</button>
+						<button
+							onClick={() => setActiveTab('billing')}
+							className={`flex-1 min-w-[80px] rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
+								activeTab === 'billing'
+									? 'bg-white text-gray-900 shadow-sm'
+									: 'text-gray-600 hover:text-gray-900'
+							}`}
+						>
+							{t('navigation.billing')}
 						</button>
 					</div>
 				</div>
@@ -261,6 +272,13 @@ const ProfileView: React.FC = () => {
 								</form>
 							</div>
 						</div>
+					</div>
+				)}
+
+				{/* Billing Tab */}
+				{activeTab === 'billing' && (
+					<div className='p-6'>
+						<BillingView />
 					</div>
 				)}
 

@@ -292,7 +292,7 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 			const formData = new FormData();
 			formData.append('csvFile', file);
 
-			const response = await fetch(`/api/question-banks/${qb._id}/import-csv`, {
+			const response = await fetch(`/api/admin/question-banks/${qb._id}/import-csv`, {
 				method: 'POST',
 				headers: {
 					Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
@@ -582,7 +582,6 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 				isOpen={showImportCSVModal}
 				onClose={() => setShowImportCSVModal(false)}
 				onImport={handleCSVImport}
-				onDownloadTemplate={handleDownloadTemplate}
 				loading={loading}
 			/>
 
