@@ -78,7 +78,7 @@ questionText,type,options,correctAnswers,tags
 
 ### 导入流程
 
-1. 点击 "📄 导入 CSV" 按钮
+1. 点击 "📄 批量导入 CSV" 按钮
 2. 查看格式说明和下载模板
 3. 拖拽或选择 CSV 文件
 4. 点击 "开始导入"
@@ -156,7 +156,7 @@ Parsed questions:
 
 2. **执行导入**
     - 进入题库详情页面
-    - 点击 "📄 导入 CSV" 按钮
+    - 点击 "📄 批量导入 CSV" 按钮
     - 上传准备好的 CSV 文件
     - 等待导入完成并查看结果
 
