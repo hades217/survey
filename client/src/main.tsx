@@ -6,6 +6,7 @@ import TakeSurvey from './TakeSurvey';
 import StudentAssessment from './components/StudentAssessment';
 import Admin from './Admin';
 import OnboardingPage from './components/onboarding/OnboardingPage';
+import LandingPage from './components/landing/LandingPage';
 import './styles.css';
 import './i18n';
 
@@ -13,7 +14,11 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 	<React.StrictMode>
 		<BrowserRouter>
 			<Routes>
-				<Route path='/' element={<TakeSurvey />} />
+				<Route path='/' element={<LandingPage />} />
+				<Route path='/home' element={<LandingPage />} />
+				<Route path='/signup' element={<OnboardingPage />} />
+				<Route path='/login' element={<Admin />} />
+				<Route path='/demo' element={<TakeSurvey />} />
 				<Route path='/onboarding' element={<OnboardingPage />} />
 				<Route path='/admin' element={<Admin />} />
 				<Route path='/admin/login' element={<Admin />} />
