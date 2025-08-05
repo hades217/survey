@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
@@ -8,17 +8,42 @@ const LandingNavbar: React.FC = () => {
 	const { t } = useTranslation();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+	// Handle escape key to close mobile menu
+	useEffect(() => {
+		const handleEscape = (e: KeyboardEvent) => {
+			if (e.key === 'Escape' && mobileMenuOpen) {
+				setMobileMenuOpen(false);
+			}
+		};
+
+		document.addEventListener('keydown', handleEscape);
+		return () => document.removeEventListener('keydown', handleEscape);
+	}, [mobileMenuOpen]);
+
+	// Prevent body scroll when menu is open
+	useEffect(() => {
+		if (mobileMenuOpen) {
+			document.body.style.overflow = 'hidden';
+		} else {
+			document.body.style.overflow = 'unset';
+		}
+
+		return () => {
+			document.body.style.overflow = 'unset';
+		};
+	}, [mobileMenuOpen]);
+
 	const navLinks = [
 		{ key: 'features', href: '#features' },
 		{ key: 'pricing', href: '#pricing' },
 	];
 
 	return (
-		<nav className="bg-white shadow-sm sticky top-0 z-50">
-			<div className="container mx-auto px-4 sm:px-6 lg:px-8">
-				<div className="flex justify-between items-center h-16">
+		<nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-[#EBEBEB]">
+			<div className="container mx-auto px-6 lg:px-8">
+				<div className="flex justify-between items-center h-20">
 					<div className="flex items-center">
-						<Link to="/" className="text-2xl font-bold text-blue-600">
+						<Link to="/" className="text-3xl font-bold text-[#FF5A5F] tracking-tight">
 							Sigma
 						</Link>
 					</div>
@@ -29,7 +54,7 @@ const LandingNavbar: React.FC = () => {
 							<a
 								key={link.key}
 								href={link.href}
-								className="text-gray-700 hover:text-blue-600 transition duration-150 ease-in-out"
+								className="text-[#484848] hover:text-[#FF5A5F] transition duration-200 ease-in-out font-medium"
 							>
 								{t(`landing.footer.${link.key}`)}
 							</a>
@@ -37,13 +62,13 @@ const LandingNavbar: React.FC = () => {
 						<LanguageSwitcher />
 						<Link
 							to="/admin/login"
-							className="text-gray-700 hover:text-blue-600 transition duration-150 ease-in-out"
+							className="text-[#484848] hover:text-[#FF5A5F] transition duration-200 ease-in-out font-medium"
 						>
 							Login
 						</Link>
 						<Link
 							to="/admin/register"
-							className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition duration-150 ease-in-out"
+							className="btn-primary px-6 py-3"
 						>
 							{t('landing.hero.startFreeTrial')}
 						</Link>
@@ -53,7 +78,7 @@ const LandingNavbar: React.FC = () => {
 					<div className="md:hidden">
 						<button
 							onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-							className="text-gray-700 hover:text-blue-600"
+							className="text-[#484848] hover:text-[#FF5A5F] transition-colors duration-200"
 						>
 							{mobileMenuOpen ? (
 								<XMarkIcon className="h-6 w-6" />
@@ -64,41 +89,84 @@ const LandingNavbar: React.FC = () => {
 					</div>
 				</div>
 
-				{/* Mobile Navigation */}
-				{mobileMenuOpen && (
-					<div className="md:hidden border-t border-gray-200 py-4">
-						<div className="flex flex-col space-y-4">
-							{navLinks.map((link) => (
-								<a
-									key={link.key}
-									href={link.href}
-									className="text-gray-700 hover:text-blue-600 transition duration-150 ease-in-out"
-									onClick={() => setMobileMenuOpen(false)}
-								>
-									{t(`landing.footer.${link.key}`)}
-								</a>
-							))}
-							<div className="pt-2 border-t border-gray-200">
-								<LanguageSwitcher />
+			</div>
+
+			{/* Full-screen Mobile Navigation Overlay */}
+			{mobileMenuOpen && (
+				<div className="fixed inset-0 z-50 md:hidden">
+					{/* Background overlay */}
+					<div 
+						className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
+						onClick={() => setMobileMenuOpen(false)}
+					></div>
+					
+					{/* Menu content */}
+					<div className="fixed inset-0 bg-white transform transition-all duration-300 ease-in-out animate-in slide-in-from-top-full">
+						{/* Header */}
+						<div className="flex items-center justify-between p-6 border-b border-[#EBEBEB]">
+							<Link to="/" className="text-3xl font-bold text-[#FF5A5F] tracking-tight">
+								Sigma
+							</Link>
+							<button
+								onClick={() => setMobileMenuOpen(false)}
+								className="p-2 text-[#484848] hover:text-[#FF5A5F] transition duration-200 ease-in-out"
+							>
+								<XMarkIcon className="h-8 w-8" />
+							</button>
+						</div>
+
+						{/* Menu items */}
+						<div className="flex flex-col h-full">
+							<div className="flex-1 px-4 py-8 space-y-8">
+								{/* Navigation links */}
+								<div className="space-y-6">
+									{navLinks.map((link) => (
+										<a
+											key={link.key}
+											href={link.href}
+											className="block text-xl font-medium text-gray-900 hover:text-blue-600 transition duration-150 ease-in-out"
+											onClick={() => setMobileMenuOpen(false)}
+										>
+											{t(`landing.footer.${link.key}`)}
+										</a>
+									))}
+								</div>
+
+								{/* Language switcher */}
+								<div className="pt-6 border-t border-gray-200">
+									<p className="text-sm font-medium text-gray-500 mb-3">Language</p>
+									<LanguageSwitcher />
+								</div>
+
+								{/* Auth links */}
+								<div className="space-y-4 pt-6 border-t border-[#EBEBEB]">
+									<Link
+										to="/admin/login"
+										className="block text-xl font-medium text-[#484848] hover:text-[#FF5A5F] transition duration-200 ease-in-out"
+										onClick={() => setMobileMenuOpen(false)}
+									>
+										Login
+									</Link>
+									<Link
+										to="/admin/register"
+										className="btn-primary block w-full text-center py-4 text-lg"
+										onClick={() => setMobileMenuOpen(false)}
+									>
+										{t('landing.hero.startFreeTrial')}
+									</Link>
+								</div>
 							</div>
-							<Link
-								to="/admin/login"
-								className="text-gray-700 hover:text-blue-600 transition duration-150 ease-in-out"
-								onClick={() => setMobileMenuOpen(false)}
-							>
-								Login
-							</Link>
-							<Link
-								to="/admin/register"
-								className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition duration-150 ease-in-out text-center"
-								onClick={() => setMobileMenuOpen(false)}
-							>
-								{t('landing.hero.startFreeTrial')}
-							</Link>
+
+							{/* Footer */}
+							<div className="px-4 py-6 border-t border-gray-200">
+								<p className="text-sm text-gray-500 text-center">
+									© 2025 Sigma. All rights reserved.
+								</p>
+							</div>
 						</div>
 					</div>
-				)}
-			</div>
+				</div>
+			)}
 		</nav>
 	);
 };

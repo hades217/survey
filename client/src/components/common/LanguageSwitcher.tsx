@@ -8,18 +8,10 @@ interface LanguageSwitcherProps {
 export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ className = '' }) => {
 	const { i18n, t } = useTranslation();
 
-	// Debug: log current language and translations
-	console.log('Current language:', i18n.language);
-	console.log('English text:', t('language.english'));
-	console.log('Chinese text:', t('language.chinese'));
-
 	const handleLanguageChange = async (lang: string) => {
 		try {
 			await i18n.changeLanguage(lang);
 			localStorage.setItem('i18nextLng', lang);
-			console.log('Language changed to:', lang);
-			console.log('New translations - English:', t('language.english'));
-			console.log('New translations - Chinese:', t('language.chinese'));
 		} catch (error) {
 			console.error('Error changing language:', error);
 		}
@@ -29,10 +21,10 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ className = 
 		<div className={`flex items-center gap-2 ${className}`}>
 			<button
 				onClick={() => handleLanguageChange('en')}
-				className={`px-3 py-1 text-sm rounded transition-colors ${
+				className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-all duration-200 ${
 					i18n.language === 'en'
-						? 'bg-blue-600 text-white'
-						: 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+						? 'bg-[#FF5A5F] text-white shadow-sm'
+						: 'bg-[#EBEBEB] text-[#484848] hover:bg-[#DDDDDD] hover:text-[#FF5A5F]'
 				}`}
 				aria-label='Switch to English'
 			>
@@ -40,10 +32,10 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ className = 
 			</button>
 			<button
 				onClick={() => handleLanguageChange('zh')}
-				className={`px-3 py-1 text-sm rounded transition-colors ${
+				className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-all duration-200 ${
 					i18n.language === 'zh'
-						? 'bg-blue-600 text-white'
-						: 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+						? 'bg-[#FF5A5F] text-white shadow-sm'
+						: 'bg-[#EBEBEB] text-[#484848] hover:bg-[#DDDDDD] hover:text-[#FF5A5F]'
 				}`}
 				aria-label='切换到中文'
 			>

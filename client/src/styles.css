@@ -1,38 +1,120 @@
 @import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=Cereal:wght@300;400;500;600;700&display=swap'), url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Airbnb-inspired design system */
+:root {
+	/* Airbnb Color Palette */
+	--airbnb-rausch: #FF5A5F;
+	--airbnb-babu: #00A699;
+	--airbnb-arches: #FC642D;
+	--airbnb-hof: #484848;
+	--airbnb-foggy: #767676;
+	--airbnb-pearl: #EBEBEB;
+	--airbnb-white: #FFFFFF;
+	--airbnb-light-gray: #F7F7F7;
+	--airbnb-medium-gray: #DDDDDD;
+}
+
+/* Global font family */
+body {
+	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	color: var(--airbnb-hof);
+}
 
 /* Custom styles */
 @layer components {
+	/* Airbnb-style buttons - Enhanced */
 	.btn-primary {
-		@apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-3 sm:py-2 sm:px-4 rounded-lg transition-colors duration-200 text-sm sm:text-base;
+		@apply bg-[#FF5A5F] hover:bg-[#E00007] text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 text-base shadow-lg hover:shadow-xl transform hover:-translate-y-1 hover:scale-105;
 	}
 
 	.btn-secondary {
-		@apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-1.5 px-3 sm:py-2 sm:px-4 rounded-lg transition-colors duration-200 text-sm sm:text-base;
+		@apply bg-white hover:bg-gray-50 text-[#484848] font-semibold py-3 px-6 rounded-xl transition-all duration-200 text-base border-2 border-[#DDDDDD] hover:border-[#484848] shadow-md hover:shadow-lg transform hover:-translate-y-0.5;
 	}
 
+	.btn-outline {
+		@apply bg-transparent hover:bg-[#FF5A5F] text-[#FF5A5F] hover:text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 text-base border-2 border-[#FF5A5F] hover:shadow-lg transform hover:-translate-y-0.5;
+	}
+
+	/* Airbnb-style inputs */
 	.input-field {
-		@apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+		@apply w-full px-4 py-3 border border-[#DDDDDD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5A5F] focus:border-[#FF5A5F] text-[#484848] placeholder-[#767676];
 	}
 
+	/* Airbnb-style cards */
 	.card {
-		@apply bg-white rounded-xl shadow-lg border border-gray-100 p-4 sm:p-6;
+		@apply bg-white rounded-2xl shadow-sm border border-[#EBEBEB] p-6 hover:shadow-lg transition-shadow duration-300;
+	}
+
+	.card-hover {
+		@apply bg-white rounded-2xl shadow-sm border border-[#EBEBEB] p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1;
+	}
+
+	/* Typography styles - Airbnb inspired, more refined */
+	.heading-xl {
+		@apply text-3xl md:text-4xl lg:text-5xl font-bold text-[#484848] leading-tight tracking-tight;
+	}
+
+	.heading-lg {
+		@apply text-2xl md:text-3xl lg:text-4xl font-bold text-[#484848] leading-tight;
+	}
+
+	.heading-md {
+		@apply text-xl md:text-2xl font-semibold text-[#484848] leading-tight;
+	}
+
+	.heading-sm {
+		@apply text-lg md:text-xl font-semibold text-[#484848] leading-snug;
+	}
+
+	.body-xl {
+		@apply text-xl text-[#767676] leading-relaxed;
+	}
+
+	.body-lg {
+		@apply text-lg text-[#767676] leading-relaxed;
+	}
+
+	.body-md {
+		@apply text-base text-[#767676] leading-relaxed;
+	}
+
+	.body-sm {
+		@apply text-sm text-[#767676] leading-normal;
 	}
 }
 
-/* Custom animations */
+/* Custom animations and utilities */
 @layer utilities {
 	.animate-fade-in {
-		animation: fadeIn 0.2s ease-out;
+		animation: fadeIn 0.6s ease-out;
+	}
+
+	.animate-float {
+		animation: float 6s ease-in-out infinite;
+	}
+
+	.animate-pulse-slow {
+		animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 	}
 
 	@keyframes fadeIn {
 		from {
 			opacity: 0;
-			transform: scale(0.95);
+			transform: translateY(20px) scale(0.95);
 		}
 		to {
 			opacity: 1;
-			transform: scale(1);
+			transform: translateY(0) scale(1);
+		}
+	}
+
+	@keyframes float {
+		0%, 100% {
+			transform: translateY(0px);
+		}
+		50% {
+			transform: translateY(-20px);
 		}
 	}
 
@@ -41,5 +123,22 @@
 		-webkit-line-clamp: 3;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
+	}
+
+	/* Gradient text */
+	.gradient-text {
+		background: linear-gradient(135deg, #FF5A5F 0%, #FC642D 100%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	}
+
+	/* Enhanced shadows */
+	.shadow-airbnb {
+		box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+	}
+
+	.shadow-airbnb-hover {
+		box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
 	}
 }

@@ -40,10 +40,10 @@ const UseCases: React.FC = () => {
 	];
 
 	return (
-		<section className="py-20 bg-gray-50">
-			<div className="container mx-auto px-4 sm:px-6 lg:px-8">
-				<div className="text-center mb-16">
-					<h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+		<section className="py-24 bg-[#F7F7F7]">
+			<div className="container mx-auto px-6 lg:px-8">
+				<div className="text-center mb-20">
+					<h2 className="heading-lg mb-4">
 						{t('landing.useCases.title')}
 					</h2>
 				</div>
@@ -54,15 +54,15 @@ const UseCases: React.FC = () => {
 						return (
 							<div
 								key={useCase.key}
-								className={`p-8 rounded-2xl border-2 ${useCase.color} hover:shadow-lg transition-shadow duration-200`}
+								className="card-hover bg-white p-8"
 							>
-								<div className="flex items-center justify-center w-16 h-16 rounded-lg bg-white mb-6">
+								<div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF5A5F] to-[#FC642D] text-white mb-6 shadow-lg">
 									<Icon className="h-8 w-8" />
 								</div>
-								<h3 className="text-xl font-semibold text-gray-900 mb-3">
+								<h3 className="heading-sm mb-4 text-[#484848]">
 									{t(`landing.useCases.${useCase.key}.title`)}
 								</h3>
-								<p className="text-gray-600">
+								<p className="body-md">
 									{t(`landing.useCases.${useCase.key}.description`)}
 								</p>
 							</div>
