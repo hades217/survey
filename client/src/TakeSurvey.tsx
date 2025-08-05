@@ -78,15 +78,19 @@ const TakeSurvey: React.FC = () => {
 
 	// Enable anti-cheating measures for assessments and quizzes
 	const isAssessmentType = survey && TYPES_REQUIRING_ANSWERS.includes(survey.type);
+	
+	// Control anti-cheating features - can be configured per survey or globally
+	const antiCheatEnabled = false; // Set to false to disable all anti-cheating features
 
 	// Debug logging
 	console.log('Survey type:', survey?.type);
 	console.log('Is assessment type:', isAssessmentType);
+	console.log('Anti-cheat enabled:', antiCheatEnabled);
 	console.log('TYPES_REQUIRING_ANSWERS:', TYPES_REQUIRING_ANSWERS);
 
 	// Use both hooks for comprehensive protection
 	const { getInputProps } = useAntiCheating({
-		enabled: false, // Disable complex hook for now
+		enabled: antiCheatEnabled && isAssessmentType,
 		disableCopy: true,
 		disablePaste: true,
 		disableRightClick: true,
@@ -96,9 +100,9 @@ const TakeSurvey: React.FC = () => {
 	});
 
 	// Disable all React hook versions - using direct script instead
-	useSimpleAntiCheating(false);
-	useAggressiveAntiCheating(false);
-	useWorkingAntiCheating(false);
+	useSimpleAntiCheating(antiCheatEnabled && isAssessmentType);
+	useAggressiveAntiCheating(antiCheatEnabled && isAssessmentType);
+	useWorkingAntiCheating(antiCheatEnabled && isAssessmentType);
 
 	const loadQuestions = async (survey: Survey, userEmail?: string) => {
 		if (survey.sourceType === SOURCE_TYPE.QUESTION_BANK) {
@@ -496,7 +500,7 @@ const TakeSurvey: React.FC = () => {
 
 						<form
 							onSubmit={handleSubmit}
-							className={`space-y-6 ${isAssessmentType ? 'anti-cheat-container' : ''}`}
+							className={`space-y-6 ${antiCheatEnabled && isAssessmentType ? 'anti-cheat-container' : ''}`}
 						>
 							<div className='grid md:grid-cols-2 gap-6'>
 								<div>
@@ -550,7 +554,7 @@ const TakeSurvey: React.FC = () => {
 									{questions.map((q, index) => (
 										<div
 											key={q._id}
-											className={`bg-gray-50 rounded-lg p-6 ${isAssessmentType ? 'anti-cheat-container' : ''}`}
+											className={`bg-gray-50 rounded-lg p-6 ${antiCheatEnabled && isAssessmentType ? 'anti-cheat-container' : ''}`}
 										>
 											<label className='block mb-4 font-semibold text-gray-800 text-lg'>
 												{index + 1}. {q.text}
