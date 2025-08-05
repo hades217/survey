@@ -124,6 +124,15 @@ ADMIN_USERNAME=${ADMIN_USERNAME}
 ADMIN_PASSWORD=${ADMIN_PASSWORD}
 EOF
 
+							# Validate that required environment variables are set
+							if [ -z "${MONGO_URI}" ]; then
+								echo "ERROR: MONGO_URI environment variable is required but not set"
+								echo "Please ensure your external MongoDB URI is configured in Vault"
+								exit 1
+							fi
+							
+							echo "✅ Using external MongoDB at: ${MONGO_URI}"
+
 							echo "=== Starting Docker Containers ==="
 							echo "Using compose file: $COMPOSE_FILE"
 

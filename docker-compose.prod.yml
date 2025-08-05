@@ -1,23 +1,13 @@
+# Production Docker Compose Configuration
+# Note: MongoDB is deployed separately in UAT/Production environments
+# The MONGODB_URI environment variable should point to your external MongoDB instance
 services:
-    mongodb:
-        image: mongo:7.0
-        restart: unless-stopped
-        environment:
-            MONGO_INITDB_DATABASE: survey
-        volumes:
-            - mongodb_data:/data/db
-        logging:
-            driver: 'json-file'
-            options:
-                max-size: '10m'
-                max-file: '3'
-
     app:
         build:
             context: .
             dockerfile: Dockerfile.backend
         environment:
-            MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/survey}
+            MONGODB_URI: ${MONGODB_URI}
             PORT: ${PORT:-5173}
             NODE_ENV: production
             ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
@@ -25,8 +15,6 @@ services:
         ports:
             - '${PORT:-5173}:${PORT:-5173}'
         restart: unless-stopped
-        depends_on:
-            - mongodb
         logging:
             driver: 'json-file'
             options:
@@ -36,5 +24,4 @@ services:
             - uploads:/app/uploads
 
 volumes:
-    mongodb_data:
     uploads:
