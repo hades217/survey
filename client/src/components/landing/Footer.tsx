@@ -19,7 +19,7 @@ const Footer: React.FC = () => {
 			<div className="container mx-auto px-6 lg:px-8">
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
 					<div className="lg:col-span-2">
-						<h3 className="text-3xl font-bold mb-6 text-[#FF5A5F] tracking-tight">Sigma</h3>
+						<img src="/SigmaQ-logo.svg" alt="SigmaQ" className="h-12 mb-6" />
 						<p className="text-[#767676] mb-8 max-w-md text-lg leading-relaxed">
 							{t('appName')} - Smarter assessments for smarter teams.
 						</p>

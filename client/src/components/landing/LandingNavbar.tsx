@@ -43,8 +43,8 @@ const LandingNavbar: React.FC = () => {
 			<div className="container mx-auto px-6 lg:px-8">
 				<div className="flex justify-between items-center h-20">
 					<div className="flex items-center">
-						<Link to="/" className="text-3xl font-bold text-[#FF5A5F] tracking-tight">
-							Sigma
+						<Link to="/" className="flex items-center">
+							<img src="/SigmaQ-logo.svg" alt="SigmaQ" className="h-10" />
 						</Link>
 					</div>
 
@@ -104,8 +104,8 @@ const LandingNavbar: React.FC = () => {
 					<div className="fixed inset-0 bg-white transform transition-all duration-300 ease-in-out animate-in slide-in-from-top-full">
 						{/* Header */}
 						<div className="flex items-center justify-between p-6 border-b border-[#EBEBEB]">
-							<Link to="/" className="text-3xl font-bold text-[#FF5A5F] tracking-tight">
-								Sigma
+							<Link to="/" className="flex items-center">
+								<img src="/SigmaQ-logo.svg" alt="SigmaQ" className="h-10" />
 							</Link>
 							<button
 								onClick={() => setMobileMenuOpen(false)}
@@ -160,7 +160,7 @@ const LandingNavbar: React.FC = () => {
 							{/* Footer */}
 							<div className="px-4 py-6 border-t border-gray-200">
 								<p className="text-sm text-gray-500 text-center">
-									© 2025 Sigma. All rights reserved.
+									© 2025 SigmaQ. All rights reserved.
 								</p>
 							</div>
 						</div>

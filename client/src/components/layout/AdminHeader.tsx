@@ -9,8 +9,8 @@ const AdminHeader: React.FC = () => {
 	const { t: tCommon } = useTranslation(); // 默认命名空间用于通用翻译
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-	// Get company name from profile data, fallback to "Sigma" if not available
-	const companyName = profileData?.company?.name || 'Sigma';
+	// Get company name from profile data, fallback to "SigmaQ" if not available
+	const companyName = profileData?.company?.name || 'SigmaQ';
 
 	// Update document title when company name changes
 	useEffect(() => {
@@ -21,11 +21,14 @@ const AdminHeader: React.FC = () => {
 		<div className='mb-8'>
 			{/* Desktop Layout */}
 			<div className='hidden md:flex justify-between items-center'>
-				<div>
-					<h1 className='text-3xl font-bold text-gray-900'>
-						{t('dashboard.title', { companyName })}
-					</h1>
-					<p className='text-gray-600 mt-1'>{t('dashboard.subtitle')}</p>
+				<div className='flex items-start gap-4'>
+					<img src="/SigmaQ-logo.svg" alt="SigmaQ" className="h-12 mt-1" />
+					<div>
+						<h1 className='text-3xl font-bold text-gray-900'>
+							{t('dashboard.title', { companyName })}
+						</h1>
+						<p className='text-gray-600 mt-1'>{t('dashboard.subtitle')}</p>
+					</div>
 				</div>
 				<div className='flex items-center gap-3'>
 					<LanguageSwitcher />
@@ -45,6 +48,9 @@ const AdminHeader: React.FC = () => {
 			<div className='md:hidden'>
 				<div className='flex justify-between items-start mb-4'>
 					<div className='flex-1'>
+						<div className='flex items-start gap-3 mb-2'>
+							<img src="/SigmaQ-logo.svg" alt="SigmaQ" className="h-10" />
+						</div>
 						<h1 className='text-2xl font-bold text-gray-900'>
 							{t('dashboard.title', { companyName })}
 						</h1>

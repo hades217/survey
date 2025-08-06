@@ -6,14 +6,14 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
 	en: {
 		translation: {
-			appName: 'Sigma Survey Platform',
+			appName: 'SigmaQ Survey Platform',
 			language: {
 				english: 'English',
 				chinese: '中文',
 			},
 			landing: {
 				hero: {
-					title: 'Sigma — Smarter Assessments for Smarter Teams',
+					title: 'SigmaQ — Smarter Assessments for Smarter Teams',
 					subtitle: 'Create professional surveys and assessments in minutes. Track results, compare candidates, and make data-driven decisions.',
 					startFreeTrial: 'Start Free Trial',
 					seeLiveDemo: 'See Live Demo',
@@ -46,7 +46,7 @@ const resources = {
 					},
 				},
 				useCases: {
-					title: 'Who is Sigma for?',
+					title: 'Who is SigmaQ for?',
 					hrTeams: {
 						title: 'HR Teams & Recruiters',
 						description: 'Screen candidates faster with standardized assessments.',
@@ -123,7 +123,7 @@ const resources = {
 				testimonials: {
 					title: 'What our customers say',
 					testimonial1: {
-						quote: 'Sigma helped streamline our internal evaluations — the PDF reports look very professional.',
+						quote: 'SigmaQ helped streamline our internal evaluations — the PDF reports look very professional.',
 						author: 'Jane L., HR Manager',
 					},
 					testimonial2: {
@@ -132,7 +132,7 @@ const resources = {
 					},
 				},
 				cta: {
-					title: 'Ready to get started with Sigma?',
+					title: 'Ready to get started with SigmaQ?',
 					subtitle: 'Create your first assessment today. No credit card required.',
 					button: 'Start Free Trial',
 					contactSales: 'Need a custom plan? Contact Sales',
@@ -143,7 +143,7 @@ const resources = {
 					helpCenter: 'Help Center',
 					privacy: 'Privacy Policy',
 					terms: 'Terms of Use',
-					copyright: '© 2025 Sigma. All rights reserved.',
+					copyright: '© 2025 SigmaQ. All rights reserved.',
 				},
 			},
 			navigation: {
@@ -232,14 +232,14 @@ const resources = {
 	},
 	zh: {
 		translation: {
-			appName: 'Sigma 调研平台',
+			appName: 'SigmaQ 调研平台',
 			language: {
 				english: 'English',
 				chinese: '中文',
 			},
 			landing: {
 				hero: {
-					title: 'Sigma — 更智能的团队评估解决方案',
+					title: 'SigmaQ — 更智能的团队评估解决方案',
 					subtitle: '在几分钟内创建专业的调研和评估。跟踪结果，比较候选人，做出数据驱动的决策。',
 					startFreeTrial: '开始免费试用',
 					seeLiveDemo: '查看在线演示',
@@ -272,7 +272,7 @@ const resources = {
 					},
 				},
 				useCases: {
-					title: 'Sigma适合谁？',
+					title: 'SigmaQ适合谁？',
 					hrTeams: {
 						title: '人力资源团队与招聘人员',
 						description: '通过标准化评估更快筛选候选人。',
@@ -349,7 +349,7 @@ const resources = {
 				testimonials: {
 					title: '客户评价',
 					testimonial1: {
-						quote: 'Sigma帮助简化了我们的内部评估流程——PDF报告看起来非常专业。',
+						quote: 'SigmaQ帮助简化了我们的内部评估流程——PDF报告看起来非常专业。',
 						author: 'Jane L., 人力资源经理',
 					},
 					testimonial2: {
@@ -358,7 +358,7 @@ const resources = {
 					},
 				},
 				cta: {
-					title: '准备开始使用Sigma了吗？',
+					title: '准备开始使用SigmaQ了吗？',
 					subtitle: '立即创建您的第一个评估。无需信用卡。',
 					button: '开始免费试用',
 					contactSales: '需要定制方案？联系销售',
@@ -369,7 +369,7 @@ const resources = {
 					helpCenter: '帮助中心',
 					privacy: '隐私政策',
 					terms: '使用条款',
-					copyright: '© 2025 Sigma. 保留所有权利。',
+					copyright: '© 2025 SigmaQ. 保留所有权利。',
 				},
 			},
 			navigation: {
