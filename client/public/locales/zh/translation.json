@@ -26,7 +26,8 @@
 		"login": "登录",
 		"logout": "退出",
 		"register": "注册",
-		"refresh": "刷新"
+		"refresh": "刷新",
+		"duplicate": "复制"
 	},
 	"common": {
 		"loading": "加载中...",

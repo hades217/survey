@@ -26,7 +26,8 @@
 		"login": "Login",
 		"logout": "Logout",
 		"register": "Register",
-		"refresh": "Refresh"
+		"refresh": "Refresh",
+		"duplicate": "Duplicate"
 	},
 	"common": {
 		"loading": "Loading...",

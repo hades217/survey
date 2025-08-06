@@ -26,6 +26,89 @@
 			"iq": "IQ Test"
 		}
 	},
+	"createModal": {
+		"title": "Create New Survey",
+		"cancel": "Cancel",
+		"creating": "Creating...",
+		"createButton": "Create Survey",
+		"basicInfo": {
+			"title": "Basic Information",
+			"surveyTitle": "Title",
+			"titleRequired": "Title *",
+			"titlePlaceholder": "Enter survey title",
+			"description": "Description",
+			"descriptionPlaceholder": "Describe your survey",
+			"type": "Type",
+			"typeRequired": "Type *"
+		},
+		"surveyTypes": {
+			"survey": {
+				"label": "Survey",
+				"description": "Collect feedback and opinions"
+			},
+			"quiz": {
+				"label": "Quiz", 
+				"description": "Test knowledge with scoring"
+			},
+			"assessment": {
+				"label": "Assessment",
+				"description": "Professional evaluation tool"
+			},
+			"iq": {
+				"label": "IQ Test",
+				"description": "Intelligence assessment"
+			}
+		},
+		"questionSource": {
+			"title": "Question Source",
+			"sourceType": "Source Type",
+			"manual": "Manual (Create questions manually)",
+			"singleBank": "Single Question Bank (Random selection)",
+			"multiBank": "Multiple Question Banks (Configured selection)",
+			"manualSelection": "Manual Selection (Choose specific questions)",
+			"surveyOnlyManual": "Surveys only support manual question creation",
+			"questionBank": "Question Bank",
+			"selectBank": "Select a question bank",
+			"questionCount": "Number of Questions",
+			"multiBankConfig": "Multi-Question Bank Configuration",
+			"noConfigurations": "No configurations set",
+			"configureQuestionBanks": "Configure Question Banks",
+			"totalQuestions": "Total:",
+			"questions": "questions",
+			"withFilters": "(with filters)",
+			"manualSelectionConfig": "Manual Question Selection",
+			"questionsSelected": "questions selected",
+			"selectedFromBanks": "Questions selected from various question banks",
+			"noQuestionsSelected": "No questions selected",
+			"selectQuestions": "Select Questions",
+			"unknownBank": "Unknown Bank"
+		},
+		"assessmentConfig": {
+			"title": "Assessment Configuration",
+			"timeLimit": "Time Limit (minutes)",
+			"timeLimitPlaceholder": "No time limit",
+			"maxAttempts": "Maximum Attempts",
+			"navigationMode": "Navigation Mode",
+			"stepByStep": "Step by Step",
+			"paginated": "Paginated", 
+			"allInOne": "All in One",
+			"instructions": "Instructions",
+			"instructionsPlaceholder": "Special instructions for test takers"
+		},
+		"scoringSettings": {
+			"title": "Scoring Settings",
+			"scoringMode": "Scoring Mode",
+			"percentage": "Percentage",
+			"accumulated": "Accumulated Points",
+			"passingThreshold": "Passing Threshold",
+			"points": "points",
+			"showScore": "Show score to participants",
+			"showCorrectAnswers": "Show correct answers after completion",
+			"showScoreBreakdown": "Show score breakdown",
+			"useCustomPoints": "Use custom points per question",
+			"defaultQuestionPoints": "Default Question Points"
+		}
+	},
 	"statistics": {
 		"title": "Statistics",
 		"refreshData": "Refresh Data",

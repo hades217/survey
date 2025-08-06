@@ -26,6 +26,89 @@
       "iq": "IQ测试"
     }
   },
+  "createModal": {
+    "title": "创建新问卷",
+    "cancel": "取消",
+    "creating": "创建中...",
+    "createButton": "创建问卷",
+    "basicInfo": {
+      "title": "基本信息",
+      "surveyTitle": "标题",
+      "titleRequired": "标题 *",
+      "titlePlaceholder": "请输入问卷标题",
+      "description": "描述",
+      "descriptionPlaceholder": "请描述您的问卷",
+      "type": "类型",
+      "typeRequired": "类型 *"
+    },
+    "surveyTypes": {
+      "survey": {
+        "label": "调研",
+        "description": "收集反馈和意见"
+      },
+      "quiz": {
+        "label": "测验",
+        "description": "知识测试与评分"
+      },
+      "assessment": {
+        "label": "测评",
+        "description": "专业评估工具"
+      },
+      "iq": {
+        "label": "智商测试",
+        "description": "智力评估"
+      }
+    },
+    "questionSource": {
+      "title": "题目来源",
+      "sourceType": "来源类型",
+      "manual": "手动创建（手动创建题目）",
+      "singleBank": "单一题库（随机选择）",
+      "multiBank": "多题库（配置选择）",
+      "manualSelection": "手动选择（选择特定题目）",
+      "surveyOnlyManual": "调研类型仅支持手动创建题目",
+      "questionBank": "题库",
+      "selectBank": "选择题库",
+      "questionCount": "题目数量",
+      "multiBankConfig": "多题库配置",
+      "noConfigurations": "暂未配置",
+      "configureQuestionBanks": "配置题库",
+      "totalQuestions": "总计：",
+      "questions": "道题",
+      "withFilters": "（有过滤条件）",
+      "manualSelectionConfig": "手动选题",
+      "questionsSelected": "道题已选择",
+      "selectedFromBanks": "从各个题库中选择的题目",
+      "noQuestionsSelected": "暂未选择题目",
+      "selectQuestions": "选择题目",
+      "unknownBank": "未知题库"
+    },
+    "assessmentConfig": {
+      "title": "测评配置",
+      "timeLimit": "时间限制（分钟）",
+      "timeLimitPlaceholder": "无时间限制",
+      "maxAttempts": "最大尝试次数",
+      "navigationMode": "导航模式",
+      "stepByStep": "逐步模式",
+      "paginated": "分页模式",
+      "allInOne": "一页模式",
+      "instructions": "说明",
+      "instructionsPlaceholder": "为测试者提供特别说明"
+    },
+    "scoringSettings": {
+      "title": "评分设置",
+      "scoringMode": "评分模式",
+      "percentage": "百分比",
+      "accumulated": "累计分数",
+      "passingThreshold": "通过阈值",
+      "points": "分",
+      "showScore": "向参与者显示分数",
+      "showCorrectAnswers": "完成后显示正确答案",
+      "showScoreBreakdown": "显示分数明细",
+      "useCustomPoints": "对每道题使用自定义分数",
+      "defaultQuestionPoints": "默认题目分数"
+    }
+  },
   "statistics": {
     "title": "统计数据",
     "refreshData": "刷新数据",
@@ -36,7 +119,7 @@
     "individualResponses": "个人回复",
     "aggregatedResults": "汇总结果",
     "noResponseData": "暂无回复数据",
-    "noStatisticsData": "暂无统计数据，点击"刷新数据"按钮加载",
+    "noStatisticsData": "暂无统计数据，点击\"刷新数据\"按钮加载",
     "score": "成绩",
     "points": "分",
     "pass": "通过",
