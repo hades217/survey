@@ -1,25 +1,10 @@
-#     mongodb:
-#         image: mongo:7.0
-#         container_name: mongodb-uat
-#         restart: unless-stopped
-#         environment:
-#             MONGO_INITDB_DATABASE: survey_uat
-#         volumes:
-#             - mongodb_uat_data:/data/db
-#         ports:
-#             - "27018:27017"
-#         logging:
-#             driver: 'json-file'
-#             options:
-#                 max-size: '10m'
-#                 max-file: '3'
 services:
     app:
       build:
           context: .
           dockerfile: Dockerfile.uat
       environment:
-          MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017/survey_uat}
+          MONGODB_URI: ${MONGODB_URI}
           PORT: ${PORT:-5174}
           NODE_ENV: uat
           ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
@@ -27,8 +12,6 @@ services:
       ports:
           - '${PORT:-5174}:${PORT:-5173}'
       restart: unless-stopped
-      # depends_on:
-      #     - mongodb
       logging:
           driver: 'json-file'
           options:

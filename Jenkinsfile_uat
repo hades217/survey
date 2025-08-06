@@ -28,7 +28,7 @@ pipeline {
 					echo "=== File Listing ==="
 					ls -la
 					echo "=== Docker Compose Files Check ==="
-					if [ -f "docker-compose.prod.yml" ]; then
+					if [ -f "docker-compose.uat.yml" ]; then
 						echo "✓ docker-compose.uat.yml exists"
 					else
 						echo "✗ docker-compose.uat.yml missing"
