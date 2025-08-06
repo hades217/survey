@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAdmin } from '../contexts/AdminContext';
+import AdminNavbar from './layout/AdminNavbar';
 import AdminHeader from './layout/AdminHeader';
 import NavigationTabs from './navigation/NavigationTabs';
 import SurveyListView from './surveys/SurveyListView';
@@ -42,8 +43,12 @@ const AdminDashboard: React.FC = () => {
 	};
 
 	return (
-		<div className='min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-8'>
-			<div className='w-full mx-auto px-4' style={{ maxWidth: '1440px' }}>
+		<div className='min-h-screen bg-gradient-to-br from-gray-50 to-gray-100'>
+			{/* Top Navigation */}
+			<AdminNavbar />
+			
+			{/* Main Content */}
+			<div className='w-full mx-auto px-4 pt-8' style={{ maxWidth: '1440px' }}>
 				<AdminHeader />
 				<NavigationTabs />
 				{renderContent()}
