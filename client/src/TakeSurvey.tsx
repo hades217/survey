@@ -379,88 +379,88 @@ const TakeSurvey: React.FC = () => {
 	};
 
 	return (
-		<div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8'>
-			<div className={`mx-auto px-4 ${slug ? 'max-w-2xl' : 'max-w-6xl'}`}>
+		<div className='min-h-screen bg-[#F7F7F7] py-12'>
+			<div className={`mx-auto px-4 ${slug ? 'max-w-3xl' : 'max-w-7xl'}`}>
 				{/* 显示公司Logo */}
 				<CompanyLogo company={survey?.company} />
 
 				{!slug && (
-					<div className='mb-8'>
+					<div className='mb-12'>
 						<div className='relative'>
 							<button
 								onClick={() => navigate('/admin/login')}
-								className='absolute top-0 right-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md'
+								className='absolute top-0 right-0 btn-outline'
 							>
-								Login Admin
+								🔑 Admin Login
 							</button>
-							<div className='text-center mb-8'>
-								<h1 className='text-4xl font-bold text-gray-800 mb-4'>
+							<div className='text-center mb-12'>
+								<h1 className='heading-xl mb-6'>
 									Available Surveys
 								</h1>
-								<p className='text-gray-600 text-lg'>
-									Choose a survey to participate in
+								<p className='body-xl max-w-2xl mx-auto'>
+									Choose a survey to participate in and share your valuable insights
 								</p>
 							</div>
 						</div>
 
 						{surveys.length === 0 ? (
-							<div className='card text-center'>
-								<div className='text-gray-400 text-6xl mb-4'>📝</div>
-								<h3 className='text-xl font-semibold text-gray-700 mb-2'>
+							<div className='card text-center max-w-md mx-auto'>
+								<div className='text-[#767676] text-6xl mb-4'>📝</div>
+								<h3 className='heading-sm mb-3 text-[#484848]'>
 									No Surveys Available
 								</h3>
-								<p className='text-gray-500'>
+								<p className='body-md'>
 									There are currently no active surveys to participate in.
 								</p>
 							</div>
 						) : (
-							<div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
+							<div className='grid gap-8 md:grid-cols-2 xl:grid-cols-3'>
 								{surveys.map(s => (
 									<div
 										key={s._id}
-										className='card border-2 border-transparent hover:border-blue-200 hover:shadow-xl transition-all duration-200'
+										className='card-hover group'
 									>
-										<div className='mb-4'>
-											<div className='flex items-center gap-2 mb-2'>
-												<h3 className='text-xl font-bold text-gray-800'>
+										<div className='mb-6'>
+											<div className='flex items-start justify-between mb-3'>
+												<h3 className='heading-sm flex-1 group-hover:text-[#FF5A5F] transition-colors'>
 													{s.title}
 												</h3>
 												<span
-													className={`px-2 py-1 text-xs font-medium rounded-full ${
+													className={`px-3 py-1 text-xs font-medium rounded-full ml-3 flex-shrink-0 ${
 														s.type === 'assessment'
-															? 'bg-blue-100 text-blue-800'
+															? 'bg-[#00A699] bg-opacity-10 text-[#00A699]'
 															: s.type === 'quiz'
-																? 'bg-green-100 text-green-800'
+																? 'bg-[#FC642D] bg-opacity-10 text-[#FC642D]'
 																: s.type === 'iq'
-																	? 'bg-purple-100 text-purple-800'
-																	: 'bg-gray-100 text-gray-800'
+																	? 'bg-[#FF5A5F] bg-opacity-10 text-[#FF5A5F]'
+																	: 'bg-[#EBEBEB] text-[#767676]'
 													}`}
 												>
 													{s.type === 'assessment'
-														? 'Assessment'
+														? '📊 Assessment'
 														: s.type === 'quiz'
-															? 'Quiz'
+															? '🧠 Quiz'
 															: s.type === 'iq'
-																? 'IQ Test'
-																: 'Survey'}
+																? '🎯 IQ Test'
+																: '📋 Survey'}
 												</span>
 											</div>
 											{s.description && (
-												<p className='text-gray-600 text-sm line-clamp-3'>
+												<p className='body-md line-clamp-3'>
 													{s.description}
 												</p>
 											)}
 										</div>
-										<div className='flex flex-col gap-2'>
+										<div className='space-y-3'>
 											{/* Enhanced Assessment Interface for quiz/assessment/iq */}
 											{TYPES_REQUIRING_ANSWERS.includes(s.type) && (
 												<button
 													onClick={() =>
 														navigate(`/assessment/${s.slug || s._id}`)
 													}
-													className='w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium'
+													className='w-full btn-primary'
 												>
-													Start Enhanced Assessment →
+													🚀 Start Enhanced Assessment
 												</button>
 											)}
 											{/* Regular Interface */}
@@ -468,16 +468,15 @@ const TakeSurvey: React.FC = () => {
 												onClick={() =>
 													navigate(`/survey/${s.slug || s._id}`)
 												}
-												className='w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm'
+												className='w-full btn-secondary'
 											>
 												{s.type === 'assessment'
-													? 'Classic Assessment'
+													? '📊 Classic Assessment'
 													: s.type === 'quiz'
-														? 'Classic Quiz'
+														? '🧠 Classic Quiz'
 														: s.type === 'iq'
-															? 'Classic IQ Test'
-															: 'Start Survey'}{' '}
-												→
+															? '🎯 Classic IQ Test'
+															: '📋 Start Survey'}
 											</button>
 										</div>
 									</div>
@@ -488,24 +487,24 @@ const TakeSurvey: React.FC = () => {
 				)}
 
 				{survey && !submitted && (
-					<div className='card'>
+					<div className='card shadow-airbnb'>
 						<div className='mb-8'>
-							<h1 className='text-3xl font-bold text-gray-800 mb-2'>
+							<h1 className='heading-lg mb-4'>
 								{survey.title}
 							</h1>
 							{survey.description && (
-								<p className='text-gray-600 text-lg'>{survey.description}</p>
+								<p className='body-lg'>{survey.description}</p>
 							)}
 						</div>
 
 						<form
 							onSubmit={handleSubmit}
-							className={`space-y-6 ${antiCheatEnabled && isAssessmentType ? 'anti-cheat-container' : ''}`}
+							className={`space-y-8 ${antiCheatEnabled && isAssessmentType ? 'anti-cheat-container' : ''}`}
 						>
 							<div className='grid md:grid-cols-2 gap-6'>
 								<div>
-									<label className='block mb-2 font-semibold text-gray-700'>
-										Full Name *
+									<label className='block mb-3 font-medium text-[#484848]'>
+										👤 Full Name *
 									</label>
 									<input
 										className='input-field'
@@ -517,8 +516,8 @@ const TakeSurvey: React.FC = () => {
 									/>
 								</div>
 								<div>
-									<label className='block mb-2 font-semibold text-gray-700'>
-										Email Address *
+									<label className='block mb-3 font-medium text-[#484848]'>
+										✉️ Email Address *
 									</label>
 									<input
 										type='email'
@@ -526,27 +525,28 @@ const TakeSurvey: React.FC = () => {
 										value={form.email}
 										onChange={e => handleEmailChange(e.target.value)}
 										required
-										placeholder='Enter your email'
+										placeholder='Enter your email address'
 										{...getInputProps()}
 									/>
 									{survey?.sourceType === 'question_bank' &&
 										form.email &&
 										!questionsLoaded && (
-										<div className='text-sm text-blue-600 mt-1'>
-												Loading randomized questions...
+										<div className='text-sm text-[#00A699] mt-2 flex items-center gap-2'>
+											<div className='w-4 h-4 border-2 border-[#00A699] border-t-transparent rounded-full animate-spin'></div>
+											Loading randomized questions...
 										</div>
 									)}
 								</div>
 							</div>
 
 							{questionsLoaded ? (
-								<div className='space-y-6'>
-									<div className='flex items-center justify-between border-b border-gray-200 pb-2'>
-										<h3 className='text-xl font-semibold text-gray-800'>
-											Questions
+								<div className='space-y-8'>
+									<div className='flex items-center justify-between border-b border-[#EBEBEB] pb-4'>
+										<h3 className='heading-sm'>
+											📝 Survey Questions
 										</h3>
 										{survey.sourceType === 'question_bank' && (
-											<div className='text-sm text-purple-600 bg-purple-50 px-3 py-1 rounded'>
+											<div className='text-sm text-[#FC642D] bg-[#FC642D] bg-opacity-10 px-4 py-2 rounded-xl font-medium'>
 												🎲 Randomized Questions
 											</div>
 										)}
@@ -554,10 +554,13 @@ const TakeSurvey: React.FC = () => {
 									{questions.map((q, index) => (
 										<div
 											key={q._id}
-											className={`bg-gray-50 rounded-lg p-6 ${antiCheatEnabled && isAssessmentType ? 'anti-cheat-container' : ''}`}
+											className={`bg-white rounded-2xl p-8 border border-[#EBEBEB] shadow-sm hover:shadow-md transition-shadow ${antiCheatEnabled && isAssessmentType ? 'anti-cheat-container' : ''}`}
 										>
-											<label className='block mb-4 font-semibold text-gray-800 text-lg'>
-												{index + 1}. {q.text}
+											<label className='block mb-5 font-medium text-[#484848] text-lg leading-relaxed'>
+												<span className='inline-flex items-center justify-center w-7 h-7 bg-[#FF5A5F] bg-opacity-10 text-[#FF5A5F] rounded-full text-sm font-bold mr-3'>
+													{index + 1}
+												</span>
+												{q.text}
 											</label>
 
 											{/* Main question image */}
@@ -619,11 +622,11 @@ const TakeSurvey: React.FC = () => {
 													q.descriptionImage
 												)}
 											{q.type === QUESTION_TYPE.SHORT_TEXT ? (
-												<div className='space-y-3'>
+												<div className='space-y-4'>
 													<textarea
-														className='w-full p-3 bg-white rounded-lg border border-gray-200 focus:border-primary-300 focus:ring-2 focus:ring-primary-100 transition-colors'
-														placeholder='Enter your answer here...'
-														rows={4}
+														className='input-field resize-none'
+														placeholder='Share your thoughts here...'
+														rows={5}
 														value={form.answers[q._id] || ''}
 														onChange={e =>
 															handleAnswerChange(
@@ -636,7 +639,7 @@ const TakeSurvey: React.FC = () => {
 													/>
 												</div>
 											) : (
-												<div className='space-y-3'>
+												<div className='space-y-4'>
 													{q.options &&
 														q.options.map((opt, optIndex) => {
 															const optionValue =
@@ -651,58 +654,73 @@ const TakeSurvey: React.FC = () => {
 																typeof opt === 'object'
 																	? opt.imageUrl
 																	: null;
+															const isSelected = form.answers[q._id] === optionValue;
 															return (
 																<label
 																	key={`${q._id}-${optIndex}-${optionText}`}
-																	className='flex items-start p-3 bg-white rounded-lg border border-gray-200 hover:border-primary-300 cursor-pointer transition-colors'
+																	className={`group flex items-start p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-md ${
+																		isSelected
+																			? 'border-[#FF5A5F] bg-[#FFF5F5] shadow-sm'
+																			: 'border-[#EBEBEB] bg-white hover:border-[#FF5A5F] hover:border-opacity-30'
+																	}`}
 																>
-																	<input
-																		type='radio'
-																		name={q._id}
-																		className='mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 mt-1'
-																		value={optionValue}
-																		checked={
-																			form.answers[q._id] ===
-																			optionValue
-																		}
-																		onChange={() =>
-																			handleAnswerChange(
-																				q._id,
-																				optionValue
-																			)
-																		}
-																		required
-																	/>
+																	<div className='flex items-center justify-center relative'>
+																		<input
+																			type='radio'
+																			name={q._id}
+																			className='sr-only'
+																			value={optionValue}
+																			checked={isSelected}
+																			onChange={() =>
+																				handleAnswerChange(
+																					q._id,
+																					optionValue
+																				)
+																			}
+																			required
+																		/>
+																		<div className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center transition-all ${
+																			isSelected
+																				? 'border-[#FF5A5F] bg-[#FF5A5F]'
+																				: 'border-[#DDDDDD] group-hover:border-[#FF5A5F]'
+																		}`}>
+																			{isSelected && (
+																				<div className='w-1.5 h-1.5 rounded-full bg-white'></div>
+																			)}
+																		</div>
+																	</div>
 																	<div className='flex-1'>
 																		{optionText && (
-																			<span className='text-gray-700 block mb-2'>
+																			<span className={`block text-base leading-relaxed font-medium transition-colors ${
+																				isSelected ? 'text-[#484848] font-semibold' : 'text-[#484848] group-hover:text-[#FF5A5F]'
+																			}`}>
 																				{optionText}
 																			</span>
 																		)}
 																		{optionImage && (
-																			<img
-																				src={optionImage}
-																				alt={`Option ${optIndex + 1}`}
-																				className='max-w-full h-auto rounded border border-gray-300'
-																				style={{
-																					maxHeight:
-																						'200px',
-																				}}
-																				onLoad={() => {
-																					console.log(
-																						'Option image loaded successfully:',
-																						optionImage
-																					);
-																				}}
-																				onError={e => {
-																					console.error(
-																						'Option image failed to load:',
-																						optionImage
-																					);
-																					e.currentTarget.style.display =
-																						'none';
-																				}}
-																			/>
+																			<div className='mt-3'>
+																				<img
+																					src={optionImage}
+																					alt={`Option ${optIndex + 1}`}
+																					className='max-w-full h-auto rounded-lg border border-[#EBEBEB] shadow-sm'
+																					style={{
+																						maxHeight: '200px',
+																					}}
+																					onLoad={() => {
+																						console.log(
+																							'Option image loaded successfully:',
+																							optionImage
+																						);
+																					}}
+																					onError={e => {
+																						console.error(
+																							'Option image failed to load:',
+																							optionImage
+																						);
+																						e.currentTarget.style.display = 'none';
+																					}}
+																				/>
+																			</div>
 																		)}
 																	</div>
 																</label>
@@ -727,17 +745,17 @@ const TakeSurvey: React.FC = () => {
 								</div>
 							) : null}
 
-							<div className='flex justify-end pt-6 border-t border-gray-200'>
+							<div className='flex justify-center pt-8 border-t border-[#EBEBEB] mt-8'>
 								<button
-									className='btn-primary btn-large'
+									className='btn-primary px-8 py-3 text-base font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300'
 									type='submit'
 									disabled={loading || !questionsLoaded}
 								>
 									{loading
-										? 'Submitting...'
+										? '✨ Submitting...'
 										: !questionsLoaded
-											? 'Loading Questions...'
-											: 'Submit Survey'}
+											? '🎲 Loading...'
+											: '🚀 Submit Response'}
 								</button>
 							</div>
 						</form>
@@ -745,7 +763,7 @@ const TakeSurvey: React.FC = () => {
 				)}
 
 				{submitted && (
-					<div className='card'>
+					<div className='card shadow-airbnb animate-fade-in'>
 						{TYPES_REQUIRING_ANSWERS.includes(survey?.type || '') &&
 						assessmentResults.length > 0 &&
 						scoringResult ? (
@@ -842,14 +860,20 @@ const TakeSurvey: React.FC = () => {
 									)}
 								</div>
 							) : (
-								<div className='text-center'>
-									<div className='text-green-500 text-6xl mb-4'>✅</div>
-									<h2 className='text-3xl font-bold text-gray-800 mb-4'>
-									Thank You!
+								<div className='text-center py-8'>
+									<div className='text-[#00A699] text-8xl mb-6 animate-bounce'>🎉</div>
+									<h2 className='heading-lg mb-6 gradient-text'>
+										Thank You!
 									</h2>
-									<p className='text-gray-600 text-lg mb-6'>
-									Your survey response has been submitted successfully.
+									<p className='body-lg mb-8 max-w-2xl mx-auto'>
+										Your response has been submitted successfully. We truly appreciate your time and valuable insights!
 									</p>
+									<div className='inline-flex items-center gap-3 bg-[#00A699] bg-opacity-10 text-[#00A699] px-6 py-3 rounded-xl font-medium'>
+										<svg className='w-5 h-5' fill='currentColor' viewBox='0 0 20 20'>
+											<path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' />
+										</svg>
+										Response Recorded Successfully
+									</div>
 								</div>
 							)}
 					</div>
