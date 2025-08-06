@@ -31,11 +31,12 @@ const SurveyCard: React.FC<SurveyCardProps> = ({ survey }) => {
 
 	return (
 		<div className='card hover:shadow-lg transition-shadow'>
-			<div className='flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4'>
-				<div className='flex-1'>
+			<div className='flex justify-between items-start gap-4'>
+				{/* Left side: Survey content */}
+				<div className='flex-1 min-w-0'>
 					<div className='flex flex-wrap items-center gap-2 mb-2'>
 						<h3
-							className='text-base sm:text-lg font-bold text-gray-800 cursor-pointer hover:text-blue-600'
+							className='text-base sm:text-lg font-bold text-gray-800 cursor-pointer hover:text-[#FF5A5F] transition-colors'
 							onClick={() => handleSurveyClick(survey)}
 						>
 							{survey.title}
@@ -76,8 +77,8 @@ const SurveyCard: React.FC<SurveyCardProps> = ({ survey }) => {
 									: 'Closed'}
 						</span>
 					</div>
-					<p className='text-gray-600 mb-2 text-sm sm:text-base'>{survey.description || 'No description'}</p>
-					<div className='flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500'>
+					<p className='text-gray-600 mb-2 text-sm'>{survey.description || 'No description'}</p>
+					<div className='flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-gray-500'>
 						<span>
 							{survey.questions?.length || 0} {t('survey.questions')}
 						</span>
@@ -91,33 +92,38 @@ const SurveyCard: React.FC<SurveyCardProps> = ({ survey }) => {
 								: 'Unknown'}
 						</span>
 						{survey.lastActivity ? (
-							<span className='hidden sm:inline'>
+							<span className='hidden md:inline'>
 								{t('survey.lastActivity')}:{' '}
 								{new Date(survey.lastActivity).toLocaleDateString()}
 							</span>
 						) : (
-							<span className='hidden sm:inline'>{t('survey.noActivity')}</span>
+							<span className='hidden md:inline'>{t('survey.noActivity')}</span>
 						)}
-						{survey.timeLimit && <span>Time limit: {survey.timeLimit} minutes</span>}
+						{survey.timeLimit && <span className='hidden lg:inline'>Time limit: {survey.timeLimit} minutes</span>}
 					</div>
 				</div>
-			</div>
-			<div className='flex flex-wrap gap-2 mt-4'>
-				<button className='btn-primary text-xs sm:text-sm flex-1 sm:flex-none' onClick={() => handleSurveyClick(survey)}>
-					Manage
-				</button>
-				<button
-					className='px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm rounded-lg transition-colors'
-					onClick={() => duplicateSurvey(survey._id)}
-				>
-					{t('buttons.duplicate')}
-				</button>
-				<button
-					className='px-2 sm:px-3 py-1 sm:py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm rounded-lg transition-colors'
-					onClick={() => deleteSurvey(survey._id)}
-				>
-					Delete
-				</button>
+
+				{/* Right side: Action buttons */}
+				<div className='flex flex-col sm:flex-row gap-2 flex-shrink-0'>
+					<button 
+						className='btn-primary btn-small' 
+						onClick={() => handleSurveyClick(survey)}
+					>
+						Manage
+					</button>
+					<button
+						className='btn-outline btn-small'
+						onClick={() => duplicateSurvey(survey._id)}
+					>
+						{t('buttons.duplicate')}
+					</button>
+					<button
+						className='btn-outline btn-small text-red-600 border-red-300 hover:bg-red-50 hover:border-red-500'
+						onClick={() => deleteSurvey(survey._id)}
+					>
+						Delete
+					</button>
+				</div>
 			</div>
 		</div>
 	);

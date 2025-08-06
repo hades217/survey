@@ -21,6 +21,11 @@ body {
 	color: var(--airbnb-hof);
 }
 
+/* Global button cursor rule */
+button {
+	cursor: pointer;
+}
+
 /* Custom styles */
 @layer components {
 	/* Airbnb-style buttons - Properly sized */

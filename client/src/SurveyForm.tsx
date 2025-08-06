@@ -3,11 +3,12 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
+import api from './utils/axiosConfig';
 
 interface Question {
 	id: string;
 	text: string;
+	type: string;
 	options: string[];
 }
 
@@ -19,7 +20,7 @@ interface SurveyFormProps {
 export type SurveyFormValues = {
 	name: string;
 	email: string;
-} & Record<string, string>;
+} & Record<string, string | string[]>;
 
 const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
 	const { t } = useTranslation('survey');
@@ -29,7 +30,11 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
 	const schema = React.useMemo(() => {
 		const questionShape: Record<string, z.ZodTypeAny> = {};
 		for (const q of questions) {
-			questionShape[q.id] = z.string().nonempty(t('form.pleaseSelectOption'));
+			if (q.type === 'multiple_choice') {
+				questionShape[q.id] = z.array(z.string()).min(1, t('form.pleaseSelectOption'));
+			} else {
+				questionShape[q.id] = z.string().nonempty(t('form.pleaseSelectOption'));
+			}
 		}
 		return z
 			.object({
@@ -43,12 +48,29 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
 		register,
 		handleSubmit,
 		formState: { errors },
+		watch,
+		setValue,
+		getValues,
 	} = useForm<SurveyFormValues>({
 		resolver: zodResolver(schema),
 	});
 
+	// Handle multiple choice changes
+	const handleMultipleChoiceChange = (questionId: string, optionValue: string, checked: boolean) => {
+		const currentAnswers = (getValues(questionId) as string[]) || [];
+		let newAnswers: string[];
+
+		if (checked) {
+			newAnswers = [...currentAnswers, optionValue];
+		} else {
+			newAnswers = currentAnswers.filter(answer => answer !== optionValue);
+		}
+
+		setValue(questionId, newAnswers);
+	};
+
 	const onSubmit = async (data: SurveyFormValues) => {
-		await axios.post('/api/submit', data);
+		await api.post('/submit', data);
 	};
 
 	return (
@@ -75,7 +97,8 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
 							rows={4}
 							{...register(q.id)}
 						/>
-					) : (
+					) : q.type === 'single_choice' ? (
+						// Single choice options - radio buttons
 						q.options.map((opt, index) => {
 							const optionValue = typeof opt === 'string' ? opt : opt.text;
 							const optionText = typeof opt === 'string' ? opt : opt.text;
@@ -91,6 +114,30 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
 								</label>
 							);
 						})
+					) : q.type === 'multiple_choice' ? (
+						// Multiple choice options - checkboxes
+						q.options.map((opt, index) => {
+							const optionValue = typeof opt === 'string' ? opt : opt.text;
+							const optionText = typeof opt === 'string' ? opt : opt.text;
+							const currentAnswers = (watch(q.id) as string[]) || [];
+							return (
+								<label key={`${q.id}-${index}`} className='block'>
+									<input
+										type='checkbox'
+										value={optionValue}
+										checked={currentAnswers.includes(optionValue)}
+										onChange={(e) => handleMultipleChoiceChange(q.id, optionValue, e.target.checked)}
+										className='mr-2'
+									/>
+									{optionText}
+								</label>
+							);
+						})
+					) : (
+						// Default case - unsupported question type
+						<div className='text-red-500 p-2 border border-red-300 rounded'>
+							Unsupported question type: {q.type}
+						</div>
 					)}
 					{errors[q.id] && (
 						<p className='text-red-500 text-sm'>{(errors as any)[q.id]?.message}</p>

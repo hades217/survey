@@ -649,6 +649,12 @@ const StudentAssessment = () => {
 							<h3 className='text-xl font-semibold text-gray-800 mb-4'>
 								{currentQuestionIndex + 1}. {currentQuestion.text}
 							</h3>
+							{/* Debug info - remove in production */}
+							{process.env.NODE_ENV === 'development' && (
+								<div className='mb-2 text-xs text-gray-500 bg-gray-100 p-2 rounded'>
+									Debug: Question type = "{currentQuestion.type}"
+								</div>
+							)}
 
 							{/* Main question image */}
 							{currentQuestion.imageUrl && (
@@ -784,7 +790,7 @@ const StudentAssessment = () => {
 											</label>
 										);
 									})
-								) : (
+								) : currentQuestion.type === 'multiple_choice' ? (
 									// Multiple choice options
 									currentQuestion.options.map((option, index) => {
 										const optionValue =
@@ -845,6 +851,11 @@ const StudentAssessment = () => {
 											</label>
 										);
 									})
+								) : (
+									// Default case - treat as single choice
+									<div className='text-red-500 p-3 border border-red-300 rounded-lg'>
+										<span>Unsupported question type: {currentQuestion.type}</span>
+									</div>
 								)}
 							</div>
 						</div>
