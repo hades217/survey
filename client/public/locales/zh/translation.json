@@ -50,5 +50,172 @@
 		"records": "条记录",
 		"showingPage": "显示第",
 		"total": "总计"
+	},
+	"landing": {
+		"hero": {
+			"title": "创建更智能的调研与测评",
+			"subtitle": "使用我们直观的平台构建专业的调研、测评和测试。通过高级分析和报告获得有价值的洞察。",
+			"startFreeTrial": "免费试用",
+			"seeLiveDemo": "查看演示"
+		},
+		"features": {
+			"title": "现代化测评的强大功能",
+			"feature1": {
+				"title": "智能问卷构建器",
+				"description": "使用我们直观的拖拽构建器创建专业问卷。多种题型、逻辑分支和实时预览。"
+			},
+			"feature2": {
+				"title": "高级数据分析",
+				"description": "通过全面的分析、数据可视化和自动报告功能获得深入洞察。"
+			},
+			"feature3": {
+				"title": "团队协作",
+				"description": "通过团队分享、实时协作和权限管理实现无缝协作。"
+			},
+			"feature4": {
+				"title": "自定义品牌",
+				"description": "使用自定义徽标、颜色和主题为您的问卷添加品牌元素，匹配您组织的身份。"
+			},
+			"feature5": {
+				"title": "多平台访问",
+				"description": "响应式设计让您随时随地访问问卷，在桌面、平板和手机上都有完美体验。"
+			},
+			"feature6": {
+				"title": "数据安全",
+				"description": "企业级安全保障，包括数据加密、GDPR合规和安全数据存储。"
+			}
+		},
+		"useCases": {
+			"title": "适用于各行各业",
+			"education": {
+				"title": "教育行业",
+				"description": "创建测验、考试和课程评估"
+			},
+			"healthcare": {
+				"title": "医疗保健",
+				"description": "患者满意度和医疗评估"
+			},
+			"business": {
+				"title": "商业企业",
+				"description": "员工反馈和市场调研"
+			},
+			"nonprofit": {
+				"title": "非营利组织",
+				"description": "志愿者协调和影响力测量"
+			},
+			"training": {
+				"title": "培训教育",
+				"description": "技能评估和认证项目"
+			},
+			"hrTeams": {
+				"title": "人力资源团队",
+				"description": "员工满意度调研和绩效评估"
+			},
+			"startups": {
+				"title": "初创企业",
+				"description": "产品市场匹配度和客户验证调研"
+			},
+			"universities": {
+				"title": "高等院校",
+				"description": "学生反馈和学术研究调研"
+			},
+			"international": {
+				"title": "国际组织",
+				"description": "面向全球组织的多语言调研"
+			}
+		},
+		"pricing": {
+			"title": "选择您的方案",
+			"free": {
+				"title": "免费版",
+				"price": "¥0",
+				"period": "每月",
+				"description": "适合入门使用",
+				"features": [
+					"每月最多100个响应",
+					"基础问卷模板",
+					"邮件支持",
+					"标准分析",
+					"链接分享问卷",
+					"基础定制"
+				],
+				"button": "免费开始"
+			},
+			"professional": {
+				"title": "专业版",
+				"price": "¥199",
+				"period": "每月",
+				"description": "适合成长中的团队",
+				"features": [
+					"每月最多1,000个响应",
+					"高级模板",
+					"优先邮件支持",
+					"高级分析和报告",
+					"自定义品牌",
+					"团队协作",
+					"数据导出 (CSV, Excel)",
+					"API访问"
+				],
+				"button": "开始专业版",
+				"popular": "最受欢迎"
+			},
+			"business": {
+				"title": "企业版",
+				"price": "¥699",
+				"period": "每月",
+				"description": "适合大型组织",
+				"features": [
+					"无限响应",
+					"所有高级模板",
+					"24/7电话和邮件支持",
+					"企业级分析",
+					"白标解决方案",
+					"高级团队管理",
+					"高级集成",
+					"定制开发",
+					"SLA保证",
+					"专属客户经理"
+				],
+				"button": "联系销售"
+			}
+		},
+		"testimonials": {
+			"title": "客户评价",
+			"testimonial1": {
+				"quote": "SigmaQ改变了我们收集反馈的方式。分析功能令人惊叹，平台使用起来非常简单。",
+				"content": "SigmaQ改变了我们收集反馈的方式。分析功能令人惊叹，平台使用起来非常简单。",
+				"author": "Sarah Johnson",
+				"role": "市场总监",
+				"company": "科技公司"
+			},
+			"testimonial2": {
+				"quote": "自从转换到SigmaQ后，我们的回应率提高了40%。移动端体验非常棒。",
+				"content": "自从转换到SigmaQ后，我们的回应率提高了40%。移动端体验非常棒。",
+				"author": "Michael Chen",
+				"role": "人力资源经理",
+				"company": "创新实验室"
+			},
+			"testimonial3": {
+				"quote": "自定义品牌功能帮助我们在收集有价值客户洞察的同时保持品牌身份。",
+				"content": "自定义品牌功能帮助我们在收集有价值客户洞察的同时保持品牌身份。",
+				"author": "Zoe",
+				"role": "产品经理",
+				"company": "初创企业"
+			}
+		},
+		"cta": {
+			"title": "准备开始了吗？",
+			"subtitle": "加入数千家组织，创建更好的测评",
+			"button": "开始免费试用",
+			"contactSales": "联系销售"
+		},
+		"footer": {
+			"features": "功能特性",
+			"pricing": "价格方案",
+			"helpCenter": "帮助中心",
+			"privacy": "隐私政策",
+			"terms": "服务条款",
+			"copyright": "© 2025 SigmaQ. 保留所有权利。"
+		}
 	}
 }

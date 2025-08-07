@@ -50,5 +50,172 @@
 		"records": "records",
 		"showingPage": "showing page",
 		"total": "Total"
+	},
+	"landing": {
+		"hero": {
+			"title": "Create Smarter Surveys & Assessments",
+			"subtitle": "Build professional surveys, assessments, and quizzes with our intuitive platform. Get insights that matter with advanced analytics and reporting.",
+			"startFreeTrial": "Start Free Trial",
+			"seeLiveDemo": "See Live Demo"
+		},
+		"features": {
+			"title": "Powerful Features for Modern Assessment",
+			"feature1": {
+				"title": "Smart Survey Builder",
+				"description": "Create professional surveys with our intuitive drag-and-drop builder. Multiple question types, logic branching, and real-time preview."
+			},
+			"feature2": {
+				"title": "Advanced Analytics",
+				"description": "Get deep insights with comprehensive analytics, data visualization, and automated reporting features."
+			},
+			"feature3": {
+				"title": "Team Collaboration",
+				"description": "Work together seamlessly with team sharing, real-time collaboration, and permission management."
+			},
+			"feature4": {
+				"title": "Custom Branding",
+				"description": "Brand your surveys with custom logos, colors, and themes to match your organization's identity."
+			},
+			"feature5": {
+				"title": "Multi-Platform Access",
+				"description": "Access your surveys anywhere with responsive design that works perfectly on desktop, tablet, and mobile."
+			},
+			"feature6": {
+				"title": "Data Security",
+				"description": "Enterprise-grade security with data encryption, GDPR compliance, and secure data storage."
+			}
+		},
+		"useCases": {
+			"title": "Perfect for Every Industry",
+			"education": {
+				"title": "Education",
+				"description": "Create quizzes, exams, and course evaluations"
+			},
+			"healthcare": {
+				"title": "Healthcare",
+				"description": "Patient satisfaction and medical assessments"
+			},
+			"business": {
+				"title": "Business",
+				"description": "Employee feedback and market research"
+			},
+			"nonprofit": {
+				"title": "Non-Profit",
+				"description": "Volunteer coordination and impact measurement"
+			},
+			"training": {
+				"title": "Training",
+				"description": "Skills assessments and certification programs"
+			},
+			"hrTeams": {
+				"title": "HR Teams",
+				"description": "Employee satisfaction surveys and performance evaluations"
+			},
+			"startups": {
+				"title": "Startups",
+				"description": "Product-market fit and customer validation surveys"
+			},
+			"universities": {
+				"title": "Universities",
+				"description": "Student feedback and academic research surveys"
+			},
+			"international": {
+				"title": "International",
+				"description": "Multi-language surveys for global organizations"
+			}
+		},
+		"pricing": {
+			"title": "Choose Your Plan",
+			"free": {
+				"title": "Free",
+				"price": "$0",
+				"period": "per month",
+				"description": "Perfect for getting started",
+				"features": [
+					"Up to 100 responses per month",
+					"Basic survey templates",
+					"Email support",
+					"Standard analytics",
+					"Survey sharing via link",
+					"Basic customization"
+				],
+				"button": "Get Started Free"
+			},
+			"professional": {
+				"title": "Professional",
+				"price": "$29",
+				"period": "per month",
+				"description": "Best for growing teams",
+				"features": [
+					"Up to 1,000 responses per month",
+					"Advanced templates",
+					"Priority email support",
+					"Advanced analytics & reporting",
+					"Custom branding",
+					"Team collaboration",
+					"Data export (CSV, Excel)",
+					"API access"
+				],
+				"button": "Start Professional",
+				"popular": "Most Popular"
+			},
+			"business": {
+				"title": "Business",
+				"price": "$99",
+				"period": "per month",
+				"description": "For large organizations",
+				"features": [
+					"Unlimited responses",
+					"All premium templates",
+					"24/7 phone & email support",
+					"Enterprise analytics",
+					"White-label solution",
+					"Advanced team management",
+					"Advanced integrations",
+					"Custom development",
+					"SLA guarantee",
+					"Dedicated account manager"
+				],
+				"button": "Contact Sales"
+			}
+		},
+		"testimonials": {
+			"title": "What Our Customers Say",
+			"testimonial1": {
+				"quote": "SigmaQ has transformed how we collect feedback. The analytics are incredible and the platform is so easy to use.",
+				"content": "SigmaQ has transformed how we collect feedback. The analytics are incredible and the platform is so easy to use.",
+				"author": "Sarah Johnson",
+				"role": "Marketing Director",
+				"company": "TechCorp"
+			},
+			"testimonial2": {
+				"quote": "We've increased our response rates by 40% since switching to SigmaQ. The mobile experience is fantastic.",
+				"content": "We've increased our response rates by 40% since switching to SigmaQ. The mobile experience is fantastic.",
+				"author": "Michael Chen",
+				"role": "HR Manager",
+				"company": "InnovateLab"
+			},
+			"testimonial3": {
+				"quote": "The custom branding features helped us maintain our brand identity while collecting valuable customer insights.",
+				"content": "The custom branding features helped us maintain our brand identity while collecting valuable customer insights.",
+				"author": "Emily Rodriguez",
+				"role": "Product Manager",
+				"company": "StartupXYZ"
+			}
+		},
+		"cta": {
+			"title": "Ready to Get Started?",
+			"subtitle": "Join thousands of organizations creating better assessments",
+			"button": "Start Your Free Trial",
+			"contactSales": "Contact Sales"
+		},
+		"footer": {
+			"features": "Features",
+			"pricing": "Pricing",
+			"helpCenter": "Help Center",
+			"privacy": "Privacy Policy",
+			"terms": "Terms of Service",
+			"copyright": "© 2025 SigmaQ. All rights reserved."
+		}
 	}
 }
