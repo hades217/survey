@@ -1077,6 +1077,44 @@ router.delete(
 	})
 );
 
+// Update question order for manual surveys
+router.patch(
+	'/surveys/:id/questions/reorder',
+	jwtAuth,
+	asyncHandler(async (req, res) => {
+		const { id } = req.params;
+		const { questions } = req.body;
+
+		if (!Array.isArray(questions)) {
+			throw new AppError('Questions must be an array', HTTP_STATUS.BAD_REQUEST);
+		}
+
+		const survey = await Survey.findOne({ _id: id, createdBy: req.user.id });
+		if (!survey) {
+			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+		}
+
+		// Only allow reordering for manual surveys
+		if (survey.sourceType !== 'manual') {
+			throw new AppError('Question reordering is only allowed for manual surveys', HTTP_STATUS.BAD_REQUEST);
+		}
+
+		// Validate that the number of questions matches
+		if (questions.length !== survey.questions.length) {
+			throw new AppError('Number of questions does not match', HTTP_STATUS.BAD_REQUEST);
+		}
+
+		// Update the questions array with the new order
+		survey.questions = questions;
+		await survey.save();
+
+		res.json({
+			message: 'Question order updated successfully',
+			questions: survey.questions
+		});
+	})
+);
+
 // Update scoring settings for a survey
 router.put(
 	'/surveys/:id/scoring',

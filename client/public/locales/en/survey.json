@@ -56,5 +56,37 @@
 			"enterName": "Please enter your name",
 			"enterEmail": "Please enter your email"
 		}
+	},
+	"questions": {
+		"title": "Questions",
+		"add": "Add Question",
+		"edit": "Edit",
+		"delete": "Delete",
+		"moveUp": "Move up",
+		"moveDown": "Move down",
+		"hasImage": "Has Image",
+		"points": "pts",
+		"options": "Options",
+		"expectedAnswer": "Expected Answer",
+		"dragInstructions": "Tip: Drag questions by the handle (⋮⋮) to reorder them. Changes are saved automatically.",
+		"mobileInstructions": "Use the up/down arrow buttons to reorder questions on mobile devices.",
+		"autoSaving": "Saving order...",
+		"reorderError": "Failed to reorder questions. Please try again.",
+		"empty": {
+			"title": "No questions yet",
+			"description": "Add your first question to get started"
+		},
+		"type": {
+			"multipleChoice": "Multiple Choice",
+			"singleChoice": "Single Choice",
+			"shortText": "Short Text",
+			"textResponse": "Type: Text Response"
+		}
+	},
+	"dragHandle": {
+		"tooltip": "Drag to reorder"
+	},
+	"common": {
+		"loading": "Loading..."
 	}
 }

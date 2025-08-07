@@ -8,6 +8,7 @@ import QRCodeComponent from '../QRCode';
 import AddSurveyQuestionModal from '../modals/AddSurveyQuestionModal';
 import EditSurveyQuestionModal from '../modals/EditSurveyQuestionModal';
 import InviteAssessmentModal from '../modals/InviteAssessmentModal';
+import DroppableQuestionList from './DroppableQuestionList';
 import { StatisticsFilter } from './StatisticsFilter';
 import api from '../../utils/axiosConfig';
 import {
@@ -672,6 +673,26 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		}
 	};
 
+	// Handle question reordering
+	const handleQuestionsReorder = async (surveyId: string, newQuestions: Question[]) => {
+		try {
+			setLoading(true);
+			
+			// Update backend
+			await api.patch(`/admin/surveys/${surveyId}/questions/reorder`, {
+				questions: newQuestions
+			});
+
+			// The survey data will be updated by the parent component's refresh
+			// No need to manually update state here since useSurveys hook will handle it
+		} catch (err) {
+			console.error('Failed to reorder questions:', err);
+			setError(t('survey.questions.reorderError', 'Failed to reorder questions. Please try again.'));
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	return (
 		<>
 			<div className='space-y-4'>
@@ -1060,175 +1081,17 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 
 							{/* Question Management */}
 							{s.sourceType === SOURCE_TYPE.MANUAL ? (
-								// Manual Question Management
-								<div className='mb-4'>
-									<div className='flex justify-between items-center mb-3'>
-										<h4 className='font-semibold text-gray-800'>
-											Questions ({s.questions?.length || 0})
-										</h4>
-										<button
-											className='btn-primary text-sm'
-											onClick={() => setShowAddQuestionModal(true)}
-											type='button'
-										>
-											+ Add Question
-										</button>
-									</div>
-									{s.questions && s.questions.length > 0 ? (
-										<div className='space-y-2'>
-											{s.questions.map((q, idx) => (
-												<div
-													key={idx}
-													className='bg-gray-50 rounded-lg p-3'
-												>
-													{/* Display mode */}
-													<div>
-														<div className='flex justify-between items-start mb-1'>
-															<div className='flex-1'>
-																<div className='flex items-center gap-2 mb-1'>
-																	<span className='font-medium text-gray-800'>
-																		{idx + 1}. {q.text}
-																	</span>
-																	<span
-																		className={`text-xs px-2 py-1 rounded ${
-																			q.type ===
-																			QUESTION_TYPE.MULTIPLE_CHOICE
-																				? 'bg-purple-100 text-purple-800'
-																				: q.type ===
-																					  QUESTION_TYPE.SINGLE_CHOICE
-																					? 'bg-green-100 text-green-800'
-																					: q.type ===
-																						  QUESTION_TYPE.SHORT_TEXT
-																						? 'bg-orange-100 text-orange-800'
-																						: 'bg-gray-100 text-gray-800'
-																		}`}
-																	>
-																		{q.type ===
-																		QUESTION_TYPE.MULTIPLE_CHOICE
-																			? 'Multiple Choice'
-																			: q.type ===
-																				  QUESTION_TYPE.SINGLE_CHOICE
-																				? 'Single Choice'
-																				: q.type ===
-																					  QUESTION_TYPE.SHORT_TEXT
-																					? 'Short Text'
-																					: q.type ||
-																						'Single Choice'}
-																	</span>
-																	{q.imageUrl && (
-																		<span className='text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded'>
-																			📷 Has Image
-																		</span>
-																	)}
-																	{TYPES_REQUIRING_ANSWERS.includes(
-																		s.type
-																	) && (
-																		<div className='text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded'>
-																			{q.points || 1} pts
-																		</div>
-																	)}
-																</div>
-															</div>
-															<div className='flex items-center gap-2'>
-																<button
-																	className='btn-secondary text-sm px-3 py-1'
-																	onClick={() =>
-																		startEditQuestion(
-																			s._id,
-																			idx
-																		)
-																	}
-																>
-																	Edit
-																</button>
-																<button
-																	className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
-																	onClick={() =>
-																		deleteQuestion(s._id, idx)
-																	}
-																>
-																	Delete
-																</button>
-															</div>
-														</div>
-														{q.type === QUESTION_TYPE.SHORT_TEXT ? (
-															<div className='text-sm text-gray-600 mb-1'>
-																<div className='font-medium'>
-																	Type: Text Response
-																</div>
-																{TYPES_REQUIRING_ANSWERS.includes(
-																	s.type as any
-																) &&
-																	q.correctAnswer &&
-																	typeof q.correctAnswer ===
-																		'string' && (
-																	<div className='text-xs text-green-600 font-medium mt-1'>
-																			✓ Expected Answer:{' '}
-																		{q.correctAnswer}
-																	</div>
-																)}
-															</div>
-														) : (
-															<>
-																<div className='text-sm text-gray-600 mb-1'>
-																	Options:{' '}
-																	{q.options &&
-																		q.options.map(
-																			(opt, optIdx) => {
-																				const isCorrect =
-																					Array.isArray(
-																						q.correctAnswer
-																					)
-																						? q.correctAnswer.includes(
-																							optIdx
-																						)
-																						: q.correctAnswer ===
-																							optIdx;
-																				return (
-																					<span
-																						key={optIdx}
-																						className={`${TYPES_REQUIRING_ANSWERS.includes(s.type as any) && isCorrect ? 'font-semibold text-green-600' : ''}`}
-																					>
-																						{typeof opt ===
-																						'string'
-																							? opt
-																							: opt.text}
-																						{optIdx <
-																						(q.options
-																							?.length ||
-																							0) -
-																							1
-																							? ', '
-																							: ''}
-																					</span>
-																				);
-																			}
-																		)}
-																</div>
-																{TYPES_REQUIRING_ANSWERS.includes(
-																	s.type
-																) &&
-																	q.correctAnswer !== undefined &&
-																	q.type &&
-																	q.type !==
-																		QUESTION_TYPE.SHORT_TEXT && (
-																	<div className='text-xs text-green-600 font-medium'>
-																			✓ Correct Answer
-																			Selected
-																	</div>
-																)}
-															</>
-														)}
-													</div>
-												</div>
-											))}
-										</div>
-									) : (
-										<div className='text-gray-500 text-sm p-4 border-2 border-dashed border-gray-300 rounded-lg text-center'>
-											No questions added yet. Click "Add Question" to start.
-										</div>
-									)}
-								</div>
+								// Manual Question Management with Drag & Drop
+								<DroppableQuestionList
+									questions={s.questions || []}
+									surveyId={s._id}
+									surveyType={s.type}
+									onQuestionsReorder={(newQuestions) => handleQuestionsReorder(s._id, newQuestions)}
+									onEditQuestion={(index) => startEditQuestion(s._id, index)}
+									onDeleteQuestion={(index) => deleteQuestion(s._id, index)}
+									onAddQuestion={() => setShowAddQuestionModal(true)}
+									loading={loading}
+								/>
 							) : s.sourceType === SOURCE_TYPE.QUESTION_BANK ? (
 								// Single Question Bank Survey Information
 								<div className='mb-4'>

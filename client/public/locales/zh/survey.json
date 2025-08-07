@@ -56,5 +56,37 @@
 			"enterName": "请输入您的姓名",
 			"enterEmail": "请输入您的邮箱"
 		}
+	},
+	"questions": {
+		"title": "题目",
+		"add": "添加题目",
+		"edit": "编辑",
+		"delete": "删除",
+		"moveUp": "上移",
+		"moveDown": "下移",
+		"hasImage": "有图片",
+		"points": "分",
+		"options": "选项",
+		"expectedAnswer": "预期答案",
+		"dragInstructions": "提示：拖拽题目前的手柄（⋮⋮）来重新排序，修改会自动保存。",
+		"mobileInstructions": "在移动设备上使用上下箭头按钮来重新排序题目。",
+		"autoSaving": "正在保存排序...",
+		"reorderError": "重新排序失败，请重试。",
+		"empty": {
+			"title": "暂无题目",
+			"description": "添加您的第一个题目开始吧"
+		},
+		"type": {
+			"multipleChoice": "多选题",
+			"singleChoice": "单选题",
+			"shortText": "简答题",
+			"textResponse": "类型：文本回答"
+		}
+	},
+	"dragHandle": {
+		"tooltip": "拖拽重新排序"
+	},
+	"common": {
+		"loading": "加载中..."
 	}
 }
