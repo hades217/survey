@@ -525,17 +525,22 @@ const CreateSurveyModal: React.FC = () => {
 							</div>
 
 							<div className='space-y-3'>
-								<label className='flex items-center'>
-									<input
-										type='checkbox'
-										checked={newSurvey.scoringSettings?.showScore ?? true}
-										onChange={e =>
-											handleScoringChange('showScore', e.target.checked)
-										}
-										className='mr-2'
-									/>
-									{t('createModal.scoringSettings.showScore')}
-								</label>
+								<div className='space-y-1'>
+									<label className='flex items-center'>
+										<input
+											type='checkbox'
+											checked={newSurvey.scoringSettings?.showScore ?? true}
+											onChange={e =>
+												handleScoringChange('showScore', e.target.checked)
+											}
+											className='mr-2'
+										/>
+										{t('createModal.scoringSettings.showScore')}
+									</label>
+									<p className='text-xs text-gray-500 ml-6'>
+										{t('createModal.scoringSettings.showScoreHelp', 'When enabled, students will see their final score after completing the assessment. When disabled, they will only see a completion message.')}
+									</p>
+								</div>
 
 								<label className='flex items-center'>
 									<input

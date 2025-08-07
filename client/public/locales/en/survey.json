@@ -107,5 +107,12 @@
 		"optionImage": "Option {{number}}",
 		"answerRequired": "Please provide an answer to continue.",
 		"keyboardHint": "Tip: Press Enter to proceed to the next question"
+	},
+	"assessment": {
+		"completed": {
+			"title": "Assessment Completed!",
+			"message": "Thank you for completing the assessment. Your responses have been submitted successfully.",
+			"success": "Submission Successful"
+		}
 	}
 }

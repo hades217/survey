@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { useAntiCheating } from './hooks/useAntiCheating';
 import { useSimpleAntiCheating } from './hooks/useSimpleAntiCheating';
@@ -65,6 +66,7 @@ interface ScoringResult {
 }
 
 const TakeSurvey: React.FC = () => {
+	const { t } = useTranslation();
 	const { slug } = useParams<{ slug: string }>();
 	const navigate = useNavigate();
 	const [surveys, setSurveys] = useState<Survey[]>([]);
@@ -784,7 +786,8 @@ const TakeSurvey: React.FC = () => {
 					<div className='card shadow-airbnb animate-fade-in'>
 						{TYPES_REQUIRING_ANSWERS.includes(survey?.type || '') &&
 						assessmentResults.length > 0 &&
-						scoringResult ? (
+						scoringResult &&
+						survey?.scoringSettings?.showScore !== false ? (
 								<div>
 									<div className='text-center mb-6'>
 										<div
@@ -876,6 +879,26 @@ const TakeSurvey: React.FC = () => {
 											))}
 										</div>
 									)}
+								</div>
+							) : TYPES_REQUIRING_ANSWERS.includes(survey?.type || '') &&
+								assessmentResults.length > 0 &&
+								scoringResult &&
+								survey?.scoringSettings?.showScore === false ? (
+								// Assessment completed but scores are hidden
+								<div className='text-center py-8'>
+									<div className='text-[#00A699] text-8xl mb-6 animate-bounce'>🎉</div>
+									<h2 className='heading-lg mb-6 gradient-text'>
+										{t('survey.assessment.completed.title', 'Assessment Completed!')}
+									</h2>
+									<p className='body-lg mb-8 max-w-2xl mx-auto'>
+										{t('survey.assessment.completed.message', 'Thank you for completing the assessment. Your responses have been submitted successfully.')}
+									</p>
+									<div className='inline-flex items-center gap-3 bg-[#00A699] bg-opacity-10 text-[#00A699] px-6 py-3 rounded-xl font-medium'>
+										<svg className='w-5 h-5' fill='currentColor' viewBox='0 0 20 20'>
+											<path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clipRule='evenodd' />
+										</svg>
+										{t('survey.assessment.completed.success', 'Submission Successful')}
+									</div>
 								</div>
 							) : (
 								<div className='text-center py-8'>
