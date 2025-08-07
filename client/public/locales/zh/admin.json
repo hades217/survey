@@ -92,6 +92,7 @@
       "stepByStep": "逐步模式",
       "paginated": "分页模式",
       "allInOne": "一页模式",
+      "oneQuestionPerPage": "单题页面模式（类似 Typeform）",
       "instructions": "说明",
       "instructionsPlaceholder": "为测试者提供特别说明"
     },

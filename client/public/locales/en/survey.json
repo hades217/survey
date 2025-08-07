@@ -88,5 +88,24 @@
 	},
 	"common": {
 		"loading": "Loading..."
+	},
+	"navigation": {
+		"previous": "Previous",
+		"next": "Next",
+		"submit": "Submit Survey",
+		"submitting": "Submitting...",
+		"progress": "Question {{current}} of {{total}}"
+	},
+	"oneQuestionPerPage": {
+		"noQuestions": "No questions available",
+		"noQuestionsDescription": "Please check back later.",
+		"questionTitle": "Question {{number}}",
+		"progressText": "{{current}} of {{total}} questions",
+		"questionImage": "Question image",
+		"descriptionImage": "Question illustration",
+		"textPlaceholder": "Share your thoughts here...",
+		"optionImage": "Option {{number}}",
+		"answerRequired": "Please provide an answer to continue.",
+		"keyboardHint": "Tip: Press Enter to proceed to the next question"
 	}
 }

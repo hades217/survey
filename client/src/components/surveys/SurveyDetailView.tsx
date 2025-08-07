@@ -831,7 +831,10 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 														: s.navigationMode ===
 															  NAVIGATION_MODE.ALL_IN_ONE
 															? 'All-in-one'
-															: 'Step-by-step'}
+															: s.navigationMode ===
+																  NAVIGATION_MODE.ONE_QUESTION_PER_PAGE
+																? 'One Question Per Page'
+																: 'Step-by-step'}
 												</span>
 											</div>
 										)}

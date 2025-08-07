@@ -503,16 +503,18 @@ const EditSurveyModal: React.FC = () => {
 										navigationMode: e.target.value as
 											| 'step-by-step'
 											| 'paginated'
-											| 'all-in-one',
+											| 'all-in-one'
+											| 'one-question-per-page',
 									})
 								}
 							>
 								<option value='step-by-step'>Step-by-step (Recommended)</option>
 								<option value='paginated'>Paginated</option>
 								<option value='all-in-one'>All-in-one</option>
+								<option value='one-question-per-page'>One Question Per Page (Typeform-like)</option>
 							</select>
 							<div className='text-xs text-gray-500 mt-1'>
-								Step-by-step: Display one question at a time for best experience
+								Choose how questions are displayed to users: Step-by-step (classic), One Question Per Page (Typeform-like with progress bar), Paginated, or All-in-one
 							</div>
 						</div>
 

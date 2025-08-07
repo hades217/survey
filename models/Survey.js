@@ -40,7 +40,7 @@ const surveySchema = new mongoose.Schema({
 	// Navigation mode for questions
 	navigationMode: {
 		type: String,
-		enum: ['step-by-step', 'paginated', 'all-in-one'],
+		enum: ['step-by-step', 'paginated', 'all-in-one', 'one-question-per-page'],
 		default: 'step-by-step',
 	},
 	// Question source configuration

@@ -5,12 +5,14 @@ import { useAntiCheating } from './hooks/useAntiCheating';
 import { useSimpleAntiCheating } from './hooks/useSimpleAntiCheating';
 import { useAggressiveAntiCheating } from './hooks/useAggressiveAntiCheating';
 import { useWorkingAntiCheating } from './hooks/useWorkingAntiCheating';
+import OneQuestionPerPageView from './components/survey/OneQuestionPerPageView';
 import './styles/antiCheating.css';
 import type { SurveyResponse } from '../../shared/surveyResponse';
 import {
 	QUESTION_TYPE,
 	SOURCE_TYPE,
 	TYPES_REQUIRING_ANSWERS,
+	NAVIGATION_MODE,
 	type QuestionType,
 	type SourceType,
 	type SurveyType,
@@ -540,18 +542,30 @@ const TakeSurvey: React.FC = () => {
 							</div>
 
 							{questionsLoaded ? (
-								<div className='space-y-8'>
-									<div className='flex items-center justify-between border-b border-[#EBEBEB] pb-4'>
-										<h3 className='heading-sm'>
-											📝 Survey Questions
-										</h3>
-										{survey.sourceType === 'question_bank' && (
-											<div className='text-sm text-[#FC642D] bg-[#FC642D] bg-opacity-10 px-4 py-2 rounded-xl font-medium'>
-												🎲 Randomized Questions
-											</div>
-										)}
-									</div>
-									{questions.map((q, index) => (
+								// Conditional rendering based on navigation mode
+								survey.navigationMode === NAVIGATION_MODE.ONE_QUESTION_PER_PAGE ? (
+									<OneQuestionPerPageView
+										questions={questions}
+										answers={form.answers}
+										onAnswerChange={handleAnswerChange}
+										onSubmit={handleSubmit}
+										loading={loading}
+										antiCheatEnabled={antiCheatEnabled && isAssessmentType}
+										getInputProps={getInputProps}
+									/>
+								) : (
+									<div className='space-y-8'>
+										<div className='flex items-center justify-between border-b border-[#EBEBEB] pb-4'>
+											<h3 className='heading-sm'>
+												📝 Survey Questions
+											</h3>
+											{survey.sourceType === 'question_bank' && (
+												<div className='text-sm text-[#FC642D] bg-[#FC642D] bg-opacity-10 px-4 py-2 rounded-xl font-medium'>
+													🎲 Randomized Questions
+												</div>
+											)}
+										</div>
+										{questions.map((q, index) => (
 										<div
 											key={q._id}
 											className={`bg-white rounded-2xl p-8 border border-[#EBEBEB] shadow-sm hover:shadow-md transition-shadow ${antiCheatEnabled && isAssessmentType ? 'anti-cheat-container' : ''}`}
@@ -730,7 +744,8 @@ const TakeSurvey: React.FC = () => {
 											)}
 										</div>
 									))}
-								</div>
+									</div>
+								)
 							) : survey?.sourceType === SOURCE_TYPE.QUESTION_BANK ? (
 								<div className='text-center py-8'>
 									<div className='text-purple-500 text-6xl mb-4'>🎲</div>
@@ -745,19 +760,22 @@ const TakeSurvey: React.FC = () => {
 								</div>
 							) : null}
 
-							<div className='flex justify-center pt-8 border-t border-[#EBEBEB] mt-8'>
-								<button
-									className='btn-primary px-8 py-3 text-base font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300'
-									type='submit'
-									disabled={loading || !questionsLoaded}
-								>
-									{loading
-										? '✨ Submitting...'
-										: !questionsLoaded
-											? '🎲 Loading...'
-											: '🚀 Submit Response'}
-								</button>
-							</div>
+							{/* Submit button - only show for non-one-question-per-page modes */}
+							{survey?.navigationMode !== NAVIGATION_MODE.ONE_QUESTION_PER_PAGE && (
+								<div className='flex justify-center pt-8 border-t border-[#EBEBEB] mt-8'>
+									<button
+										className='btn-primary px-8 py-3 text-base font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300'
+										type='submit'
+										disabled={loading || !questionsLoaded}
+									>
+										{loading
+											? '✨ Submitting...'
+											: !questionsLoaded
+												? '🎲 Loading...'
+												: '🚀 Submit Response'}
+									</button>
+								</div>
+							)}
 						</form>
 					</div>
 				)}

@@ -454,6 +454,7 @@ const CreateSurveyModal: React.FC = () => {
 									<option value='step-by-step'>{t('createModal.assessmentConfig.stepByStep')}</option>
 									<option value='paginated'>{t('createModal.assessmentConfig.paginated')}</option>
 									<option value='all-in-one'>{t('createModal.assessmentConfig.allInOne')}</option>
+									<option value='one-question-per-page'>{t('createModal.assessmentConfig.oneQuestionPerPage')}</option>
 								</select>
 							</div>
 

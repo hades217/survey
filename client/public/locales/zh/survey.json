@@ -88,5 +88,24 @@
 	},
 	"common": {
 		"loading": "加载中..."
+	},
+	"navigation": {
+		"previous": "上一题",
+		"next": "下一题",
+		"submit": "提交问卷",
+		"submitting": "提交中...",
+		"progress": "第 {{current}} 题，共 {{total}} 题"
+	},
+	"oneQuestionPerPage": {
+		"noQuestions": "暂无题目",
+		"noQuestionsDescription": "请稍后再试。",
+		"questionTitle": "第 {{number}} 题",
+		"progressText": "第 {{current}} 题，共 {{total}} 题",
+		"questionImage": "题目图片",
+		"descriptionImage": "题目说明图",
+		"textPlaceholder": "请在此分享您的想法...",
+		"optionImage": "选项 {{number}}",
+		"answerRequired": "请提供答案以继续。",
+		"keyboardHint": "提示：按 Enter 键进入下一题"
 	}
 }

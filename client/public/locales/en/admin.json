@@ -92,6 +92,7 @@
 			"stepByStep": "Step by Step",
 			"paginated": "Paginated", 
 			"allInOne": "All in One",
+			"oneQuestionPerPage": "One Question Per Page (Typeform-like)",
 			"instructions": "Instructions",
 			"instructionsPlaceholder": "Special instructions for test takers"
 		},
