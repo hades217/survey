@@ -33,7 +33,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
 		<div className='min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4'>
 			<div className='max-w-md w-full space-y-8'>
 				<div>
-					<h2 className='mt-6 text-center text-3xl font-bold text-gray-900'>
+					<div className='flex justify-center mb-6'>
+						<img src='/SigmaQ-logo.svg' alt='SigmaQ' className='h-12' />
+					</div>
+					<h2 className='text-center text-3xl font-bold text-gray-900'>
 						Register Admin Account
 					</h2>
 					<p className='mt-2 text-center text-sm text-gray-600'>
