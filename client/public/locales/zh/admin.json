@@ -98,14 +98,6 @@
     },
     "scoringSettings": {
       "title": "评分设置",
-      "showScore": "向参与者显示分数",
-      "showScoreHelp": "启用时，学生完成测评后将看到最终分数。禁用时，他们只会看到完成消息。",
-      "showCorrectAnswers": "完成后显示正确答案",
-      "showScoreBreakdown": "显示分数明细"
-    }
-  },
-  "scoringSettings": {
-      "title": "评分设置",
       "scoringMode": "评分模式",
       "percentage": "百分比",
       "accumulated": "累计分数",

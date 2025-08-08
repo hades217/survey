@@ -260,33 +260,54 @@ const StudentAssessment = () => {
 			const timeSpent = startTime
 				? Math.round((new Date().getTime() - startTime.getTime()) / 1000)
 				: 0;
+			const answersArray = survey.questions.map(q => form.answers[q._id] || '');
+			
 			const payload = {
 				name: form.name,
 				email: form.email,
 				surveyId: survey._id,
-				answers: survey.questions.map(q => form.answers[q._id] || ''),
+				answers: answersArray,
 				timeSpent,
 				isAutoSubmit,
 			};
 			if (isInvitationCode(slug)) {
 				payload.invitationCode = slug;
 			}
-			await api.post(`/surveys/${survey._id}/responses`, payload);
+			const response = await api.post(`/surveys/${survey._id}/responses`, payload);
 			if (isInvitationCode(slug)) {
 				await api.post(`/invitations/complete/${slug}`, {
 					userId: null,
 					email: form.email || null,
 				});
 			}
-			// Calculate results for quiz/assessment/iq
+			
+			// Use server-side scoring results if available
 			if (['quiz', 'assessment', 'iq'].includes(survey.type)) {
-				const results = survey.questions.map(q => {
+				if (response.data && response.data.questionSnapshots) {
+					// Use server-calculated results
+					const results = response.data.questionSnapshots.map((snapshot, index) => ({
+						questionId: survey.questions[index]._id,
+						questionText: snapshot.questionData.text,
+						descriptionImage: snapshot.questionData.descriptionImage,
+						userAnswer: snapshot.userAnswer || '',
+						correctAnswer: survey.questions[index].type === 'single_choice' 
+							? snapshot.questionData.options[snapshot.questionData.correctAnswer]
+							: snapshot.questionData.correctAnswer,
+						isCorrect: snapshot.scoring.isCorrect,
+						explanation: snapshot.questionData.explanation,
+						points: snapshot.questionData.points || 1,
+					}));
+					setAssessmentResults(results);
+				} else {
+					// Fallback to client-side calculation
+					const results = survey.questions.map(q => {
 					const userAnswer = form.answers[q._id];
 					let correctAnswer = '';
 					let isCorrect = false;
 					if (q.type === 'single_choice' && typeof q.correctAnswer === 'number') {
 						correctAnswer = q.options[q.correctAnswer];
 						isCorrect = userAnswer === correctAnswer;
+						
 					} else if (q.type === 'multiple_choice' && Array.isArray(q.correctAnswer)) {
 						correctAnswer = q.correctAnswer.map(idx => q.options[idx]);
 						const userAnswerArray = Array.isArray(userAnswer) ? userAnswer : [];
@@ -304,8 +325,9 @@ const StudentAssessment = () => {
 						explanation: q.explanation,
 						points: q.points || 1,
 					};
-				});
-				setAssessmentResults(results);
+					});
+					setAssessmentResults(results);
+				}
 			}
 			setSubmitted(true);
 			setCurrentStep('results');
@@ -927,27 +949,40 @@ const StudentAssessment = () => {
 						) : (
 							// Quiz/Assessment/IQ results
 							<div>
-								<div className='text-center mb-8'>
-									<div className='text-blue-500 text-6xl mb-4'>📊</div>
-									<h2 className='text-3xl font-bold text-gray-800 mb-2'>
-										测评结果
-									</h2>
-									<div className='text-lg text-gray-600 mb-4'>
-										总分: {assessmentResults.filter(r => r.isCorrect).length} /{' '}
-										{assessmentResults.length}
+								{survey?.scoringSettings?.showScore !== false ? (
+									<div className='text-center mb-8'>
+										<div className='text-blue-500 text-6xl mb-4'>📊</div>
+										<h2 className='text-3xl font-bold text-gray-800 mb-2'>
+											测评结果
+										</h2>
+										<div className='text-lg text-gray-600 mb-4'>
+											总分: {assessmentResults.filter(r => r.isCorrect).length} /{' '}
+											{assessmentResults.length}
+										</div>
+										<div className='text-2xl font-bold text-blue-600'>
+											{Math.round(
+												(assessmentResults.filter(r => r.isCorrect).length /
+													assessmentResults.length) *
+													100
+											)}
+											%
+										</div>
 									</div>
-									<div className='text-2xl font-bold text-blue-600'>
-										{Math.round(
-											(assessmentResults.filter(r => r.isCorrect).length /
-												assessmentResults.length) *
-												100
-										)}
-										%
+								) : (
+									<div className='text-center mb-8'>
+										<div className='text-green-500 text-6xl mb-4'>✅</div>
+										<h2 className='text-3xl font-bold text-gray-800 mb-2'>
+											谢谢您的参与！
+										</h2>
+										<p className='text-gray-600 text-lg'>
+											您已成功完成测评，感谢您的时间和努力。
+										</p>
 									</div>
-								</div>
+								)}
 
-								<div className='space-y-4 mb-8'>
-									{assessmentResults.map((result, index) => (
+								{survey?.scoringSettings?.showScore !== false && (
+									<div className='space-y-4 mb-8'>
+										{assessmentResults.map((result, index) => (
 										<div
 											key={result.questionId}
 											className={`p-4 rounded-lg border-2 ${
@@ -1047,8 +1082,9 @@ const StudentAssessment = () => {
 												</div>
 											</div>
 										</div>
-									))}
-								</div>
+										))}
+									</div>
+								)}
 							</div>
 						)}
 					</div>

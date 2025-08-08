@@ -18,6 +18,7 @@ const imageUpload = require('../middlewares/imageUpload');
 const router = express.Router();
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'password';
+
 const RESPONSES_FILE = path.join(__dirname, '..', 'responses.json');
 
 router.get('/check-auth', (req, res) => {
@@ -1085,44 +1086,41 @@ router.get('/debug-timestamp', (req, res) => {
 	});
 });
 
-// Update question order for manual surveys
+// IMPORTANT: This route must come BEFORE the more generic /surveys/:id/questions/:questionIndex route
+// Update question order for manual surveys  
 router.patch(
-	'/surveys/:id/questions/reorder',
+	'/surveys/:id/questions-reorder', // Changed path to avoid conflict
 	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { id } = req.params;
 		const { questionIds } = req.body; // Expect array of question IDs in new order
 
-		console.log('=== REORDER API CALLED ===');
-		console.log('Survey ID:', id);
-		console.log('User ID:', req.user.id);
-		console.log('Question IDs received:', questionIds);
-
 		// Basic validation
 		if (!Array.isArray(questionIds)) {
-			console.log('ERROR: questionIds is not an array');
 			return res.status(400).json({ 
 				success: false,
 				error: 'questionIds must be an array'
 			});
 		}
 
-		// Find survey
-		const survey = await Survey.findOne({ _id: id, createdBy: req.user.id });
+		// Find survey - handle both legacy admin ID and regular user ObjectId
+		let survey = await Survey.findOne({ _id: id, createdBy: req.user.id });
+		
+		// If not found and user is admin, try with string conversion (handle ObjectId vs string mismatch)
+		if (!survey && req.user.id) {
+			const userIdStr = req.user.id.toString();
+			survey = await Survey.findOne({ _id: id, createdBy: userIdStr });
+		}
+		
 		if (!survey) {
-			console.log('ERROR: Survey not found');
 			return res.status(404).json({ 
 				success: false,
-				error: 'Survey not found'
+				error: 'Survey not found or access denied'
 			});
 		}
 
-		console.log('Survey found:', survey.title);
-		console.log('Current questions count:', survey.questions.length);
-
 		// Check if manual
 		if (survey.sourceType !== 'manual') {
-			console.log('ERROR: Not a manual survey');
 			return res.status(400).json({ 
 				success: false,
 				error: 'Only manual surveys can be reordered'
@@ -1131,7 +1129,6 @@ router.patch(
 
 		// Check question count matches
 		if (questionIds.length !== survey.questions.length) {
-			console.log('ERROR: Question count mismatch');
 			return res.status(400).json({ 
 				success: false,
 				error: 'Question count does not match',
@@ -1150,7 +1147,6 @@ router.patch(
 		// Validate all IDs exist
 		for (const questionId of questionIds) {
 			if (!questionMap.has(questionId.toString())) {
-				console.log('ERROR: Invalid question ID:', questionId);
 				return res.status(400).json({
 					success: false,
 					error: 'Invalid question ID: ' + questionId
@@ -1176,45 +1172,15 @@ router.patch(
 				};
 			});
 
-			console.log('Reordering questions...');
-			console.log('Old first question:', survey.questions[0].text.substring(0, 50));
-			console.log('New first question:', reorderedQuestions[0].text.substring(0, 50));
+			// Update the survey with reordered questions using Mongoose
+			survey.questions = reorderedQuestions;
+			await survey.save();
 			
-			// Use the most direct MongoDB update possible
-			const mongoose = require('mongoose');
-			const ObjectId = mongoose.Types.ObjectId;
-			
-			// Get MongoDB connection directly
-			const collection = mongoose.connection.collection('surveys');
-			
-			const result = await collection.updateOne(
-				{ _id: new ObjectId(id) },
-				{ $set: { questions: reorderedQuestions } }
-			);
-
-			console.log('Direct MongoDB update result:', result);
-
-			if (result.modifiedCount === 1) {
-				console.log('SUCCESS: Questions reordered via direct MongoDB');
-				
-				// Verify the update by reading back the survey
-				const updatedSurvey = await collection.findOne({ _id: new ObjectId(id) });
-				console.log('VERIFICATION: Updated survey first question:', updatedSurvey.questions[0].text.substring(0, 50));
-				console.log('VERIFICATION: Updated survey questions count:', updatedSurvey.questions.length);
-				
-				return res.json({
-					success: true,
-					message: 'Questions reordered successfully',
-					modifiedCount: result.modifiedCount,
-					newOrder: reorderedQuestions.map(q => ({ id: q._id, text: q.text.substring(0, 30) }))
-				});
-			} else {
-				console.log('WARNING: No documents modified');
-				return res.status(500).json({
-					success: false,
-					error: 'No documents were modified'
-				});
-			}
+			return res.json({
+				success: true,
+				message: 'Questions reordered successfully',
+				newOrder: reorderedQuestions.map(q => ({ id: q._id, text: q.text.substring(0, 30) }))
+			});
 
 		} catch (error) {
 			console.error('UPDATE ERROR:', error);

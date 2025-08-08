@@ -63,7 +63,8 @@
       "WebFetch(domain:airbnb.design)",
       "WebFetch(domain:www.airbnb.com)",
       "WebFetch(domain:www.airbnb.com.au)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(NODE_ENV=development npm start)"
     ],
     "deny": []
   }

@@ -43,14 +43,53 @@ async function saveSurveyResponse(data) {
 				if (question) {
 					if (question.type === 'single_choice') {
 						// Find the index of the selected option
-						const optionIndex = question.options.indexOf(answer);
+						let optionIndex = question.options.indexOf(answer);
+						
+						// If not found, check if options are objects with text property or stringified objects
+						if (optionIndex === -1) {
+							optionIndex = question.options.findIndex(opt => {
+								if (typeof opt === 'object') {
+									return opt.text === answer;
+								} else if (typeof opt === 'string' && opt.startsWith('{') && opt.includes('text:')) {
+									try {
+										const textMatch = opt.match(/text:\s*'([^']+)'/);
+										return textMatch ? textMatch[1] === answer : opt === answer;
+									} catch (e) {
+										return opt === answer;
+									}
+								} else {
+									return opt === answer;
+								}
+							});
+						}
+						
 						if (optionIndex !== -1) {
 							processedAnswers.set(index.toString(), optionIndex);
 						}
 					} else if (question.type === 'multiple_choice' && Array.isArray(answer)) {
 						// Find the indices of the selected options
 						const optionIndices = answer
-							.map(opt => question.options.indexOf(opt))
+							.map(opt => {
+								let idx = question.options.indexOf(opt);
+								// If not found, check if options are objects with text property or stringified objects
+								if (idx === -1) {
+									idx = question.options.findIndex(option => {
+										if (typeof option === 'object') {
+											return option.text === opt;
+										} else if (typeof option === 'string' && option.startsWith('{') && option.includes('text:')) {
+											try {
+												const textMatch = option.match(/text:\s*'([^']+)'/);
+												return textMatch ? textMatch[1] === opt : option === opt;
+											} catch (e) {
+												return option === opt;
+											}
+										} else {
+											return option === opt;
+										}
+									});
+								}
+								return idx;
+							})
 							.filter(idx => idx !== -1);
 						if (optionIndices.length > 0) {
 							processedAnswers.set(index.toString(), optionIndices);
@@ -106,6 +145,13 @@ async function saveSurveyResponse(data) {
 
 	// Save the response
 	await response.save();
+
+	// For assessments, return the response with scoring data
+	if (survey.requiresAnswers) {
+		// Re-fetch the response to ensure all computed fields are included
+		const savedResponse = await ResponseModel.findById(response._id).lean();
+		return savedResponse;
+	}
 
 	return response.toObject();
 }

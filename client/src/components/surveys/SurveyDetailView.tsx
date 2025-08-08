@@ -691,6 +691,9 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		console.log('Questions count:', newQuestions.length);
 		console.log('First few questions:', newQuestions.slice(0, 2).map(q => ({ id: q._id, text: q.text?.substring(0, 30) })));
 		
+		// Set loading state to prevent multiple reorders
+		setLoading(true);
+		
 		// Extract question IDs in the new order
 		const questionIds = newQuestions.map(q => {
 			console.log('Processing question:', { id: q._id, hasId: !!q._id, text: q.text?.substring(0, 20) });
@@ -721,24 +724,34 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			console.log('Request payload:', { questionIds });
 			
 			// Update backend with just the IDs
-			const response = await api.patch(`/admin/surveys/${surveyId}/questions/reorder`, {
+			const response = await api.patch(`/admin/surveys/${surveyId}/questions-reorder`, {
 				questionIds: questionIds
 			});
 			
 			console.log('=== API SUCCESS ===');
 			console.log('API response:', response.data);
 
-			// Reload all surveys to ensure consistency
-			console.log('Reloading surveys...');
-			await loadSurveys();
+			// Optimistically update the local state immediately
+			const updatedSurvey = {
+				...survey,
+				questions: newQuestions
+			};
 			
+			// Update the surveys array
+			setSurveys(prev => prev.map(s => 
+				s._id === surveyId ? updatedSurvey : s
+			));
+			
+			// Also update selectedSurvey if it's the current survey
+			setSelectedSurvey(updatedSurvey);
+
 			console.log('=== REORDER COMPLETE ===');
 		} catch (err: any) {
 			console.error('=== API ERROR ===');
 			console.error('Failed to reorder questions:', err);
 			console.error('Error response:', err.response?.data);
 			console.error('Request that failed:', {
-				url: `/admin/surveys/${surveyId}/questions/reorder`,
+				url: `/admin/surveys/${surveyId}/questions-reorder`,
 				method: 'PATCH',
 				data: { questionIds }
 			});
@@ -749,6 +762,9 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			
 			// Reload surveys on error to restore original state
 			await loadSurveys();
+		} finally {
+			// Always reset loading state
+			setLoading(false);
 		}
 	};
 
