@@ -28,7 +28,7 @@ const DraggableQuestionItem: React.FC<DraggableQuestionItemProps> = ({
 	isFirst,
 	isLast,
 }) => {
-	const { t } = useTranslation(['question']);
+	const { t } = useTranslation();
 
 	const {
 		attributes,
@@ -59,13 +59,13 @@ const DraggableQuestionItem: React.FC<DraggableQuestionItemProps> = ({
 	const getQuestionTypeLabel = (type: string) => {
 		switch (type) {
 			case QUESTION_TYPE.MULTIPLE_CHOICE:
-				return t('type.multipleChoice', 'Multiple Choice');
+				return t('question.type.multipleChoice', 'Multiple Choice');
 			case QUESTION_TYPE.SINGLE_CHOICE:
-				return t('type.singleChoice', 'Single Choice');
+				return t('question.type.singleChoice', 'Single Choice');
 			case QUESTION_TYPE.SHORT_TEXT:
-				return t('type.shortText', 'Short Text');
+				return t('question.type.shortText', 'Short Text');
 			default:
-				return t('type.singleChoice', 'Single Choice');
+				return t('question.type.singleChoice', 'Single Choice');
 		}
 	};
 
@@ -120,12 +120,12 @@ const DraggableQuestionItem: React.FC<DraggableQuestionItemProps> = ({
 								</span>
 								{question.imageUrl && (
 									<span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-										📷 {t('hasImage', 'Has Image')}
+										📷 {t('question.hasImage', 'Has Image')}
 									</span>
 								)}
 								{TYPES_REQUIRING_ANSWERS.includes(surveyType as any) && (
 									<div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-										{question.points || 1} {t('points', 'pts')}
+										{question.points || 1} {t('question.points', 'pts')}
 									</div>
 								)}
 							</div>
@@ -139,7 +139,7 @@ const DraggableQuestionItem: React.FC<DraggableQuestionItemProps> = ({
 									<button
 										className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded"
 										onClick={onMoveUp}
-										title={t('moveUp', 'Move up')}
+										title={t('question.moveUp', 'Move up')}
 									>
 										<svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
 											<path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
@@ -150,7 +150,7 @@ const DraggableQuestionItem: React.FC<DraggableQuestionItemProps> = ({
 									<button
 										className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded"
 										onClick={onMoveDown}
-										title={t('moveDown', 'Move down')}
+										title={t('question.moveDown', 'Move down')}
 									>
 										<svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
 											<path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -163,13 +163,13 @@ const DraggableQuestionItem: React.FC<DraggableQuestionItemProps> = ({
 								className="btn-secondary text-sm px-3 py-1"
 								onClick={onEdit}
 							>
-								{t('edit', 'Edit')}
+								{t('question.edit', 'Edit')}
 							</button>
 							<button
 								className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
 								onClick={onDelete}
 							>
-								{t('delete', 'Delete')}
+								{t('question.delete', 'Delete')}
 							</button>
 						</div>
 					</div>
@@ -178,19 +178,19 @@ const DraggableQuestionItem: React.FC<DraggableQuestionItemProps> = ({
 					{question.type === QUESTION_TYPE.SHORT_TEXT ? (
 						<div className="text-sm text-gray-600 mb-1">
 							<div className="font-medium">
-								{t('type.textResponse', 'Type: Text Response')}
+								{t('question.type.textResponse', 'Type: Text Response')}
 							</div>
 							{TYPES_REQUIRING_ANSWERS.includes(surveyType as any) &&
 								question.correctAnswer &&
 								typeof question.correctAnswer === 'string' && (
 								<div className="text-xs text-green-600 font-medium mt-1">
-									✓ {t('expectedAnswer', 'Expected Answer')}: {question.correctAnswer}
+									✓ {t('question.expectedAnswer', 'Expected Answer')}: {question.correctAnswer}
 								</div>
 							)}
 						</div>
 					) : (
 						<div className="text-sm text-gray-600 mb-1">
-							{t('options', 'Options')}: {' '}
+							{t('question.options', 'Options')}: {' '}
 							{question.options &&
 								question.options.map((opt, optIdx) => {
 									const isCorrect = Array.isArray(question.correctAnswer)
