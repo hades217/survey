@@ -27,7 +27,7 @@ i18n.use(HttpBackend)
 		defaultNS: 'translation',
 
 		// List of namespaces
-		ns: ['translation', 'admin', 'survey'],
+		ns: ['translation', 'admin', 'survey', 'question'],
 	});
 
 export default i18n;

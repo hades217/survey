@@ -32,5 +32,13 @@
 		"typeText": "Type: Text Response",
 		"expectedAnswer": "✓ Expected Answer: {{answer}}",
 		"correctAnswerSelected": "✓ Correct Answer Selected"
-	}
+	},
+	"moveUp": "Move up",
+	"moveDown": "Move down",
+	"edit": "Edit",
+	"delete": "Delete",
+	"type": {
+		"textResponse": "Type: Text Response"
+	},
+	"expectedAnswer": "Expected Answer"
 }

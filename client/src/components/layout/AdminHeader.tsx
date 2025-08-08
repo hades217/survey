@@ -39,7 +39,7 @@ const AdminHeader: React.FC = () => {
 					</h1>
 					<p className='text-gray-600 text-sm mt-1'>{t('dashboard.subtitle')}</p>
 				</div>
-				
+
 				<div className='mb-4'>
 					<button
 						className='w-full btn-primary'

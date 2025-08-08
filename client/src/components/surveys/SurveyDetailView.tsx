@@ -30,6 +30,8 @@ interface SurveyDetailViewProps {
 const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	const { t } = useTranslation();
 	const {
+		surveys,
+		setSurveys,
 		setSelectedSurvey,
 		setTab,
 		navigate,
@@ -54,6 +56,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	} = useAdmin();
 
 	const {
+		selectedSurvey,
 		deleteSurvey,
 		toggleSurveyStatus,
 		addQuestion,
@@ -61,6 +64,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		deleteQuestion,
 		loadStats,
 		duplicateSurvey,
+		loadSurveys,
 	} = useSurveys();
 
 	const { questionBanks } = useQuestionBanks();
@@ -166,6 +170,13 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		token ? token.slice(0, 6) + '****' + token.slice(-4) : '';
 
 	const s = survey;
+	console.log('Survey details:', {
+		id: s._id,
+		title: s.title,
+		sourceType: s.sourceType,
+		questionsCount: s.questions?.length,
+		type: s.type
+	});
 	const currentForm = questionForms[s._id] || {
 		text: '',
 		imageUrl: null,
@@ -675,21 +686,69 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 
 	// Handle question reordering
 	const handleQuestionsReorder = async (surveyId: string, newQuestions: Question[]) => {
+		console.log('=== FRONTEND REORDER START ===');
+		console.log('Survey ID:', surveyId);
+		console.log('Questions count:', newQuestions.length);
+		console.log('First few questions:', newQuestions.slice(0, 2).map(q => ({ id: q._id, text: q.text?.substring(0, 30) })));
+		
+		// Extract question IDs in the new order
+		const questionIds = newQuestions.map(q => {
+			console.log('Processing question:', { id: q._id, hasId: !!q._id, text: q.text?.substring(0, 20) });
+			return q._id;
+		}).filter(id => id != null); // Remove null/undefined IDs
+		
+		console.log('Extracted question IDs:', questionIds);
+		console.log('IDs count:', questionIds.length);
+		
+		if (questionIds.length !== newQuestions.length) {
+			console.error('ERROR: Some questions are missing IDs');
+			console.error('Expected:', newQuestions.length, 'Got:', questionIds.length);
+			setError('Some questions are missing IDs - cannot reorder');
+			return;
+		}
+		
+		// Validate all IDs are strings and not empty
+		const validIds = questionIds.every(id => typeof id === 'string' && id.length > 0);
+		if (!validIds) {
+			console.error('ERROR: Some IDs are invalid');
+			console.error('IDs:', questionIds);
+			setError('Invalid question IDs detected');
+			return;
+		}
+		
 		try {
-			setLoading(true);
+			console.log('=== SENDING API REQUEST ===');
+			console.log('Request payload:', { questionIds });
 			
-			// Update backend
-			await api.patch(`/admin/surveys/${surveyId}/questions/reorder`, {
-				questions: newQuestions
+			// Update backend with just the IDs
+			const response = await api.patch(`/admin/surveys/${surveyId}/questions/reorder`, {
+				questionIds: questionIds
 			});
+			
+			console.log('=== API SUCCESS ===');
+			console.log('API response:', response.data);
 
-			// The survey data will be updated by the parent component's refresh
-			// No need to manually update state here since useSurveys hook will handle it
-		} catch (err) {
+			// Reload all surveys to ensure consistency
+			console.log('Reloading surveys...');
+			await loadSurveys();
+			
+			console.log('=== REORDER COMPLETE ===');
+		} catch (err: any) {
+			console.error('=== API ERROR ===');
 			console.error('Failed to reorder questions:', err);
-			setError(t('survey.questions.reorderError', 'Failed to reorder questions. Please try again.'));
-		} finally {
-			setLoading(false);
+			console.error('Error response:', err.response?.data);
+			console.error('Request that failed:', {
+				url: `/admin/surveys/${surveyId}/questions/reorder`,
+				method: 'PATCH',
+				data: { questionIds }
+			});
+			
+			const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Failed to reorder questions. Please try again.';
+			setError(t('survey.questions.reorderError', errorMessage));
+			alert(`Reorder Error: ${errorMessage}`);
+			
+			// Reload surveys on error to restore original state
+			await loadSurveys();
 		}
 	};
 

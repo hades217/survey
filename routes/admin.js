@@ -1077,41 +1077,154 @@ router.delete(
 	})
 );
 
+// Debug route to check if server updated
+router.get('/debug-timestamp', (req, res) => {
+	res.json({ 
+		timestamp: new Date().toISOString(),
+		message: 'Server updated at this time'
+	});
+});
+
 // Update question order for manual surveys
 router.patch(
 	'/surveys/:id/questions/reorder',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { id } = req.params;
-		const { questions } = req.body;
+		const { questionIds } = req.body; // Expect array of question IDs in new order
 
-		if (!Array.isArray(questions)) {
-			throw new AppError('Questions must be an array', HTTP_STATUS.BAD_REQUEST);
+		console.log('=== REORDER API CALLED ===');
+		console.log('Survey ID:', id);
+		console.log('User ID:', req.user.id);
+		console.log('Question IDs received:', questionIds);
+
+		// Basic validation
+		if (!Array.isArray(questionIds)) {
+			console.log('ERROR: questionIds is not an array');
+			return res.status(400).json({ 
+				success: false,
+				error: 'questionIds must be an array'
+			});
 		}
 
+		// Find survey
 		const survey = await Survey.findOne({ _id: id, createdBy: req.user.id });
 		if (!survey) {
-			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+			console.log('ERROR: Survey not found');
+			return res.status(404).json({ 
+				success: false,
+				error: 'Survey not found'
+			});
 		}
 
-		// Only allow reordering for manual surveys
+		console.log('Survey found:', survey.title);
+		console.log('Current questions count:', survey.questions.length);
+
+		// Check if manual
 		if (survey.sourceType !== 'manual') {
-			throw new AppError('Question reordering is only allowed for manual surveys', HTTP_STATUS.BAD_REQUEST);
+			console.log('ERROR: Not a manual survey');
+			return res.status(400).json({ 
+				success: false,
+				error: 'Only manual surveys can be reordered'
+			});
 		}
 
-		// Validate that the number of questions matches
-		if (questions.length !== survey.questions.length) {
-			throw new AppError('Number of questions does not match', HTTP_STATUS.BAD_REQUEST);
+		// Check question count matches
+		if (questionIds.length !== survey.questions.length) {
+			console.log('ERROR: Question count mismatch');
+			return res.status(400).json({ 
+				success: false,
+				error: 'Question count does not match',
+				expected: survey.questions.length,
+				received: questionIds.length
+			});
 		}
 
-		// Update the questions array with the new order
-		survey.questions = questions;
-		await survey.save();
-
-		res.json({
-			message: 'Question order updated successfully',
-			questions: survey.questions
+		// Validate all question IDs exist and create ordered array
+		const questionMap = new Map();
+		survey.questions.forEach((question, index) => {
+			const questionId = question._id.toString();
+			questionMap.set(questionId, question);
 		});
+
+		// Validate all IDs exist
+		for (const questionId of questionIds) {
+			if (!questionMap.has(questionId.toString())) {
+				console.log('ERROR: Invalid question ID:', questionId);
+				return res.status(400).json({
+					success: false,
+					error: 'Invalid question ID: ' + questionId
+				});
+			}
+		}
+
+		try {
+			// Reorder questions based on the ID array and strip to plain objects
+			const reorderedQuestions = questionIds.map(questionId => {
+				const question = questionMap.get(questionId.toString());
+				// Convert to plain object to remove all mongoose properties and validation
+				return {
+					_id: question._id,
+					text: question.text,
+					imageUrl: question.imageUrl || null,
+					descriptionImage: question.descriptionImage || null,
+					type: question.type,
+					options: question.options || [],
+					correctAnswer: question.correctAnswer || null,
+					explanation: question.explanation || null,
+					points: question.points || 1
+				};
+			});
+
+			console.log('Reordering questions...');
+			console.log('Old first question:', survey.questions[0].text.substring(0, 50));
+			console.log('New first question:', reorderedQuestions[0].text.substring(0, 50));
+			
+			// Use the most direct MongoDB update possible
+			const mongoose = require('mongoose');
+			const ObjectId = mongoose.Types.ObjectId;
+			
+			// Get MongoDB connection directly
+			const collection = mongoose.connection.collection('surveys');
+			
+			const result = await collection.updateOne(
+				{ _id: new ObjectId(id) },
+				{ $set: { questions: reorderedQuestions } }
+			);
+
+			console.log('Direct MongoDB update result:', result);
+
+			if (result.modifiedCount === 1) {
+				console.log('SUCCESS: Questions reordered via direct MongoDB');
+				
+				// Verify the update by reading back the survey
+				const updatedSurvey = await collection.findOne({ _id: new ObjectId(id) });
+				console.log('VERIFICATION: Updated survey first question:', updatedSurvey.questions[0].text.substring(0, 50));
+				console.log('VERIFICATION: Updated survey questions count:', updatedSurvey.questions.length);
+				
+				return res.json({
+					success: true,
+					message: 'Questions reordered successfully',
+					modifiedCount: result.modifiedCount,
+					newOrder: reorderedQuestions.map(q => ({ id: q._id, text: q.text.substring(0, 30) }))
+				});
+			} else {
+				console.log('WARNING: No documents modified');
+				return res.status(500).json({
+					success: false,
+					error: 'No documents were modified'
+				});
+			}
+
+		} catch (error) {
+			console.error('UPDATE ERROR:', error);
+			console.error('Stack trace:', error.stack);
+			return res.status(500).json({
+				success: false,
+				error: error.message,
+				stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+			});
+		}
 	})
 );
 

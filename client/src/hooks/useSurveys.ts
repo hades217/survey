@@ -460,6 +460,7 @@ export const useSurveys = () => {
 		error,
 		setError,
 		// Functions
+		loadSurveys,
 		createSurvey,
 		updateSurvey,
 		deleteSurvey,

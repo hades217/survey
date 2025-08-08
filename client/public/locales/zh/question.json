@@ -32,5 +32,13 @@
 		"typeText": "类型：文本回答",
 		"expectedAnswer": "✓ 预期答案：{{answer}}",
 		"correctAnswerSelected": "✓ 已选择正确答案"
-	}
+	},
+	"moveUp": "上移",
+	"moveDown": "下移",
+	"edit": "编辑",
+	"delete": "删除",
+	"type": {
+		"textResponse": "类型：文本回答"
+	},
+	"expectedAnswer": "预期答案"
 }

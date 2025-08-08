@@ -47,7 +47,7 @@
 				"description": "Collect feedback and opinions"
 			},
 			"quiz": {
-				"label": "Quiz", 
+				"label": "Quiz",
 				"description": "Test knowledge with scoring"
 			},
 			"assessment": {
@@ -90,7 +90,7 @@
 			"maxAttempts": "Maximum Attempts",
 			"navigationMode": "Navigation Mode",
 			"stepByStep": "Step by Step",
-			"paginated": "Paginated", 
+			"paginated": "Paginated",
 			"allInOne": "All in One",
 			"oneQuestionPerPage": "One Question Per Page (Typeform-like)",
 			"instructions": "Instructions",
@@ -102,21 +102,6 @@
 			"showScoreHelp": "When enabled, students will see their final score after completing the assessment. When disabled, they will only see a completion message.",
 			"showCorrectAnswers": "Show correct answers after completion",
 			"showScoreBreakdown": "Show score breakdown"
-		}
-	},
-	"scoringSettings": {
-		"title": "Scoring Settings",
-			"scoringMode": "Scoring Mode",
-			"percentage": "Percentage",
-			"accumulated": "Accumulated Points",
-			"passingThreshold": "Passing Threshold",
-			"points": "points",
-			"showScore": "Show score to participants",
-			"showScoreHelp": "When enabled, students will see their final score after completing the assessment. When disabled, they will only see a completion message.",
-			"showCorrectAnswers": "Show correct answers after completion",
-			"showScoreBreakdown": "Show score breakdown",
-			"useCustomPoints": "Use custom points per question",
-			"defaultQuestionPoints": "Default Question Points"
 		}
 	},
 	"statistics": {

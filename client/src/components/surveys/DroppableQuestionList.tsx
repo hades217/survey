@@ -41,6 +41,16 @@ const DroppableQuestionList: React.FC<DroppableQuestionListProps> = ({
 }) => {
 	const { t } = useTranslation();
 	const [draggedQuestionIndex, setDraggedQuestionIndex] = useState<number | null>(null);
+	
+	// Debug log (only when questions change)
+	console.log('DroppableQuestionList rendered:', {
+		surveyId,
+		surveyType,
+		questionsCount: questions.length,
+		loading,
+		firstQuestionId: questions[0]?._id,
+		firstQuestionText: questions[0]?.text?.substring(0, 30)
+	});
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
@@ -55,6 +65,7 @@ const DroppableQuestionList: React.FC<DroppableQuestionListProps> = ({
 
 	const handleDragStart = (event: any) => {
 		const { active } = event;
+		console.log('Drag started:', active.id);
 		const questionIndex = parseInt(active.id.split('-')[1]);
 		setDraggedQuestionIndex(questionIndex);
 	};
@@ -63,16 +74,32 @@ const DroppableQuestionList: React.FC<DroppableQuestionListProps> = ({
 		const { active, over } = event;
 		setDraggedQuestionIndex(null);
 
+		console.log('=== DRAG END EVENT ===');
+		console.log('Active ID:', active.id);
+		console.log('Over ID:', over?.id);
+
 		if (!over || active.id === over.id) {
+			console.log('No reorder needed - same position');
 			return;
 		}
 
 		const oldIndex = parseInt(active.id.toString().split('-')[1]);
 		const newIndex = parseInt(over.id.toString().split('-')[1]);
 
-		if (oldIndex !== newIndex) {
+		console.log('Indices:', { oldIndex, newIndex });
+		console.log('Moving question from position', oldIndex, 'to position', newIndex);
+
+		if (oldIndex !== newIndex && !isNaN(oldIndex) && !isNaN(newIndex)) {
+			console.log('Original questions order:', questions.map((q, i) => ({ index: i, id: q._id, text: q.text?.substring(0, 20) })));
+			
 			const newQuestions = arrayMove(questions, oldIndex, newIndex);
+			
+			console.log('New questions order:', newQuestions.map((q, i) => ({ index: i, id: q._id, text: q.text?.substring(0, 20) })));
+			console.log('Calling onQuestionsReorder...');
+			
 			onQuestionsReorder(newQuestions);
+		} else {
+			console.error('Invalid indices for reorder:', { oldIndex, newIndex });
 		}
 	};
 
