@@ -34,7 +34,7 @@ async function submitSurveyResponse(req, res) {
 			responseData = {
 				...saved,
 				scoring: saved.score,
-				questionSnapshots: saved.questionSnapshots
+				questionSnapshots: saved.questionSnapshots,
 			};
 		}
 

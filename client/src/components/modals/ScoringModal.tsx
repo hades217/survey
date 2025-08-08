@@ -239,10 +239,15 @@ const ScoringModal: React.FC = () => {
 									})
 								}
 							/>
-							<span className='text-sm text-gray-700'>{t('scoringSettings.showScore', 'Show Score to Students')}</span>
+							<span className='text-sm text-gray-700'>
+								{t('scoringSettings.showScore', 'Show Score to Students')}
+							</span>
 						</label>
 						<p className='text-xs text-gray-500 ml-6'>
-							{t('scoringSettings.showScoreHelp', 'When enabled, students will see their final score after completing the assessment. When disabled, they will only see a completion message.')}
+							{t(
+								'scoringSettings.showScoreHelp',
+								'When enabled, students will see their final score after completing the assessment. When disabled, they will only see a completion message.'
+							)}
 						</p>
 					</div>
 					<label className='flex items-center'>
@@ -257,7 +262,9 @@ const ScoringModal: React.FC = () => {
 								})
 							}
 						/>
-						<span className='text-sm text-gray-700'>{t('scoringSettings.showCorrectAnswers', 'Show Correct Answers')}</span>
+						<span className='text-sm text-gray-700'>
+							{t('scoringSettings.showCorrectAnswers', 'Show Correct Answers')}
+						</span>
 					</label>
 					<label className='flex items-center'>
 						<input
@@ -271,7 +278,9 @@ const ScoringModal: React.FC = () => {
 								})
 							}
 						/>
-						<span className='text-sm text-gray-700'>{t('scoringSettings.showScoreBreakdown', 'Show Score Breakdown')}</span>
+						<span className='text-sm text-gray-700'>
+							{t('scoringSettings.showScoreBreakdown', 'Show Score Breakdown')}
+						</span>
 					</label>
 				</div>
 

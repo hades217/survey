@@ -19,6 +19,7 @@ docker --version
 
 **问题**: `docker build` 失败
 **解决方案**:
+
 ```bash
 # 清理Docker缓存
 docker system prune -a
@@ -31,6 +32,7 @@ docker build --no-cache -f Dockerfile.backend -t survey-backend .
 
 **问题**: `docker-compose up` 失败
 **解决方案**:
+
 ```bash
 # 查看详细错误
 docker-compose logs
@@ -49,6 +51,7 @@ docker-compose restart backend
 **症状**: 日志显示 "MongoDB connection error"
 
 **解决方案**:
+
 ```bash
 # 检查MongoDB容器状态
 docker-compose ps mongodb
@@ -69,6 +72,7 @@ docker-compose restart mongodb
 **症状**: "port already in use" 错误
 
 **解决方案**:
+
 ```bash
 # 查看端口占用
 lsof -i :5050
@@ -81,6 +85,7 @@ lsof -i :27017
 
 **问题**: 文件权限错误
 **解决方案**:
+
 ```bash
 # 修复uploads目录权限
 sudo chown -R $(id -u):$(id -g) uploads/
@@ -93,6 +98,7 @@ docker-compose build backend
 
 **问题**: 环境变量未正确加载
 **检查**:
+
 ```bash
 # 检查容器内环境变量
 docker-compose exec backend env | grep MONGODB_URI
@@ -104,6 +110,7 @@ cat .env.docker
 ## 🔍 调试命令
 
 ### 进入容器调试
+
 ```bash
 # 进入backend容器
 docker-compose exec backend sh
@@ -116,6 +123,7 @@ docker-compose exec backend ps aux
 ```
 
 ### 查看详细日志
+
 ```bash
 # 实时查看所有日志
 docker-compose logs -f
@@ -128,6 +136,7 @@ docker-compose logs --since="2h" backend
 ```
 
 ### 网络诊断
+
 ```bash
 # 检查Docker网络
 docker network ls
@@ -141,6 +150,7 @@ docker-compose exec backend wget -O- http://mongodb:27017
 ## 🧪 测试API
 
 ### 在容器内测试
+
 ```bash
 # 进入backend容器
 docker-compose exec backend sh
@@ -153,6 +163,7 @@ wget -O- http://localhost:5050/api/surveys
 ```
 
 ### 从主机测试
+
 ```bash
 # 如果暴露了端口（需要在docker-compose.yml中配置）
 curl http://localhost:5050/api/surveys
@@ -161,6 +172,7 @@ curl http://localhost:5050/api/surveys
 ## 📊 性能监控
 
 ### 资源使用
+
 ```bash
 # 查看容器资源使用
 docker stats
@@ -170,6 +182,7 @@ docker stats survey_backend_1
 ```
 
 ### 磁盘使用
+
 ```bash
 # 查看Docker空间使用
 docker system df
@@ -205,6 +218,7 @@ docker-compose down -v
 ## 📝 日志收集
 
 收集诊断信息：
+
 ```bash
 # 创建诊断报告
 echo "=== Docker Info ===" > docker-diagnosis.log

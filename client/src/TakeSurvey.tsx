@@ -82,7 +82,7 @@ const TakeSurvey: React.FC = () => {
 
 	// Enable anti-cheating measures for assessments and quizzes
 	const isAssessmentType = survey && TYPES_REQUIRING_ANSWERS.includes(survey.type);
-	
+
 	// Control anti-cheating features - can be configured per survey or globally
 	const antiCheatEnabled = false; // Set to false to disable all anti-cheating features
 
@@ -398,11 +398,10 @@ const TakeSurvey: React.FC = () => {
 								🔑 Admin Login
 							</button>
 							<div className='text-center mb-12'>
-								<h1 className='heading-xl mb-6'>
-									Available Surveys
-								</h1>
+								<h1 className='heading-xl mb-6'>Available Surveys</h1>
 								<p className='body-xl max-w-2xl mx-auto'>
-									Choose a survey to participate in and share your valuable insights
+									Choose a survey to participate in and share your valuable
+									insights
 								</p>
 							</div>
 						</div>
@@ -420,10 +419,7 @@ const TakeSurvey: React.FC = () => {
 						) : (
 							<div className='grid gap-8 md:grid-cols-2 xl:grid-cols-3'>
 								{surveys.map(s => (
-									<div
-										key={s._id}
-										className='card-hover group'
-									>
+									<div key={s._id} className='card-hover group'>
 										<div className='mb-6'>
 											<div className='flex items-start justify-between mb-3'>
 												<h3 className='heading-sm flex-1 group-hover:text-[#FF5A5F] transition-colors'>
@@ -493,12 +489,8 @@ const TakeSurvey: React.FC = () => {
 				{survey && !submitted && (
 					<div className='card shadow-airbnb'>
 						<div className='mb-8'>
-							<h1 className='heading-lg mb-4'>
-								{survey.title}
-							</h1>
-							{survey.description && (
-								<p className='body-lg'>{survey.description}</p>
-							)}
+							<h1 className='heading-lg mb-4'>{survey.title}</h1>
+							{survey.description && <p className='body-lg'>{survey.description}</p>}
 						</div>
 
 						<form
@@ -537,7 +529,7 @@ const TakeSurvey: React.FC = () => {
 										!questionsLoaded && (
 										<div className='text-sm text-[#00A699] mt-2 flex items-center gap-2'>
 											<div className='w-4 h-4 border-2 border-[#00A699] border-t-transparent rounded-full animate-spin'></div>
-											Loading randomized questions...
+												Loading randomized questions...
 										</div>
 									)}
 								</div>
@@ -558,9 +550,7 @@ const TakeSurvey: React.FC = () => {
 								) : (
 									<div className='space-y-8'>
 										<div className='flex items-center justify-between border-b border-[#EBEBEB] pb-4'>
-											<h3 className='heading-sm'>
-												📝 Survey Questions
-											</h3>
+											<h3 className='heading-sm'>📝 Survey Questions</h3>
 											{survey.sourceType === 'question_bank' && (
 												<div className='text-sm text-[#FC642D] bg-[#FC642D] bg-opacity-10 px-4 py-2 rounded-xl font-medium'>
 													🎲 Randomized Questions
@@ -568,184 +558,198 @@ const TakeSurvey: React.FC = () => {
 											)}
 										</div>
 										{questions.map((q, index) => (
-										<div
-											key={q._id}
-											className={`bg-white rounded-2xl p-8 border border-[#EBEBEB] shadow-sm hover:shadow-md transition-shadow ${antiCheatEnabled && isAssessmentType ? 'anti-cheat-container' : ''}`}
-										>
-											<label className='block mb-5 font-medium text-[#484848] text-lg leading-relaxed'>
-												<span className='inline-flex items-center justify-center w-7 h-7 bg-[#FF5A5F] bg-opacity-10 text-[#FF5A5F] rounded-full text-sm font-bold mr-3'>
-													{index + 1}
-												</span>
-												{q.text}
-											</label>
+											<div
+												key={q._id}
+												className={`bg-white rounded-2xl p-8 border border-[#EBEBEB] shadow-sm hover:shadow-md transition-shadow ${antiCheatEnabled && isAssessmentType ? 'anti-cheat-container' : ''}`}
+											>
+												<label className='block mb-5 font-medium text-[#484848] text-lg leading-relaxed'>
+													<span className='inline-flex items-center justify-center w-7 h-7 bg-[#FF5A5F] bg-opacity-10 text-[#FF5A5F] rounded-full text-sm font-bold mr-3'>
+														{index + 1}
+													</span>
+													{q.text}
+												</label>
 
-											{/* Main question image */}
-											{q.imageUrl && (
-												<div className='mb-4'>
-													<img
-														src={q.imageUrl}
-														alt='Question image'
-														className='max-w-full h-auto rounded-lg border border-gray-300'
-														onLoad={() => {
-															console.log(
-																'Main image loaded successfully:',
-																q.imageUrl
-															);
-														}}
-														onError={e => {
-															console.error(
-																'Main image failed to load:',
-																q.imageUrl
-															);
-															console.error('Error event:', e);
-															e.currentTarget.style.display = 'none';
-														}}
-													/>
-												</div>
-											)}
-
-											{/* Description image */}
-											{q.descriptionImage && (
-												<div className='mb-4'>
-													<img
-														src={q.descriptionImage}
-														alt='Question illustration'
-														className='max-w-full h-auto rounded-lg border border-gray-300'
-														onLoad={() => {
-															console.log(
-																'Description image loaded successfully:',
-																q.descriptionImage
-															);
-														}}
-														onError={e => {
-															console.error(
-																'Description image failed to load:',
-																q.descriptionImage
-															);
-															console.error('Error event:', e);
-															e.currentTarget.style.display = 'none';
-														}}
-													/>
-												</div>
-											)}
-											{(q.imageUrl || q.descriptionImage) &&
-												console.log(
-													'Rendering images for question',
-													index,
-													'imageUrl:',
-													q.imageUrl,
-													'descriptionImage:',
-													q.descriptionImage
+												{/* Main question image */}
+												{q.imageUrl && (
+													<div className='mb-4'>
+														<img
+															src={q.imageUrl}
+															alt='Question image'
+															className='max-w-full h-auto rounded-lg border border-gray-300'
+															onLoad={() => {
+																console.log(
+																	'Main image loaded successfully:',
+																	q.imageUrl
+																);
+															}}
+															onError={e => {
+																console.error(
+																	'Main image failed to load:',
+																	q.imageUrl
+																);
+																console.error('Error event:', e);
+																e.currentTarget.style.display =
+																	'none';
+															}}
+														/>
+													</div>
 												)}
-											{q.type === QUESTION_TYPE.SHORT_TEXT ? (
-												<div className='space-y-4'>
-													<textarea
-														className='input-field resize-none'
-														placeholder='Share your thoughts here...'
-														rows={5}
-														value={form.answers[q._id] || ''}
-														onChange={e =>
-															handleAnswerChange(
-																q._id,
-																e.target.value
-															)
-														}
-														required
-														{...getInputProps()}
-													/>
-												</div>
-											) : (
-												<div className='space-y-4'>
-													{q.options &&
-														q.options.map((opt, optIndex) => {
-															const optionValue =
-																typeof opt === 'string'
-																	? opt
-																	: opt.text;
-															const optionText =
-																typeof opt === 'string'
-																	? opt
-																	: opt.text;
-															const optionImage =
-																typeof opt === 'object'
-																	? opt.imageUrl
-																	: null;
-															const isSelected = form.answers[q._id] === optionValue;
-															return (
-																<label
-																	key={`${q._id}-${optIndex}-${optionText}`}
-																	className={`group flex items-start p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-md ${
-																		isSelected
-																			? 'border-[#FF5A5F] bg-[#FFF5F5] shadow-sm'
-																			: 'border-[#EBEBEB] bg-white hover:border-[#FF5A5F] hover:border-opacity-30'
-																	}`}
-																>
-																	<div className='flex items-center justify-center relative'>
-																		<input
-																			type='radio'
-																			name={q._id}
-																			className='sr-only'
-																			value={optionValue}
-																			checked={isSelected}
-																			onChange={() =>
-																				handleAnswerChange(
-																					q._id,
-																					optionValue
-																				)
-																			}
-																			required
-																		/>
-																		<div className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center transition-all ${
+
+												{/* Description image */}
+												{q.descriptionImage && (
+													<div className='mb-4'>
+														<img
+															src={q.descriptionImage}
+															alt='Question illustration'
+															className='max-w-full h-auto rounded-lg border border-gray-300'
+															onLoad={() => {
+																console.log(
+																	'Description image loaded successfully:',
+																	q.descriptionImage
+																);
+															}}
+															onError={e => {
+																console.error(
+																	'Description image failed to load:',
+																	q.descriptionImage
+																);
+																console.error('Error event:', e);
+																e.currentTarget.style.display =
+																	'none';
+															}}
+														/>
+													</div>
+												)}
+												{(q.imageUrl || q.descriptionImage) &&
+													console.log(
+														'Rendering images for question',
+														index,
+														'imageUrl:',
+														q.imageUrl,
+														'descriptionImage:',
+														q.descriptionImage
+													)}
+												{q.type === QUESTION_TYPE.SHORT_TEXT ? (
+													<div className='space-y-4'>
+														<textarea
+															className='input-field resize-none'
+															placeholder='Share your thoughts here...'
+															rows={5}
+															value={form.answers[q._id] || ''}
+															onChange={e =>
+																handleAnswerChange(
+																	q._id,
+																	e.target.value
+																)
+															}
+															required
+															{...getInputProps()}
+														/>
+													</div>
+												) : (
+													<div className='space-y-4'>
+														{q.options &&
+															q.options.map((opt, optIndex) => {
+																const optionValue =
+																	typeof opt === 'string'
+																		? opt
+																		: opt.text;
+																const optionText =
+																	typeof opt === 'string'
+																		? opt
+																		: opt.text;
+																const optionImage =
+																	typeof opt === 'object'
+																		? opt.imageUrl
+																		: null;
+																const isSelected =
+																	form.answers[q._id] ===
+																	optionValue;
+																return (
+																	<label
+																		key={`${q._id}-${optIndex}-${optionText}`}
+																		className={`group flex items-start p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-md ${
 																			isSelected
-																				? 'border-[#FF5A5F] bg-[#FF5A5F]'
-																				: 'border-[#DDDDDD] group-hover:border-[#FF5A5F]'
-																		}`}>
-																			{isSelected && (
-																				<div className='w-1.5 h-1.5 rounded-full bg-white'></div>
+																				? 'border-[#FF5A5F] bg-[#FFF5F5] shadow-sm'
+																				: 'border-[#EBEBEB] bg-white hover:border-[#FF5A5F] hover:border-opacity-30'
+																		}`}
+																	>
+																		<div className='flex items-center justify-center relative'>
+																			<input
+																				type='radio'
+																				name={q._id}
+																				className='sr-only'
+																				value={optionValue}
+																				checked={isSelected}
+																				onChange={() =>
+																					handleAnswerChange(
+																						q._id,
+																						optionValue
+																					)
+																				}
+																				required
+																			/>
+																			<div
+																				className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center transition-all ${
+																					isSelected
+																						? 'border-[#FF5A5F] bg-[#FF5A5F]'
+																						: 'border-[#DDDDDD] group-hover:border-[#FF5A5F]'
+																				}`}
+																			>
+																				{isSelected && (
+																					<div className='w-1.5 h-1.5 rounded-full bg-white'></div>
+																				)}
+																			</div>
+																		</div>
+																		<div className='flex-1'>
+																			{optionText && (
+																				<span
+																					className={`block text-base leading-relaxed font-medium transition-colors ${
+																						isSelected
+																							? 'text-[#484848] font-semibold'
+																							: 'text-[#484848] group-hover:text-[#FF5A5F]'
+																					}`}
+																				>
+																					{optionText}
+																				</span>
+																			)}
+																			{optionImage && (
+																				<div className='mt-3'>
+																					<img
+																						src={
+																							optionImage
+																						}
+																						alt={`Option ${optIndex + 1}`}
+																						className='max-w-full h-auto rounded-lg border border-[#EBEBEB] shadow-sm'
+																						style={{
+																							maxHeight:
+																								'200px',
+																						}}
+																						onLoad={() => {
+																							console.log(
+																								'Option image loaded successfully:',
+																								optionImage
+																							);
+																						}}
+																						onError={e => {
+																							console.error(
+																								'Option image failed to load:',
+																								optionImage
+																							);
+																							e.currentTarget.style.display =
+																								'none';
+																						}}
+																					/>
+																				</div>
 																			)}
 																		</div>
-																	</div>
-																	<div className='flex-1'>
-																		{optionText && (
-																			<span className={`block text-base leading-relaxed font-medium transition-colors ${
-																				isSelected ? 'text-[#484848] font-semibold' : 'text-[#484848] group-hover:text-[#FF5A5F]'
-																			}`}>
-																				{optionText}
-																			</span>
-																		)}
-																		{optionImage && (
-																			<div className='mt-3'>
-																				<img
-																					src={optionImage}
-																					alt={`Option ${optIndex + 1}`}
-																					className='max-w-full h-auto rounded-lg border border-[#EBEBEB] shadow-sm'
-																					style={{
-																						maxHeight: '200px',
-																					}}
-																					onLoad={() => {
-																						console.log(
-																							'Option image loaded successfully:',
-																							optionImage
-																						);
-																					}}
-																					onError={e => {
-																						console.error(
-																							'Option image failed to load:',
-																							optionImage
-																						);
-																						e.currentTarget.style.display = 'none';
-																					}}
-																				/>
-																			</div>
-																		)}
-																	</div>
-																</label>
-															);
-														})}
-												</div>
-											)}
-										</div>
-									))}
+																	</label>
+																);
+															})}
+													</div>
+												)}
+											</div>
+										))}
 									</div>
 								)
 							) : survey?.sourceType === SOURCE_TYPE.QUESTION_BANK ? (
@@ -881,42 +885,70 @@ const TakeSurvey: React.FC = () => {
 									)}
 								</div>
 							) : TYPES_REQUIRING_ANSWERS.includes(survey?.type || '') &&
-								assessmentResults.length > 0 &&
-								scoringResult &&
-								survey?.scoringSettings?.showScore === false ? (
-								// Assessment completed but scores are hidden
-								<div className='text-center py-8'>
-									<div className='text-[#00A699] text-8xl mb-6 animate-bounce'>🎉</div>
-									<h2 className='heading-lg mb-6 gradient-text'>
-										{t('survey.assessment.completed.title', 'Assessment Completed!')}
-									</h2>
-									<p className='body-lg mb-8 max-w-2xl mx-auto'>
-										{t('survey.assessment.completed.message', 'Thank you for completing the assessment. Your responses have been submitted successfully.')}
-									</p>
-									<div className='inline-flex items-center gap-3 bg-[#00A699] bg-opacity-10 text-[#00A699] px-6 py-3 rounded-xl font-medium'>
-										<svg className='w-5 h-5' fill='currentColor' viewBox='0 0 20 20'>
-											<path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clipRule='evenodd' />
-										</svg>
-										{t('survey.assessment.completed.success', 'Submission Successful')}
+						  assessmentResults.length > 0 &&
+						  scoringResult &&
+						  survey?.scoringSettings?.showScore === false ? (
+							// Assessment completed but scores are hidden
+									<div className='text-center py-8'>
+										<div className='text-[#00A699] text-8xl mb-6 animate-bounce'>
+									🎉
+										</div>
+										<h2 className='heading-lg mb-6 gradient-text'>
+											{t(
+												'survey.assessment.completed.title',
+												'Assessment Completed!'
+											)}
+										</h2>
+										<p className='body-lg mb-8 max-w-2xl mx-auto'>
+											{t(
+												'survey.assessment.completed.message',
+												'Thank you for completing the assessment. Your responses have been submitted successfully.'
+											)}
+										</p>
+										<div className='inline-flex items-center gap-3 bg-[#00A699] bg-opacity-10 text-[#00A699] px-6 py-3 rounded-xl font-medium'>
+											<svg
+												className='w-5 h-5'
+												fill='currentColor'
+												viewBox='0 0 20 20'
+											>
+												<path
+													fillRule='evenodd'
+													d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z'
+													clipRule='evenodd'
+												/>
+											</svg>
+											{t(
+												'survey.assessment.completed.success',
+												'Submission Successful'
+											)}
+										</div>
 									</div>
-								</div>
-							) : (
-								<div className='text-center py-8'>
-									<div className='text-[#00A699] text-8xl mb-6 animate-bounce'>🎉</div>
-									<h2 className='heading-lg mb-6 gradient-text'>
-										Thank You!
-									</h2>
-									<p className='body-lg mb-8 max-w-2xl mx-auto'>
-										Your response has been submitted successfully. We truly appreciate your time and valuable insights!
-									</p>
-									<div className='inline-flex items-center gap-3 bg-[#00A699] bg-opacity-10 text-[#00A699] px-6 py-3 rounded-xl font-medium'>
-										<svg className='w-5 h-5' fill='currentColor' viewBox='0 0 20 20'>
-											<path fillRule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clipRule='evenodd' />
-										</svg>
-										Response Recorded Successfully
+								) : (
+									<div className='text-center py-8'>
+										<div className='text-[#00A699] text-8xl mb-6 animate-bounce'>
+									🎉
+										</div>
+										<h2 className='heading-lg mb-6 gradient-text'>Thank You!</h2>
+										<p className='body-lg mb-8 max-w-2xl mx-auto'>
+									Your response has been submitted successfully. We truly
+									appreciate your time and valuable insights!
+										</p>
+										<div className='inline-flex items-center gap-3 bg-[#00A699] bg-opacity-10 text-[#00A699] px-6 py-3 rounded-xl font-medium'>
+											<svg
+												className='w-5 h-5'
+												fill='currentColor'
+												viewBox='0 0 20 20'
+											>
+												<path
+													fillRule='evenodd'
+													d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+													clipRule='evenodd'
+												/>
+											</svg>
+									Response Recorded Successfully
+										</div>
 									</div>
-								</div>
-							)}
+								)}
 					</div>
 				)}
 			</div>

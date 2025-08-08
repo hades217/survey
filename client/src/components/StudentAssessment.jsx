@@ -261,7 +261,7 @@ const StudentAssessment = () => {
 				? Math.round((new Date().getTime() - startTime.getTime()) / 1000)
 				: 0;
 			const answersArray = survey.questions.map(q => form.answers[q._id] || '');
-			
+
 			const payload = {
 				name: form.name,
 				email: form.email,
@@ -280,7 +280,7 @@ const StudentAssessment = () => {
 					email: form.email || null,
 				});
 			}
-			
+
 			// Use server-side scoring results if available
 			if (['quiz', 'assessment', 'iq'].includes(survey.type)) {
 				if (response.data && response.data.questionSnapshots) {
@@ -290,9 +290,10 @@ const StudentAssessment = () => {
 						questionText: snapshot.questionData.text,
 						descriptionImage: snapshot.questionData.descriptionImage,
 						userAnswer: snapshot.userAnswer || '',
-						correctAnswer: survey.questions[index].type === 'single_choice' 
-							? snapshot.questionData.options[snapshot.questionData.correctAnswer]
-							: snapshot.questionData.correctAnswer,
+						correctAnswer:
+							survey.questions[index].type === 'single_choice'
+								? snapshot.questionData.options[snapshot.questionData.correctAnswer]
+								: snapshot.questionData.correctAnswer,
 						isCorrect: snapshot.scoring.isCorrect,
 						explanation: snapshot.questionData.explanation,
 						points: snapshot.questionData.points || 1,
@@ -301,30 +302,29 @@ const StudentAssessment = () => {
 				} else {
 					// Fallback to client-side calculation
 					const results = survey.questions.map(q => {
-					const userAnswer = form.answers[q._id];
-					let correctAnswer = '';
-					let isCorrect = false;
-					if (q.type === 'single_choice' && typeof q.correctAnswer === 'number') {
-						correctAnswer = q.options[q.correctAnswer];
-						isCorrect = userAnswer === correctAnswer;
-						
-					} else if (q.type === 'multiple_choice' && Array.isArray(q.correctAnswer)) {
-						correctAnswer = q.correctAnswer.map(idx => q.options[idx]);
-						const userAnswerArray = Array.isArray(userAnswer) ? userAnswer : [];
-						isCorrect =
-							correctAnswer.length === userAnswerArray.length &&
-							correctAnswer.every(ans => userAnswerArray.includes(ans));
-					}
-					return {
-						questionId: q._id,
-						questionText: q.text,
-						descriptionImage: q.descriptionImage,
-						userAnswer: userAnswer || '',
-						correctAnswer,
-						isCorrect,
-						explanation: q.explanation,
-						points: q.points || 1,
-					};
+						const userAnswer = form.answers[q._id];
+						let correctAnswer = '';
+						let isCorrect = false;
+						if (q.type === 'single_choice' && typeof q.correctAnswer === 'number') {
+							correctAnswer = q.options[q.correctAnswer];
+							isCorrect = userAnswer === correctAnswer;
+						} else if (q.type === 'multiple_choice' && Array.isArray(q.correctAnswer)) {
+							correctAnswer = q.correctAnswer.map(idx => q.options[idx]);
+							const userAnswerArray = Array.isArray(userAnswer) ? userAnswer : [];
+							isCorrect =
+								correctAnswer.length === userAnswerArray.length &&
+								correctAnswer.every(ans => userAnswerArray.includes(ans));
+						}
+						return {
+							questionId: q._id,
+							questionText: q.text,
+							descriptionImage: q.descriptionImage,
+							userAnswer: userAnswer || '',
+							correctAnswer,
+							isCorrect,
+							explanation: q.explanation,
+							points: q.points || 1,
+						};
 					});
 					setAssessmentResults(results);
 				}
@@ -876,7 +876,9 @@ const StudentAssessment = () => {
 								) : (
 									// Default case - treat as single choice
 									<div className='text-red-500 p-3 border border-red-300 rounded-lg'>
-										<span>Unsupported question type: {currentQuestion.type}</span>
+										<span>
+											Unsupported question type: {currentQuestion.type}
+										</span>
 									</div>
 								)}
 							</div>
@@ -956,7 +958,8 @@ const StudentAssessment = () => {
 											测评结果
 										</h2>
 										<div className='text-lg text-gray-600 mb-4'>
-											总分: {assessmentResults.filter(r => r.isCorrect).length} /{' '}
+											总分:{' '}
+											{assessmentResults.filter(r => r.isCorrect).length} /{' '}
 											{assessmentResults.length}
 										</div>
 										<div className='text-2xl font-bold text-blue-600'>
@@ -983,70 +986,44 @@ const StudentAssessment = () => {
 								{survey?.scoringSettings?.showScore !== false && (
 									<div className='space-y-4 mb-8'>
 										{assessmentResults.map((result, index) => (
-										<div
-											key={result.questionId}
-											className={`p-4 rounded-lg border-2 ${
-												result.isCorrect
-													? 'border-green-300 bg-green-50'
-													: 'border-red-300 bg-red-50'
-											}`}
-										>
-											<div className='flex items-start gap-3'>
-												<span
-													className={`text-2xl ${result.isCorrect ? 'text-green-600' : 'text-red-600'}`}
-												>
-													{result.isCorrect ? '✅' : '❌'}
-												</span>
-												<div className='flex-1'>
-													<div className='font-semibold text-gray-800 mb-2'>
-														{index + 1}. {result.questionText}
-													</div>
-													{result.descriptionImage && (
-														<div className='mb-2'>
-															<img
-																src={result.descriptionImage}
-																alt='Question illustration'
-																className='max-w-full h-auto rounded-lg border border-gray-300'
-																onError={e => {
-																	e.currentTarget.style.display =
-																		'none';
-																}}
-															/>
+											<div
+												key={result.questionId}
+												className={`p-4 rounded-lg border-2 ${
+													result.isCorrect
+														? 'border-green-300 bg-green-50'
+														: 'border-red-300 bg-red-50'
+												}`}
+											>
+												<div className='flex items-start gap-3'>
+													<span
+														className={`text-2xl ${result.isCorrect ? 'text-green-600' : 'text-red-600'}`}
+													>
+														{result.isCorrect ? '✅' : '❌'}
+													</span>
+													<div className='flex-1'>
+														<div className='font-semibold text-gray-800 mb-2'>
+															{index + 1}. {result.questionText}
 														</div>
-													)}
-													<div className='space-y-1 text-sm'>
-														<div className='text-gray-700'>
-															<span className='font-medium'>
-																您的答案:
-															</span>{' '}
-															{Array.isArray(result.userAnswer)
-																? result.userAnswer
-																		.map(ans =>
-																			typeof ans === 'object'
-																				? ans.text ||
-																					ans.value ||
-																					JSON.stringify(
-																						ans
-																					)
-																				: ans
-																		)
-																		.join(', ')
-																: typeof result.userAnswer ===
-																	  'object'
-																	? result.userAnswer?.text ||
-																		result.userAnswer?.value ||
-																		JSON.stringify(
-																			result.userAnswer
-																		)
-																	: result.userAnswer || '未作答'}
-														</div>
-														{!result.isCorrect && (
-															<div className='text-green-700'>
+														{result.descriptionImage && (
+															<div className='mb-2'>
+																<img
+																	src={result.descriptionImage}
+																	alt='Question illustration'
+																	className='max-w-full h-auto rounded-lg border border-gray-300'
+																	onError={e => {
+																		e.currentTarget.style.display =
+																			'none';
+																	}}
+																/>
+															</div>
+														)}
+														<div className='space-y-1 text-sm'>
+															<div className='text-gray-700'>
 																<span className='font-medium'>
-																	正确答案:
+																	您的答案:
 																</span>{' '}
-																{Array.isArray(result.correctAnswer)
-																	? result.correctAnswer
+																{Array.isArray(result.userAnswer)
+																	? result.userAnswer
 																			.map(ans =>
 																				typeof ans ===
 																				'object'
@@ -1058,30 +1035,61 @@ const StudentAssessment = () => {
 																					: ans
 																			)
 																			.join(', ')
-																	: typeof result.correctAnswer ===
+																	: typeof result.userAnswer ===
 																		  'object'
-																		? result.correctAnswer
-																				?.text ||
-																			result.correctAnswer
+																		? result.userAnswer?.text ||
+																			result.userAnswer
 																				?.value ||
 																			JSON.stringify(
-																				result.correctAnswer
+																				result.userAnswer
 																			)
-																		: result.correctAnswer}
+																		: result.userAnswer ||
+																			'未作答'}
 															</div>
-														)}
-														{result.explanation && (
-															<div className='text-blue-700 mt-2'>
-																<span className='font-medium'>
-																	解释:
-																</span>{' '}
-																{result.explanation}
-															</div>
-														)}
+															{!result.isCorrect && (
+																<div className='text-green-700'>
+																	<span className='font-medium'>
+																		正确答案:
+																	</span>{' '}
+																	{Array.isArray(
+																		result.correctAnswer
+																	)
+																		? result.correctAnswer
+																				.map(ans =>
+																					typeof ans ===
+																					'object'
+																						? ans.text ||
+																							ans.value ||
+																							JSON.stringify(
+																								ans
+																							)
+																						: ans
+																				)
+																				.join(', ')
+																		: typeof result.correctAnswer ===
+																			  'object'
+																			? result.correctAnswer
+																					?.text ||
+																				result.correctAnswer
+																					?.value ||
+																				JSON.stringify(
+																					result.correctAnswer
+																				)
+																			: result.correctAnswer}
+																</div>
+															)}
+															{result.explanation && (
+																<div className='text-blue-700 mt-2'>
+																	<span className='font-medium'>
+																		解释:
+																	</span>{' '}
+																	{result.explanation}
+																</div>
+															)}
+														</div>
 													</div>
 												</div>
 											</div>
-										</div>
 										))}
 									</div>
 								)}

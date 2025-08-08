@@ -281,7 +281,10 @@ const QuestionBankDetailView: React.FC<QuestionBankDetailViewProps> = ({ questio
 			setLoading(false);
 		} catch (err) {
 			console.error('Error adding question:', err);
-			const errorMessage = err?.response?.data?.error || err?.message || 'Failed to add question. Please try again.';
+			const errorMessage =
+				err?.response?.data?.error ||
+				err?.message ||
+				'Failed to add question. Please try again.';
 			setError(errorMessage);
 			setLoading(false);
 		}

@@ -3,9 +3,10 @@ import axios from 'axios';
 // Get API base URL from environment variable
 // In development with Vite proxy, we use relative URL '/api'
 // In production, this should be set to your actual API endpoint
-const baseURL = import.meta.env.MODE === 'development' 
-	? '/api' // Vite proxy will handle this in development
-	: import.meta.env.VITE_API_BASE_URL || '/api';
+const baseURL =
+	import.meta.env.MODE === 'development'
+		? '/api' // Vite proxy will handle this in development
+		: import.meta.env.VITE_API_BASE_URL || '/api';
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -39,8 +40,9 @@ api.interceptors.response.use(
 			// Only redirect on token expiration for authenticated endpoints
 			// Skip redirect for login/register endpoints
 			const requestUrl = error.config?.url || '';
-			const isAuthEndpoint = requestUrl.includes('/login') || requestUrl.includes('/register');
-			
+			const isAuthEndpoint =
+				requestUrl.includes('/login') || requestUrl.includes('/register');
+
 			if (!isAuthEndpoint) {
 				// Token expired or invalid for authenticated endpoint, remove it and redirect to login
 				localStorage.removeItem('adminToken');

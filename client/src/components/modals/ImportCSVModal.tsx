@@ -61,7 +61,7 @@ const ImportCSVModal: React.FC<ImportCSVModalProps> = ({ isOpen, onClose, onImpo
 	const handleDownloadTemplate = async () => {
 		try {
 			const response = await api.get('/admin/question-banks/csv-template/download', {
-				responseType: 'blob'
+				responseType: 'blob',
 			});
 			const blob = response.data;
 			const url = window.URL.createObjectURL(blob);
@@ -101,7 +101,8 @@ const ImportCSVModal: React.FC<ImportCSVModalProps> = ({ isOpen, onClose, onImpo
 						<h4 className='font-medium text-blue-800 mb-2'>CSV 文件格式说明：</h4>
 						<div className='text-blue-700 space-y-1'>
 							<p>
-								<strong>列名：</strong> questionText, type, options, correctAnswers, tags, explanation, points, difficulty, descriptionImage
+								<strong>列名：</strong> questionText, type, options, correctAnswers,
+								tags, explanation, points, difficulty, descriptionImage
 							</p>
 							<p>
 								<strong>类型：</strong> single (单选), multiple (多选), text (文本)

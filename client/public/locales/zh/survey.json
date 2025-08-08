@@ -55,8 +55,17 @@
 		"placeholders": {
 			"enterName": "请输入您的姓名",
 			"enterEmail": "请输入您的邮箱"
+		},
+		"completed": {
+			"title": "测评已完成！",
+			"message": "感谢您完成测评。您的回答已成功提交。",
+			"success": "提交成功"
 		}
 	},
+	"responses": "回复",
+	"lastActivity": "最近活动",
+	"noActivity": "暂无活动",
+	"createSurvey": "创建问卷",
 	"questions": {
 		"title": "题目",
 		"add": "添加题目",
@@ -107,12 +116,5 @@
 		"optionImage": "选项 {{number}}",
 		"answerRequired": "请提供答案以继续。",
 		"keyboardHint": "提示：按 Enter 键进入下一题"
-	},
-	"assessment": {
-		"completed": {
-			"title": "测评已完成！",
-			"message": "感谢您完成测评。您的回答已成功提交。",
-			"success": "提交成功"
-		}
 	}
 }

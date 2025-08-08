@@ -66,6 +66,26 @@ const EditSurveyModal: React.FC = () => {
 	const [showMultiBankModal, setShowMultiBankModal] = useState(false);
 	const [showManualSelectionModal, setShowManualSelectionModal] = useState(false);
 
+	// Initialize scoring settings if not present
+	useEffect(() => {
+		if (selectedSurvey && !editForm.scoringSettings) {
+			setEditForm(prev => ({
+				...prev,
+				scoringSettings: {
+					scoringMode: selectedSurvey.scoringSettings?.scoringMode || 'percentage',
+					passingThreshold: selectedSurvey.scoringSettings?.passingThreshold || 60,
+					showScore: selectedSurvey.scoringSettings?.showScore ?? true,
+					showCorrectAnswers: selectedSurvey.scoringSettings?.showCorrectAnswers ?? false,
+					showScoreBreakdown: selectedSurvey.scoringSettings?.showScoreBreakdown ?? true,
+					customScoringRules: selectedSurvey.scoringSettings?.customScoringRules || {
+						useCustomPoints: false,
+						defaultQuestionPoints: 1,
+					},
+				},
+			}));
+		}
+	}, [selectedSurvey, editForm.scoringSettings, setEditForm]);
+
 	// Load question banks when modal opens
 	useEffect(() => {
 		const loadQuestionBanks = async () => {
@@ -119,6 +139,11 @@ const EditSurveyModal: React.FC = () => {
 				isActive: editForm.status === 'active',
 				timeLimit: editForm.timeLimit ? Number(editForm.timeLimit) : undefined,
 				maxAttempts: editForm.maxAttempts || 1,
+				// Include scoring settings if it's an assessment type
+				...(['quiz', 'assessment', 'iq'].includes(editForm.type) &&
+					editForm.scoringSettings && {
+					scoringSettings: editForm.scoringSettings,
+				}),
 			};
 
 			await updateSurvey(selectedSurvey._id, surveyData);
@@ -511,10 +536,14 @@ const EditSurveyModal: React.FC = () => {
 								<option value='step-by-step'>Step-by-step (Recommended)</option>
 								<option value='paginated'>Paginated</option>
 								<option value='all-in-one'>All-in-one</option>
-								<option value='one-question-per-page'>One Question Per Page (Typeform-like)</option>
+								<option value='one-question-per-page'>
+									One Question Per Page (Typeform-like)
+								</option>
 							</select>
 							<div className='text-xs text-gray-500 mt-1'>
-								Choose how questions are displayed to users: Step-by-step (classic), One Question Per Page (Typeform-like with progress bar), Paginated, or All-in-one
+								Choose how questions are displayed to users: Step-by-step (classic),
+								One Question Per Page (Typeform-like with progress bar), Paginated,
+								or All-in-one
 							</div>
 						</div>
 
@@ -534,6 +563,148 @@ const EditSurveyModal: React.FC = () => {
 							<div className='text-xs text-gray-500 mt-1'>
 								These instructions will be shown to students before starting the
 								assessment
+							</div>
+						</div>
+
+						{/* Scoring Settings */}
+						<div className='mt-4 pt-4 border-t border-gray-200'>
+							<h5 className='font-medium text-gray-800 mb-3'>Scoring Settings</h5>
+
+							<div className='space-y-3'>
+								<div className='grid grid-cols-2 gap-4'>
+									<div>
+										<label className='block text-sm font-medium text-gray-700 mb-2'>
+											Scoring Mode
+										</label>
+										<select
+											className='input-field'
+											value={
+												editForm.scoringSettings?.scoringMode ||
+												'percentage'
+											}
+											onChange={e =>
+												setEditForm({
+													...editForm,
+													scoringSettings: {
+														...editForm.scoringSettings,
+														scoringMode: e.target.value,
+													},
+												})
+											}
+										>
+											<option value='percentage'>Percentage</option>
+											<option value='accumulated'>Accumulated Points</option>
+										</select>
+									</div>
+									<div>
+										<label className='block text-sm font-medium text-gray-700 mb-2'>
+											Passing Threshold
+										</label>
+										<input
+											type='number'
+											className='input-field'
+											value={editForm.scoringSettings?.passingThreshold || 60}
+											onChange={e =>
+												setEditForm({
+													...editForm,
+													scoringSettings: {
+														...editForm.scoringSettings,
+														passingThreshold:
+															parseInt(e.target.value) || 0,
+													},
+												})
+											}
+											min='0'
+											max={
+												editForm.scoringSettings?.scoringMode ===
+												'percentage'
+													? '100'
+													: '1000'
+											}
+										/>
+										<div className='text-xs text-gray-500 mt-1'>
+											{editForm.scoringSettings?.scoringMode === 'percentage'
+												? 'Percentage needed to pass (0-100)'
+												: 'Points needed to pass'}
+										</div>
+									</div>
+								</div>
+
+								<div className='space-y-2'>
+									<div>
+										<label className='flex items-center'>
+											<input
+												type='checkbox'
+												className='mr-2'
+												checked={
+													editForm.scoringSettings?.showScore ?? true
+												}
+												onChange={e =>
+													setEditForm({
+														...editForm,
+														scoringSettings: {
+															...editForm.scoringSettings,
+															showScore: e.target.checked,
+														},
+													})
+												}
+											/>
+											<span className='text-sm text-gray-700'>
+												Show final score to students
+											</span>
+										</label>
+										<p className='text-xs text-gray-500 ml-6'>
+											When enabled, students will see their final score after
+											completing the assessment. When disabled, they will only
+											see a completion message.
+										</p>
+									</div>
+
+									<label className='flex items-center'>
+										<input
+											type='checkbox'
+											className='mr-2'
+											checked={
+												editForm.scoringSettings?.showCorrectAnswers ??
+												false
+											}
+											onChange={e =>
+												setEditForm({
+													...editForm,
+													scoringSettings: {
+														...editForm.scoringSettings,
+														showCorrectAnswers: e.target.checked,
+													},
+												})
+											}
+										/>
+										<span className='text-sm text-gray-700'>
+											Show correct answers after completion
+										</span>
+									</label>
+
+									<label className='flex items-center'>
+										<input
+											type='checkbox'
+											className='mr-2'
+											checked={
+												editForm.scoringSettings?.showScoreBreakdown ?? true
+											}
+											onChange={e =>
+												setEditForm({
+													...editForm,
+													scoringSettings: {
+														...editForm.scoringSettings,
+														showScoreBreakdown: e.target.checked,
+													},
+												})
+											}
+										/>
+										<span className='text-sm text-gray-700'>
+											Show detailed score breakdown
+										</span>
+									</label>
+								</div>
 							</div>
 						</div>
 					</div>

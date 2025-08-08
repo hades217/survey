@@ -22,9 +22,9 @@ exports.getAllQuestionBanks = async (req, res) => {
 // Get a specific question bank by ID
 exports.getQuestionBank = async (req, res) => {
 	try {
-		const questionBank = await QuestionBank.findOne({ 
-			_id: req.params.id, 
-			createdBy: req.user.id 
+		const questionBank = await QuestionBank.findOne({
+			_id: req.params.id,
+			createdBy: req.user.id,
 		}).populate('createdBy', 'username');
 
 		if (!questionBank) {
@@ -106,9 +106,9 @@ exports.updateQuestionBank = async (req, res) => {
 // Delete a question bank
 exports.deleteQuestionBank = async (req, res) => {
 	try {
-		const questionBank = await QuestionBank.findOneAndDelete({ 
-			_id: req.params.id, 
-			createdBy: req.user.id 
+		const questionBank = await QuestionBank.findOneAndDelete({
+			_id: req.params.id,
+			createdBy: req.user.id,
 		});
 
 		if (!questionBank) {
@@ -159,9 +159,9 @@ exports.addQuestion = async (req, res) => {
 			}
 		}
 
-		const questionBank = await QuestionBank.findOne({ 
-			_id: req.params.id, 
-			createdBy: req.user.id 
+		const questionBank = await QuestionBank.findOne({
+			_id: req.params.id,
+			createdBy: req.user.id,
 		});
 
 		if (!questionBank) {
@@ -217,9 +217,9 @@ exports.updateQuestion = async (req, res) => {
 			descriptionImage,
 		} = req.body;
 
-		const questionBank = await QuestionBank.findOne({ 
-			_id: req.params.id, 
-			createdBy: req.user.id 
+		const questionBank = await QuestionBank.findOne({
+			_id: req.params.id,
+			createdBy: req.user.id,
 		});
 
 		if (!questionBank) {
@@ -269,9 +269,9 @@ exports.deleteQuestion = async (req, res) => {
 	try {
 		const { questionId } = req.params;
 
-		const questionBank = await QuestionBank.findOne({ 
-			_id: req.params.id, 
-			createdBy: req.user.id 
+		const questionBank = await QuestionBank.findOne({
+			_id: req.params.id,
+			createdBy: req.user.id,
 		});
 
 		if (!questionBank) {
@@ -302,9 +302,9 @@ exports.getRandomQuestions = async (req, res) => {
 	try {
 		const { count, tags, difficulty } = req.query;
 
-		const questionBank = await QuestionBank.findOne({ 
-			_id: req.params.id, 
-			createdBy: req.user.id 
+		const questionBank = await QuestionBank.findOne({
+			_id: req.params.id,
+			createdBy: req.user.id,
 		});
 
 		if (!questionBank) {
@@ -352,9 +352,9 @@ exports.importQuestions = async (req, res) => {
 				.json({ error: 'Questions array is required' });
 		}
 
-		const questionBank = await QuestionBank.findOne({ 
-			_id: req.params.id, 
-			createdBy: req.user.id 
+		const questionBank = await QuestionBank.findOne({
+			_id: req.params.id,
+			createdBy: req.user.id,
 		});
 
 		if (!questionBank) {
@@ -421,9 +421,9 @@ exports.importQuestionsFromCSV = async (req, res) => {
 			return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'CSV file is required' });
 		}
 
-		const questionBank = await QuestionBank.findOne({ 
-			_id: req.params.id, 
-			createdBy: req.user.id 
+		const questionBank = await QuestionBank.findOne({
+			_id: req.params.id,
+			createdBy: req.user.id,
 		});
 
 		if (!questionBank) {
@@ -442,7 +442,17 @@ exports.importQuestionsFromCSV = async (req, res) => {
 			stream
 				.pipe(
 					csv({
-						headers: ['questionText', 'type', 'options', 'correctAnswers', 'tags', 'explanation', 'points', 'difficulty', 'descriptionImage'],
+						headers: [
+							'questionText',
+							'type',
+							'options',
+							'correctAnswers',
+							'tags',
+							'explanation',
+							'points',
+							'difficulty',
+							'descriptionImage',
+						],
 						skipEmptyLines: true,
 					})
 				)
@@ -478,9 +488,11 @@ exports.importQuestionsFromCSV = async (req, res) => {
 							type: questionType,
 							points: parseInt(row.points) || 1,
 							tags: [],
-							difficulty: row.difficulty && ['easy', 'medium', 'hard'].includes(row.difficulty.toLowerCase()) 
-								? row.difficulty.toLowerCase() 
-								: 'medium',
+							difficulty:
+								row.difficulty &&
+								['easy', 'medium', 'hard'].includes(row.difficulty.toLowerCase())
+									? row.difficulty.toLowerCase()
+									: 'medium',
 						};
 
 						// Handle explanation
@@ -651,9 +663,9 @@ exports.getQuestionsFromMultipleBanks = async (req, res) => {
 		for (const config of configurations) {
 			const { questionBankId, questionCount, filters = {} } = config;
 
-			const questionBank = await QuestionBank.findOne({ 
-				_id: questionBankId, 
-				createdBy: req.user.id 
+			const questionBank = await QuestionBank.findOne({
+				_id: questionBankId,
+				createdBy: req.user.id,
 			});
 			if (!questionBank) {
 				return res.status(HTTP_STATUS.NOT_FOUND).json({
@@ -718,9 +730,9 @@ exports.getQuestionBankQuestions = async (req, res) => {
 		const { id } = req.params;
 		const { page = 1, limit = 50, tags, difficulty, questionTypes, search } = req.query;
 
-		const questionBank = await QuestionBank.findOne({ 
-			_id: id, 
-			createdBy: req.user.id 
+		const questionBank = await QuestionBank.findOne({
+			_id: id,
+			createdBy: req.user.id,
 		});
 		if (!questionBank) {
 			return res.status(HTTP_STATUS.NOT_FOUND).json({
@@ -794,9 +806,9 @@ exports.getQuestionDetails = async (req, res) => {
 	try {
 		const { bankId, questionId } = req.params;
 
-		const questionBank = await QuestionBank.findOne({ 
-			_id: bankId, 
-			createdBy: req.user.id 
+		const questionBank = await QuestionBank.findOne({
+			_id: bankId,
+			createdBy: req.user.id,
 		});
 		if (!questionBank) {
 			return res.status(HTTP_STATUS.NOT_FOUND).json({

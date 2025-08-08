@@ -89,19 +89,19 @@ router.post(
 				const userWithDifferentRole = await User.findOne({
 					email: username.toLowerCase(),
 				});
-				
+
 				if (userWithDifferentRole) {
 					return res.status(HTTP_STATUS.UNAUTHORIZED).json({
 						success: false,
 						error: 'Account found but not authorized for admin access',
-						errorType: 'unauthorized_role'
+						errorType: 'unauthorized_role',
 					});
 				}
-				
+
 				return res.status(HTTP_STATUS.UNAUTHORIZED).json({
 					success: false,
 					error: 'No account found with this email address',
-					errorType: 'user_not_found'
+					errorType: 'user_not_found',
 				});
 			}
 
@@ -110,7 +110,7 @@ router.post(
 				return res.status(HTTP_STATUS.UNAUTHORIZED).json({
 					success: false,
 					error: 'Incorrect password',
-					errorType: 'wrong_password'
+					errorType: 'wrong_password',
 				});
 			}
 
@@ -159,7 +159,7 @@ router.post(
 			email: email ? email.toLowerCase() : 'undefined',
 			companyName,
 			hasPassword: !!password,
-			passwordLength: password ? password.length : 0
+			passwordLength: password ? password.length : 0,
 		});
 
 		// Validation
@@ -185,7 +185,7 @@ router.post(
 			return res.status(HTTP_STATUS.BAD_REQUEST).json({
 				success: false,
 				error: 'An account with this email already exists',
-				errorType: 'user_exists'
+				errorType: 'user_exists',
 			});
 		}
 		console.log('No existing user found, proceeding with registration');
@@ -213,9 +213,9 @@ router.post(
 				email: email.toLowerCase(),
 				role: 'admin',
 				companyId: company ? company._id : undefined,
-				hasHashedPassword: !!hashedPassword
+				hasHashedPassword: !!hashedPassword,
 			});
-			
+
 			const user = new User({
 				name,
 				email: email.toLowerCase(),
@@ -258,13 +258,13 @@ router.post(
 				message: error.message,
 				name: error.name,
 				code: error.code,
-				stack: error.stack
+				stack: error.stack,
 			});
-			
+
 			// More specific error messages
 			let errorMessage = 'Registration failed. Please try again.';
 			let errorType = 'registration_failed';
-			
+
 			if (error.code === 11000) {
 				// Handle different types of duplicate key errors
 				if (error.message.includes('users') && error.message.includes('email')) {
@@ -273,7 +273,9 @@ router.post(
 				} else if (error.message.includes('companies') && error.message.includes('slug')) {
 					errorMessage = 'Database configuration issue. Please contact support.';
 					errorType = 'database_index_error';
-					console.error('Company slug index error detected. Run: node scripts/fix_production_company_slug.js');
+					console.error(
+						'Company slug index error detected. Run: node scripts/fix_production_company_slug.js'
+					);
 				} else {
 					errorMessage = 'Duplicate data detected. Please check your input.';
 					errorType = 'duplicate_key_error';
@@ -283,8 +285,8 @@ router.post(
 				errorType = 'validation_error';
 				// Add validation details
 				if (error.errors) {
-					const validationErrors = Object.keys(error.errors).map(field => 
-						`${field}: ${error.errors[field].message}`
+					const validationErrors = Object.keys(error.errors).map(
+						field => `${field}: ${error.errors[field].message}`
 					);
 					console.error('Validation errors:', validationErrors);
 					errorMessage += ' (' + validationErrors.join(', ') + ')';
@@ -296,16 +298,19 @@ router.post(
 				errorMessage = 'Database error. Please try again later.';
 				errorType = 'database_error';
 			}
-			
+
 			res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
 				success: false,
 				error: errorMessage,
 				errorType: errorType,
-				debug: process.env.NODE_ENV === 'development' ? {
-					originalError: error.message,
-					errorName: error.name,
-					errorCode: error.code
-				} : undefined
+				debug:
+					process.env.NODE_ENV === 'development'
+						? {
+							originalError: error.message,
+							errorName: error.name,
+							errorCode: error.code,
+						}
+						: undefined,
 			});
 		}
 	})
@@ -343,11 +348,11 @@ router.get(
 	'/surveys/:id',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-		const survey = await Survey.findOne({ 
-			_id: req.params.id, 
-			createdBy: req.user.id 
+		const survey = await Survey.findOne({
+			_id: req.params.id,
+			createdBy: req.user.id,
 		}).populate('questionBankId', 'name description');
-		
+
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
@@ -360,7 +365,10 @@ router.get(
 	'/surveys',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-		const surveys = await Survey.find({ createdBy: req.user.id }).populate('questionBankId', 'name description');
+		const surveys = await Survey.find({ createdBy: req.user.id }).populate(
+			'questionBankId',
+			'name description'
+		);
 
 		// Add lastActivity and responseCount for each survey
 		const surveysWithStats = await Promise.all(
@@ -406,8 +414,8 @@ router.put(
 		}
 
 		const survey = await Survey.findOneAndUpdate(
-			{ _id: req.params.id, createdBy: req.user.id }, 
-			updateData, 
+			{ _id: req.params.id, createdBy: req.user.id },
+			updateData,
 			{ new: true }
 		);
 		if (!survey) {
@@ -422,7 +430,10 @@ router.delete(
 	'/surveys/:id',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-		const survey = await Survey.findOneAndDelete({ _id: req.params.id, createdBy: req.user.id });
+		const survey = await Survey.findOneAndDelete({
+			_id: req.params.id,
+			createdBy: req.user.id,
+		});
 		if (!survey) {
 			throw new AppError(ERROR_MESSAGES.SURVEY_NOT_FOUND, HTTP_STATUS.NOT_FOUND);
 		}
@@ -464,11 +475,11 @@ router.get(
 	'/question-banks/:id',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-		const questionBank = await QuestionBank.findOne({ 
-			_id: req.params.id, 
-			createdBy: req.user.id 
+		const questionBank = await QuestionBank.findOne({
+			_id: req.params.id,
+			createdBy: req.user.id,
 		}).populate('createdBy', 'username');
-		
+
 		if (!questionBank) {
 			throw new AppError('Question bank not found', HTTP_STATUS.NOT_FOUND);
 		}
@@ -486,7 +497,7 @@ router.put(
 			{ name, description, updatedAt: Date.now() },
 			{ new: true }
 		);
-		
+
 		if (!questionBank) {
 			throw new AppError('Question bank not found', HTTP_STATUS.NOT_FOUND);
 		}
@@ -498,11 +509,11 @@ router.delete(
 	'/question-banks/:id',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-		const questionBank = await QuestionBank.findOneAndDelete({ 
-			_id: req.params.id, 
-			createdBy: req.user.id 
+		const questionBank = await QuestionBank.findOneAndDelete({
+			_id: req.params.id,
+			createdBy: req.user.id,
 		});
-		
+
 		if (!questionBank) {
 			throw new AppError('Question bank not found', HTTP_STATUS.NOT_FOUND);
 		}
@@ -515,17 +526,18 @@ router.post(
 	'/question-banks/:id/questions',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-		const questionBank = await QuestionBank.findOne({ 
-			_id: req.params.id, 
-			createdBy: req.user.id 
+		const questionBank = await QuestionBank.findOne({
+			_id: req.params.id,
+			createdBy: req.user.id,
 		});
-		
+
 		if (!questionBank) {
 			throw new AppError('Question bank not found', HTTP_STATUS.NOT_FOUND);
 		}
 
-		const { text, type, options, correctAnswer, explanation, points, tags, difficulty } = req.body;
-		
+		const { text, type, options, correctAnswer, explanation, points, tags, difficulty } =
+			req.body;
+
 		questionBank.questions.push({
 			text,
 			type: type || 'single_choice',
@@ -536,7 +548,7 @@ router.post(
 			tags: tags || [],
 			difficulty: difficulty || 'medium',
 		});
-		
+
 		await questionBank.save();
 		res.json(questionBank);
 	})
@@ -547,11 +559,11 @@ router.put(
 	'/question-banks/:id/questions/:questionId',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-		const questionBank = await QuestionBank.findOne({ 
-			_id: req.params.id, 
-			createdBy: req.user.id 
+		const questionBank = await QuestionBank.findOne({
+			_id: req.params.id,
+			createdBy: req.user.id,
 		});
-		
+
 		if (!questionBank) {
 			throw new AppError('Question bank not found', HTTP_STATUS.NOT_FOUND);
 		}
@@ -572,11 +584,11 @@ router.delete(
 	'/question-banks/:id/questions/:questionId',
 	jwtAuth,
 	asyncHandler(async (req, res) => {
-		const questionBank = await QuestionBank.findOne({ 
-			_id: req.params.id, 
-			createdBy: req.user.id 
+		const questionBank = await QuestionBank.findOne({
+			_id: req.params.id,
+			createdBy: req.user.id,
 		});
-		
+
 		if (!questionBank) {
 			throw new AppError('Question bank not found', HTTP_STATUS.NOT_FOUND);
 		}
@@ -1080,14 +1092,14 @@ router.delete(
 
 // Debug route to check if server updated
 router.get('/debug-timestamp', (req, res) => {
-	res.json({ 
+	res.json({
 		timestamp: new Date().toISOString(),
-		message: 'Server updated at this time'
+		message: 'Server updated at this time',
 	});
 });
 
 // IMPORTANT: This route must come BEFORE the more generic /surveys/:id/questions/:questionIndex route
-// Update question order for manual surveys  
+// Update question order for manual surveys
 router.patch(
 	'/surveys/:id/questions-reorder', // Changed path to avoid conflict
 	jwtAuth,
@@ -1097,43 +1109,43 @@ router.patch(
 
 		// Basic validation
 		if (!Array.isArray(questionIds)) {
-			return res.status(400).json({ 
+			return res.status(400).json({
 				success: false,
-				error: 'questionIds must be an array'
+				error: 'questionIds must be an array',
 			});
 		}
 
 		// Find survey - handle both legacy admin ID and regular user ObjectId
 		let survey = await Survey.findOne({ _id: id, createdBy: req.user.id });
-		
+
 		// If not found and user is admin, try with string conversion (handle ObjectId vs string mismatch)
 		if (!survey && req.user.id) {
 			const userIdStr = req.user.id.toString();
 			survey = await Survey.findOne({ _id: id, createdBy: userIdStr });
 		}
-		
+
 		if (!survey) {
-			return res.status(404).json({ 
+			return res.status(404).json({
 				success: false,
-				error: 'Survey not found or access denied'
+				error: 'Survey not found or access denied',
 			});
 		}
 
 		// Check if manual
 		if (survey.sourceType !== 'manual') {
-			return res.status(400).json({ 
+			return res.status(400).json({
 				success: false,
-				error: 'Only manual surveys can be reordered'
+				error: 'Only manual surveys can be reordered',
 			});
 		}
 
 		// Check question count matches
 		if (questionIds.length !== survey.questions.length) {
-			return res.status(400).json({ 
+			return res.status(400).json({
 				success: false,
 				error: 'Question count does not match',
 				expected: survey.questions.length,
-				received: questionIds.length
+				received: questionIds.length,
 			});
 		}
 
@@ -1149,7 +1161,7 @@ router.patch(
 			if (!questionMap.has(questionId.toString())) {
 				return res.status(400).json({
 					success: false,
-					error: 'Invalid question ID: ' + questionId
+					error: 'Invalid question ID: ' + questionId,
 				});
 			}
 		}
@@ -1168,27 +1180,29 @@ router.patch(
 					options: question.options || [],
 					correctAnswer: question.correctAnswer || null,
 					explanation: question.explanation || null,
-					points: question.points || 1
+					points: question.points || 1,
 				};
 			});
 
 			// Update the survey with reordered questions using Mongoose
 			survey.questions = reorderedQuestions;
 			await survey.save();
-			
+
 			return res.json({
 				success: true,
 				message: 'Questions reordered successfully',
-				newOrder: reorderedQuestions.map(q => ({ id: q._id, text: q.text.substring(0, 30) }))
+				newOrder: reorderedQuestions.map(q => ({
+					id: q._id,
+					text: q.text.substring(0, 30),
+				})),
 			});
-
 		} catch (error) {
 			console.error('UPDATE ERROR:', error);
 			console.error('Stack trace:', error.stack);
 			return res.status(500).json({
 				success: false,
 				error: error.message,
-				stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+				stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
 			});
 		}
 	})
@@ -1920,7 +1934,7 @@ router.get(
 	asyncHandler(async (req, res) => {
 		// Get the current user from JWT token
 		let adminUser = null;
-		
+
 		if (req.user.id && req.user.id !== 'admin') {
 			// Find user by JWT token ID (for registered users)
 			adminUser = await User.findById(req.user.id).populate('companyId');

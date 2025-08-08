@@ -17,7 +17,9 @@ const QuestionBankCard: React.FC<QuestionBankCardProps> = ({ bank }) => {
 			<div className='flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3'>
 				<div className='flex-1'>
 					<h3 className='text-base sm:text-lg font-bold text-gray-800'>{bank.name}</h3>
-					{bank.description && <p className='text-gray-600 mt-1 text-sm'>{bank.description}</p>}
+					{bank.description && (
+						<p className='text-gray-600 mt-1 text-sm'>{bank.description}</p>
+					)}
 					<div className='flex flex-wrap items-center gap-2 sm:gap-4 mt-2 text-xs sm:text-sm text-gray-500'>
 						<span>{bank.questions.length} questions</span>
 						<span>Created: {new Date(bank.createdAt).toLocaleDateString()}</span>

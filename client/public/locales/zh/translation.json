@@ -11,6 +11,20 @@
 		"billing": "账单管理",
 		"dashboard": "仪表盘"
 	},
+	"profile": {
+		"settings": "个人设置",
+		"manageInfo": "管理个人信息、公司信息和账单",
+		"dismiss": "关闭",
+		"personalInfo": "个人信息",
+		"companyInfo": "公司信息",
+		"updating": "更新中...",
+		"updatePersonalInfo": "更新个人信息",
+		"updatePassword": "更新密码",
+		"companyName": "公司名称",
+		"industry": "行业",
+		"website": "公司网站",
+		"updateCompanyInfo": "更新公司信息"
+	},
 	"buttons": {
 		"submit": "提交",
 		"cancel": "取消",

@@ -1,4 +1,4 @@
-# AWS Production Docker Compose Configuration  
+# AWS Production Docker Compose Configuration
 # Note: MongoDB is deployed separately in UAT/Production environments
 # The MONGODB_URI environment variable should point to your external MongoDB instance
 services:
@@ -13,7 +13,7 @@ services:
             ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
             ADMIN_PASSWORD: ${ADMIN_PASSWORD:-password}
         ports:
-            - '80:5050'  # Map internal 5050 to external 80 for direct access
+            - '80:5050' # Map internal 5050 to external 80 for direct access
         restart: unless-stopped
         logging:
             driver: 'json-file'
@@ -23,7 +23,7 @@ services:
         volumes:
             - uploads:/app/uploads
         healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:5050/api/surveys"]
+            test: ['CMD', 'curl', '-f', 'http://localhost:5050/api/surveys']
             interval: 30s
             timeout: 10s
             retries: 3

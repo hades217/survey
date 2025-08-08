@@ -41,7 +41,7 @@ const DroppableQuestionList: React.FC<DroppableQuestionListProps> = ({
 }) => {
 	const { t } = useTranslation();
 	const [draggedQuestionIndex, setDraggedQuestionIndex] = useState<number | null>(null);
-	
+
 	// Debug log (only when questions change)
 	console.log('DroppableQuestionList rendered:', {
 		surveyId,
@@ -49,7 +49,7 @@ const DroppableQuestionList: React.FC<DroppableQuestionListProps> = ({
 		questionsCount: questions.length,
 		loading,
 		firstQuestionId: questions[0]?._id,
-		firstQuestionText: questions[0]?.text?.substring(0, 30)
+		firstQuestionText: questions[0]?.text?.substring(0, 30),
 	});
 
 	const sensors = useSensors(
@@ -90,13 +90,23 @@ const DroppableQuestionList: React.FC<DroppableQuestionListProps> = ({
 		console.log('Moving question from position', oldIndex, 'to position', newIndex);
 
 		if (oldIndex !== newIndex && !isNaN(oldIndex) && !isNaN(newIndex)) {
-			console.log('Original questions order:', questions.map((q, i) => ({ index: i, id: q._id, text: q.text?.substring(0, 20) })));
-			
+			console.log(
+				'Original questions order:',
+				questions.map((q, i) => ({ index: i, id: q._id, text: q.text?.substring(0, 20) }))
+			);
+
 			const newQuestions = arrayMove(questions, oldIndex, newIndex);
-			
-			console.log('New questions order:', newQuestions.map((q, i) => ({ index: i, id: q._id, text: q.text?.substring(0, 20) })));
+
+			console.log(
+				'New questions order:',
+				newQuestions.map((q, i) => ({
+					index: i,
+					id: q._id,
+					text: q.text?.substring(0, 20),
+				}))
+			);
 			console.log('Calling onQuestionsReorder...');
-			
+
 			onQuestionsReorder(newQuestions);
 		} else {
 			console.error('Invalid indices for reorder:', { oldIndex, newIndex });
@@ -121,19 +131,16 @@ const DroppableQuestionList: React.FC<DroppableQuestionListProps> = ({
 
 	if (loading) {
 		return (
-			<div className="mb-4">
-				<div className="flex justify-between items-center mb-3">
-					<h4 className="font-semibold text-gray-800">
+			<div className='mb-4'>
+				<div className='flex justify-between items-center mb-3'>
+					<h4 className='font-semibold text-gray-800'>
 						{t('survey.questions.title', 'Questions')} (...)
 					</h4>
-					<button
-						className="btn-primary text-sm opacity-50 cursor-not-allowed"
-						disabled
-					>
+					<button className='btn-primary text-sm opacity-50 cursor-not-allowed' disabled>
 						+ {t('survey.questions.add', 'Add Question')}
 					</button>
 				</div>
-				<div className="text-center py-8 text-gray-500">
+				<div className='text-center py-8 text-gray-500'>
 					{t('common.loading', 'Loading...')}
 				</div>
 			</div>
@@ -141,64 +148,67 @@ const DroppableQuestionList: React.FC<DroppableQuestionListProps> = ({
 	}
 
 	return (
-		<div className="mb-4">
-			<div className="flex justify-between items-center mb-3">
-				<h4 className="font-semibold text-gray-800">
+		<div className='mb-4'>
+			<div className='flex justify-between items-center mb-3'>
+				<h4 className='font-semibold text-gray-800'>
 					{t('survey.questions.title', 'Questions')} ({questions.length})
 				</h4>
-				<button
-					className="btn-primary text-sm"
-					onClick={onAddQuestion}
-					type="button"
-				>
+				<button className='btn-primary text-sm' onClick={onAddQuestion} type='button'>
 					+ {t('survey.questions.add', 'Add Question')}
 				</button>
 			</div>
 
 			{questions.length === 0 ? (
-				<div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-					<div className="mb-2">
+				<div className='text-center py-8 text-gray-500 bg-gray-50 rounded-lg'>
+					<div className='mb-2'>
 						<svg
-							className="w-12 h-12 mx-auto text-gray-300"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
+							className='w-12 h-12 mx-auto text-gray-300'
+							fill='none'
+							stroke='currentColor'
+							viewBox='0 0 24 24'
 						>
 							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
+								strokeLinecap='round'
+								strokeLinejoin='round'
 								strokeWidth={1}
-								d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+								d='M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
 							/>
 						</svg>
 					</div>
-					<p className="text-lg font-medium text-gray-600 mb-2">
+					<p className='text-lg font-medium text-gray-600 mb-2'>
 						{t('survey.questions.empty.title', 'No questions yet')}
 					</p>
-					<p className="text-sm text-gray-500 mb-4">
-						{t('survey.questions.empty.description', 'Add your first question to get started')}
+					<p className='text-sm text-gray-500 mb-4'>
+						{t(
+							'survey.questions.empty.description',
+							'Add your first question to get started'
+						)}
 					</p>
-					<button
-						className="btn-primary"
-						onClick={onAddQuestion}
-						type="button"
-					>
+					<button className='btn-primary' onClick={onAddQuestion} type='button'>
 						+ {t('survey.questions.add', 'Add Question')}
 					</button>
 				</div>
 			) : (
 				<>
 					{/* Drag and Drop Instructions */}
-					<div className="hidden md:block mb-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-						<p className="text-sm text-blue-700">
-							💡 {t('survey.questions.dragInstructions', 'Tip: Drag questions by the handle (⋮⋮) to reorder them. Changes are saved automatically.')}
+					<div className='hidden md:block mb-3 p-2 bg-blue-50 border border-blue-200 rounded-lg'>
+						<p className='text-sm text-blue-700'>
+							💡{' '}
+							{t(
+								'survey.questions.dragInstructions',
+								'Tip: Drag questions by the handle (⋮⋮) to reorder them. Changes are saved automatically.'
+							)}
 						</p>
 					</div>
 
 					{/* Mobile Instructions */}
-					<div className="md:hidden mb-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-						<p className="text-sm text-blue-700">
-							📱 {t('survey.questions.mobileInstructions', 'Use the up/down arrow buttons to reorder questions on mobile devices.')}
+					<div className='md:hidden mb-3 p-2 bg-blue-50 border border-blue-200 rounded-lg'>
+						<p className='text-sm text-blue-700'>
+							📱{' '}
+							{t(
+								'survey.questions.mobileInstructions',
+								'Use the up/down arrow buttons to reorder questions on mobile devices.'
+							)}
 						</p>
 					</div>
 
@@ -209,7 +219,7 @@ const DroppableQuestionList: React.FC<DroppableQuestionListProps> = ({
 						onDragEnd={handleDragEnd}
 					>
 						<SortableContext items={items} strategy={verticalListSortingStrategy}>
-							<div className="space-y-2">
+							<div className='space-y-2'>
 								{questions.map((question, index) => (
 									<DraggableQuestionItem
 										key={`${surveyId}-question-${index}`}
@@ -230,9 +240,19 @@ const DroppableQuestionList: React.FC<DroppableQuestionListProps> = ({
 
 					{/* Auto-save indicator */}
 					{draggedQuestionIndex !== null && (
-						<div className="mt-2 text-xs text-blue-600 flex items-center gap-1">
-							<svg className="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+						<div className='mt-2 text-xs text-blue-600 flex items-center gap-1'>
+							<svg
+								className='w-3 h-3 animate-spin'
+								fill='none'
+								stroke='currentColor'
+								viewBox='0 0 24 24'
+							>
+								<path
+									strokeLinecap='round'
+									strokeLinejoin='round'
+									strokeWidth={2}
+									d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
+								/>
 							</svg>
 							{t('survey.questions.autoSaving', 'Saving order...')}
 						</div>

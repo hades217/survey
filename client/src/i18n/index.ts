@@ -10,7 +10,7 @@ i18n.use(HttpBackend)
 		fallbackLng: 'en',
 		lng: 'en', // Force default language
 		debug: true, // Enable debug to see what's happening
-		
+
 		// Force reload translations
 		load: 'languageOnly',
 		preload: ['en', 'zh'],

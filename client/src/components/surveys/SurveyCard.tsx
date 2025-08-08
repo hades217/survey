@@ -77,13 +77,16 @@ const SurveyCard: React.FC<SurveyCardProps> = ({ survey }) => {
 									: 'Closed'}
 						</span>
 					</div>
-					<p className='text-gray-600 mb-2 text-sm'>{survey.description || 'No description'}</p>
+					<p className='text-gray-600 mb-2 text-sm'>
+						{survey.description || 'No description'}
+					</p>
 					<div className='flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-gray-500'>
 						<span>
-							{survey.questions?.length || 0} {t('survey.questions')}
+							{survey.questions?.length || 0}{' '}
+							{t('survey.questions.title', 'Questions')}
 						</span>
 						<span>
-							{survey.responseCount || 0} {t('survey.responses')}
+							{survey.responseCount || 0} {t('survey.responses', 'Responses')}
 						</span>
 						<span className='hidden sm:inline'>
 							Created:{' '}
@@ -93,20 +96,26 @@ const SurveyCard: React.FC<SurveyCardProps> = ({ survey }) => {
 						</span>
 						{survey.lastActivity ? (
 							<span className='hidden md:inline'>
-								{t('survey.lastActivity')}:{' '}
+								{t('survey.lastActivity', 'Last activity')}:{' '}
 								{new Date(survey.lastActivity).toLocaleDateString()}
 							</span>
 						) : (
-							<span className='hidden md:inline'>{t('survey.noActivity')}</span>
+							<span className='hidden md:inline'>
+								{t('survey.noActivity', 'No recent activity')}
+							</span>
 						)}
-						{survey.timeLimit && <span className='hidden lg:inline'>Time limit: {survey.timeLimit} minutes</span>}
+						{survey.timeLimit && (
+							<span className='hidden lg:inline'>
+								Time limit: {survey.timeLimit} minutes
+							</span>
+						)}
 					</div>
 				</div>
 
 				{/* Right side: Action buttons */}
 				<div className='flex flex-col sm:flex-row gap-2 flex-shrink-0'>
-					<button 
-						className='btn-primary btn-small' 
+					<button
+						className='btn-primary btn-small'
 						onClick={() => handleSurveyClick(survey)}
 					>
 						Manage

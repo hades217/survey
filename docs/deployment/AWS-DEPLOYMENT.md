@@ -7,6 +7,7 @@
 ### 配置说明
 
 本项目采用**纯Docker部署**，不使用nginx反向代理：
+
 - Docker容器直接监听80端口
 - 简化架构，减少故障点
 - 无需nginx配置
@@ -37,9 +38,9 @@
 
 ```yaml
 services:
-  app:
-    ports:
-      - '80:5050'  # 关键配置：外部80端口映射到内部5050
+    app:
+        ports:
+            - '80:5050' # 关键配置：外部80端口映射到内部5050
 ```
 
 #### 3. 验证DNS配置
@@ -61,6 +62,7 @@ nslookup survey.jiangren.com.au
 ```
 
 该脚本会自动：
+
 - 停止任何冲突的nginx服务
 - 清理80端口占用
 - 使用正确的Docker配置重新部署
@@ -77,28 +79,31 @@ nslookup survey.jiangren.com.au
 ### 验证步骤
 
 1. **SSH到EC2实例验证**：
-   ```bash
-   # 检查容器运行状态
-   docker ps
-   
-   # 测试本地访问
-   curl http://localhost:80
-   curl http://localhost:80/api/surveys
-   ```
+
+    ```bash
+    # 检查容器运行状态
+    docker ps
+
+    # 测试本地访问
+    curl http://localhost:80
+    curl http://localhost:80/api/surveys
+    ```
 
 2. **检查Docker日志**：
-   ```bash
-   docker logs survey-app-1
-   ```
+
+    ```bash
+    docker logs survey-app-1
+    ```
 
 3. **检查端口监听**：
-   ```bash
-   sudo netstat -tlnp | grep :80
-   ```
+    ```bash
+    sudo netstat -tlnp | grep :80
+    ```
 
 ### 常见问题解决
 
 #### 问题1：nginx冲突
+
 如果EC2上安装了nginx并且在运行：
 
 ```bash
@@ -107,6 +112,7 @@ sudo systemctl disable nginx
 ```
 
 #### 问题2：端口被占用
+
 查看80端口占用：
 
 ```bash
@@ -115,6 +121,7 @@ sudo fuser -k 80/tcp  # 强制释放端口
 ```
 
 #### 问题3：Docker端口映射错误
+
 确保使用AWS配置：
 
 ```bash
@@ -167,15 +174,16 @@ Docker自动管理日志轮转，配置在docker-compose.yml中：
 
 ```yaml
 logging:
-  driver: 'json-file'
-  options:
-    max-size: '10m'
-    max-file: '3'
+    driver: 'json-file'
+    options:
+        max-size: '10m'
+        max-file: '3'
 ```
 
 ### 紧急联系
 
 如果问题持续，请检查：
+
 1. AWS控制台中的EC2实例状态
 2. EC2安全组配置
 3. Route53或DNS提供商的解析记录

@@ -66,9 +66,7 @@ const Drawer: React.FC<DrawerProps> = ({ show, title, onClose, children, actions
 					</div>
 
 					{/* Drawer Content */}
-					<div className='flex-1 overflow-y-auto p-6'>
-						{children}
-					</div>
+					<div className='flex-1 overflow-y-auto p-6'>{children}</div>
 
 					{/* Fixed Action Area */}
 					{actions && (

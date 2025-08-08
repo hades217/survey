@@ -154,7 +154,7 @@ responseSchema.methods.createQuestionSnapshots = function (questions, userAnswer
 				// For single choice, compare user answer with correct answer
 				const correctOption = question.options[question.correctAnswer];
 				let correctAnswerText;
-				
+
 				if (typeof correctOption === 'string') {
 					// Check if it's a stringified object
 					if (correctOption.startsWith('{') && correctOption.includes('text:')) {
@@ -176,12 +176,11 @@ responseSchema.methods.createQuestionSnapshots = function (questions, userAnswer
 				} else {
 					correctAnswerText = correctOption?.text || correctOption;
 				}
-				
+
 				isCorrect = userAnswer === correctAnswerText;
-				
 			} else if (question.type === 'multiple_choice') {
 				// For multiple choice, compare arrays
-				const parseOption = (option) => {
+				const parseOption = option => {
 					if (typeof option === 'string') {
 						// Check if it's a stringified object
 						if (option.startsWith('{') && option.includes('text:')) {
@@ -198,7 +197,7 @@ responseSchema.methods.createQuestionSnapshots = function (questions, userAnswer
 						return option?.text || option;
 					}
 				};
-				
+
 				const correctOptions = Array.isArray(question.correctAnswer)
 					? question.correctAnswer.map(idx => parseOption(question.options[idx]))
 					: [parseOption(question.options[question.correctAnswer])];

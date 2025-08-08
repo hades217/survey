@@ -166,7 +166,7 @@ export const useAntiCheating = (options: AntiCheatingOptions = {}) => {
 
 		const contextMenuHandler = (e: MouseEvent) => {
 			if (!enabled || !disableRightClick) return;
-			
+
 			e.preventDefault();
 			e.stopPropagation();
 			showWarning(

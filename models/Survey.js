@@ -174,7 +174,7 @@ const surveySchema = new mongoose.Schema({
 			correctAnswer: {
 				type: mongoose.Schema.Types.Mixed, // Can be Number, [Number], or String
 				default: null,
-				// Validation disabled for reordering compatibility  
+				// Validation disabled for reordering compatibility
 				validate: {
 					validator: function (value) {
 						// Always return true to skip validation during reordering
@@ -299,7 +299,7 @@ const surveySchema = new mongoose.Schema({
 	isPublic: {
 		type: Boolean,
 		default: false,
-		description: 'Whether this survey should be visible in public survey list'
+		description: 'Whether this survey should be visible in public survey list',
 	},
 });
 

@@ -44,13 +44,17 @@ async function saveSurveyResponse(data) {
 					if (question.type === 'single_choice') {
 						// Find the index of the selected option
 						let optionIndex = question.options.indexOf(answer);
-						
+
 						// If not found, check if options are objects with text property or stringified objects
 						if (optionIndex === -1) {
 							optionIndex = question.options.findIndex(opt => {
 								if (typeof opt === 'object') {
 									return opt.text === answer;
-								} else if (typeof opt === 'string' && opt.startsWith('{') && opt.includes('text:')) {
+								} else if (
+									typeof opt === 'string' &&
+									opt.startsWith('{') &&
+									opt.includes('text:')
+								) {
 									try {
 										const textMatch = opt.match(/text:\s*'([^']+)'/);
 										return textMatch ? textMatch[1] === answer : opt === answer;
@@ -62,7 +66,7 @@ async function saveSurveyResponse(data) {
 								}
 							});
 						}
-						
+
 						if (optionIndex !== -1) {
 							processedAnswers.set(index.toString(), optionIndex);
 						}
@@ -76,10 +80,16 @@ async function saveSurveyResponse(data) {
 									idx = question.options.findIndex(option => {
 										if (typeof option === 'object') {
 											return option.text === opt;
-										} else if (typeof option === 'string' && option.startsWith('{') && option.includes('text:')) {
+										} else if (
+											typeof option === 'string' &&
+											option.startsWith('{') &&
+											option.includes('text:')
+										) {
 											try {
 												const textMatch = option.match(/text:\s*'([^']+)'/);
-												return textMatch ? textMatch[1] === opt : option === opt;
+												return textMatch
+													? textMatch[1] === opt
+													: option === opt;
 											} catch (e) {
 												return option === opt;
 											}

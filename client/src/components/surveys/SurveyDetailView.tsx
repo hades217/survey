@@ -175,7 +175,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		title: s.title,
 		sourceType: s.sourceType,
 		questionsCount: s.questions?.length,
-		type: s.type
+		type: s.type,
 	});
 	const currentForm = questionForms[s._id] || {
 		text: '',
@@ -689,27 +689,36 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		console.log('=== FRONTEND REORDER START ===');
 		console.log('Survey ID:', surveyId);
 		console.log('Questions count:', newQuestions.length);
-		console.log('First few questions:', newQuestions.slice(0, 2).map(q => ({ id: q._id, text: q.text?.substring(0, 30) })));
-		
+		console.log(
+			'First few questions:',
+			newQuestions.slice(0, 2).map(q => ({ id: q._id, text: q.text?.substring(0, 30) }))
+		);
+
 		// Set loading state to prevent multiple reorders
 		setLoading(true);
-		
+
 		// Extract question IDs in the new order
-		const questionIds = newQuestions.map(q => {
-			console.log('Processing question:', { id: q._id, hasId: !!q._id, text: q.text?.substring(0, 20) });
-			return q._id;
-		}).filter(id => id != null); // Remove null/undefined IDs
-		
+		const questionIds = newQuestions
+			.map(q => {
+				console.log('Processing question:', {
+					id: q._id,
+					hasId: !!q._id,
+					text: q.text?.substring(0, 20),
+				});
+				return q._id;
+			})
+			.filter(id => id != null); // Remove null/undefined IDs
+
 		console.log('Extracted question IDs:', questionIds);
 		console.log('IDs count:', questionIds.length);
-		
+
 		if (questionIds.length !== newQuestions.length) {
 			console.error('ERROR: Some questions are missing IDs');
 			console.error('Expected:', newQuestions.length, 'Got:', questionIds.length);
 			setError('Some questions are missing IDs - cannot reorder');
 			return;
 		}
-		
+
 		// Validate all IDs are strings and not empty
 		const validIds = questionIds.every(id => typeof id === 'string' && id.length > 0);
 		if (!validIds) {
@@ -718,30 +727,28 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			setError('Invalid question IDs detected');
 			return;
 		}
-		
+
 		try {
 			console.log('=== SENDING API REQUEST ===');
 			console.log('Request payload:', { questionIds });
-			
+
 			// Update backend with just the IDs
 			const response = await api.patch(`/admin/surveys/${surveyId}/questions-reorder`, {
-				questionIds: questionIds
+				questionIds: questionIds,
 			});
-			
+
 			console.log('=== API SUCCESS ===');
 			console.log('API response:', response.data);
 
 			// Optimistically update the local state immediately
 			const updatedSurvey = {
 				...survey,
-				questions: newQuestions
+				questions: newQuestions,
 			};
-			
+
 			// Update the surveys array
-			setSurveys(prev => prev.map(s => 
-				s._id === surveyId ? updatedSurvey : s
-			));
-			
+			setSurveys(prev => prev.map(s => (s._id === surveyId ? updatedSurvey : s)));
+
 			// Also update selectedSurvey if it's the current survey
 			setSelectedSurvey(updatedSurvey);
 
@@ -753,13 +760,16 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			console.error('Request that failed:', {
 				url: `/admin/surveys/${surveyId}/questions-reorder`,
 				method: 'PATCH',
-				data: { questionIds }
+				data: { questionIds },
 			});
-			
-			const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Failed to reorder questions. Please try again.';
+
+			const errorMessage =
+				err.response?.data?.error ||
+				err.response?.data?.message ||
+				'Failed to reorder questions. Please try again.';
 			setError(t('survey.questions.reorderError', errorMessage));
 			alert(`Reorder Error: ${errorMessage}`);
-			
+
 			// Reload surveys on error to restore original state
 			await loadSurveys();
 		} finally {
@@ -1164,9 +1174,11 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 									questions={s.questions || []}
 									surveyId={s._id}
 									surveyType={s.type}
-									onQuestionsReorder={(newQuestions) => handleQuestionsReorder(s._id, newQuestions)}
-									onEditQuestion={(index) => startEditQuestion(s._id, index)}
-									onDeleteQuestion={(index) => deleteQuestion(s._id, index)}
+									onQuestionsReorder={newQuestions =>
+										handleQuestionsReorder(s._id, newQuestions)
+									}
+									onEditQuestion={index => startEditQuestion(s._id, index)}
+									onDeleteQuestion={index => deleteQuestion(s._id, index)}
 									onAddQuestion={() => setShowAddQuestionModal(true)}
 									loading={loading}
 								/>
@@ -1590,6 +1602,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																								{
 																									snapshot.durationInSeconds
 																								}
+
 																									s
 																							</span>
 																							{snapshot.durationInSeconds >
@@ -1639,6 +1652,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 																											.scoring
 																											.pointsAwarded
 																									}
+
 																										/
 																									{
 																										snapshot

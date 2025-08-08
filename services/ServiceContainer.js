@@ -61,25 +61,25 @@ class ServiceContainer {
 const serviceContainer = new ServiceContainer();
 
 // Register services
-serviceContainer.register('paymentService', (container) => {
+serviceContainer.register('paymentService', container => {
 	const StripePaymentService = require('./StripePaymentService');
 	return new StripePaymentService();
 });
 
-serviceContainer.register('subscriptionService', (container) => {
+serviceContainer.register('subscriptionService', container => {
 	const SubscriptionService = require('./SubscriptionService');
 	const paymentService = container.resolve('paymentService');
 	return new SubscriptionService(paymentService);
 });
 
-serviceContainer.register('subscriptionController', (container) => {
+serviceContainer.register('subscriptionController', container => {
 	const SubscriptionController = require('../controllers/SubscriptionController');
 	const subscriptionService = container.resolve('subscriptionService');
 	const paymentService = container.resolve('paymentService');
 	return new SubscriptionController(subscriptionService, paymentService);
 });
 
-serviceContainer.register('subscriptionConfig', (container) => {
+serviceContainer.register('subscriptionConfig', container => {
 	const SubscriptionConfig = require('../config/SubscriptionConfig');
 	return new SubscriptionConfig();
 });
