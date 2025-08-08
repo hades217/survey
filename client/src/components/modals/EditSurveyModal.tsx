@@ -464,6 +464,42 @@ const EditSurveyModal: React.FC = () => {
 					)}
 				</div>
 
+			{/* Navigation settings available for all types */}
+			<div className='bg-gray-50 rounded-lg p-4 space-y-2'>
+				<h4 className='font-medium text-gray-800'>Navigation</h4>
+				<div>
+					<label className='block text-sm font-medium text-gray-700 mb-2'>
+						Navigation Mode
+					</label>
+					<select
+						className='input-field'
+						value={editForm.navigationMode || 'step-by-step'}
+						onChange={e =>
+							setEditForm({
+								...editForm,
+								navigationMode: e.target.value as
+									| 'step-by-step'
+									| 'paginated'
+									| 'all-in-one'
+									| 'one-question-per-page',
+							})
+						}
+					>
+						<option value='step-by-step'>Step-by-step (Recommended)</option>
+						<option value='paginated'>Paginated</option>
+						<option value='all-in-one'>All-in-one</option>
+						<option value='one-question-per-page'>
+							One Question Per Page (Typeform-like)
+						</option>
+					</select>
+					<div className='text-xs text-gray-500 mt-1'>
+						Choose how questions are displayed to users: Step-by-step (classic), One
+						Question Per Page (Typeform-like with progress bar), Paginated, or
+						All-in-one
+					</div>
+				</div>
+			</div>
+
 				{/* Enhanced settings for quiz/assessment/iq */}
 				{['quiz', 'assessment', 'iq'].includes(editForm.type) && (
 					<div className='bg-blue-50 rounded-lg p-4 space-y-4'>
@@ -515,37 +551,7 @@ const EditSurveyModal: React.FC = () => {
 							</div>
 						</div>
 
-						<div>
-							<label className='block text-sm font-medium text-gray-700 mb-2'>
-								Navigation Mode
-							</label>
-							<select
-								className='input-field'
-								value={editForm.navigationMode}
-								onChange={e =>
-									setEditForm({
-										...editForm,
-										navigationMode: e.target.value as
-											| 'step-by-step'
-											| 'paginated'
-											| 'all-in-one'
-											| 'one-question-per-page',
-									})
-								}
-							>
-								<option value='step-by-step'>Step-by-step (Recommended)</option>
-								<option value='paginated'>Paginated</option>
-								<option value='all-in-one'>All-in-one</option>
-								<option value='one-question-per-page'>
-									One Question Per Page (Typeform-like)
-								</option>
-							</select>
-							<div className='text-xs text-gray-500 mt-1'>
-								Choose how questions are displayed to users: Step-by-step (classic),
-								One Question Per Page (Typeform-like with progress bar), Paginated,
-								or All-in-one
-							</div>
-						</div>
+
 
 						<div>
 							<label className='block text-sm font-medium text-gray-700 mb-2'>

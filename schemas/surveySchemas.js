@@ -97,7 +97,9 @@ const surveyCreateSchema = z
 		timeLimit: z.number().positive().optional(), // in minutes
 		maxAttempts: z.number().positive().default(1),
 		instructions: z.string().optional(),
-		navigationMode: z.enum(['step-by-step', 'paginated', 'all-in-one']).default('step-by-step'),
+		navigationMode: z
+			.enum(['step-by-step', 'paginated', 'all-in-one', 'one-question-per-page'])
+			.default('step-by-step'),
 		sourceType: z.enum(VALID_SOURCE_TYPES).default(SOURCE_TYPE.MANUAL).optional(),
 		questionBankId: z.string().min(1).optional(),
 		questionCount: z.number().positive().optional(),

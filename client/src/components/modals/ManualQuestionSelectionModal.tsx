@@ -3,6 +3,7 @@ import { useQuestionBanks } from '../../hooks/useQuestionBanks';
 import Modal from '../Modal';
 import axios from 'axios';
 import { QUESTION_TYPE, type QuestionType } from '../../constants';
+import type { SelectedQuestion } from '../../types/api';
 
 interface Question {
 	_id: string;
@@ -20,12 +21,6 @@ interface QuestionBankInfo {
 	_id: string;
 	name: string;
 	description?: string;
-}
-
-interface SelectedQuestion {
-	questionBankId: string;
-	questionId: string;
-	questionSnapshot?: Question;
 }
 
 interface ManualQuestionSelectionModalProps {

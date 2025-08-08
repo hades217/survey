@@ -6,6 +6,7 @@ import { useQuestionBanks } from '../../hooks/useQuestionBanks';
 import Drawer from '../Drawer';
 import MultiQuestionBankModal from './MultiQuestionBankModal';
 import ManualQuestionSelectionModal from './ManualQuestionSelectionModal';
+import type { SelectedQuestion, MultiQuestionBankConfig } from '../../types/api';
 import { SOURCE_TYPE, SURVEY_TYPE } from '../../constants';
 import {
 	ClipboardDocumentListIcon,
@@ -91,17 +92,19 @@ const CreateSurveyModal: React.FC = () => {
 		}));
 	};
 
-	const isAssessmentType = [SURVEY_TYPE.QUIZ, SURVEY_TYPE.ASSESSMENT, SURVEY_TYPE.IQ].includes(
-		newSurvey.type
+	const isAssessmentType = (
+		newSurvey.type === SURVEY_TYPE.QUIZ ||
+		newSurvey.type === SURVEY_TYPE.ASSESSMENT ||
+		newSurvey.type === SURVEY_TYPE.IQ
 	);
 
-	const handleMultiBankSave = (config: unknown[]) => {
-		setNewSurvey(prev => ({ ...prev, multiQuestionBankConfig: config }));
-	};
+const handleMultiBankSave = (config: MultiQuestionBankConfig[]) => {
+    setNewSurvey(prev => ({ ...prev, multiQuestionBankConfig: config }));
+};
 
-	const handleManualSelectionSave = (selectedQuestions: unknown[]) => {
-		setNewSurvey(prev => ({ ...prev, selectedQuestions }));
-	};
+const handleManualSelectionSave = (selectedQuestions: SelectedQuestion[]) => {
+    setNewSurvey(prev => ({ ...prev, selectedQuestions }));
+};
 
 	return (
 		<Drawer
@@ -377,8 +380,8 @@ const CreateSurveyModal: React.FC = () => {
 									{newSurvey.multiQuestionBankConfig &&
 									newSurvey.multiQuestionBankConfig.length > 0 ? (
 											<div className='space-y-2'>
-												{newSurvey.multiQuestionBankConfig.map(
-													(config: unknown, index: number) => {
+						{newSurvey.multiQuestionBankConfig.map(
+							(config, index: number) => {
 														const bank = questionBanks.find(
 															b => b._id === config.questionBankId
 														);
@@ -424,9 +427,8 @@ const CreateSurveyModal: React.FC = () => {
 													{t('createModal.questionSource.totalQuestions', {
 														defaultValue: 'Total:',
 													})}{' '}
-													{newSurvey.multiQuestionBankConfig.reduce(
-														(sum: number, config: unknown) =>
-															sum + config.questionCount,
+							{newSurvey.multiQuestionBankConfig.reduce(
+								(sum: number, config) => sum + config.questionCount,
 														0
 													)}{' '}
 													{t('createModal.questionSource.questions', {
@@ -503,6 +505,36 @@ const CreateSurveyModal: React.FC = () => {
 					</div>
 				</div>
 
+				{/* Display / Navigation */}
+				<div>
+					<h3 className='text-lg font-medium text-gray-900 mb-4'>
+						{t('createModal.assessmentConfig.navigationMode', { defaultValue: 'Navigation Mode' })}
+					</h3>
+					<div>
+						<label className='block text-sm font-medium text-gray-700 mb-1'>
+							{t('createModal.assessmentConfig.navigationMode', { defaultValue: 'Navigation Mode' })}
+						</label>
+						<select
+							value={newSurvey.navigationMode}
+							onChange={e => handleInputChange('navigationMode', e.target.value)}
+							className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+						>
+							<option value='step-by-step'>
+								{t('createModal.assessmentConfig.stepByStep', { defaultValue: 'Step by Step' })}
+							</option>
+							<option value='paginated'>
+								{t('createModal.assessmentConfig.paginated', { defaultValue: 'Paginated' })}
+							</option>
+							<option value='all-in-one'>
+								{t('createModal.assessmentConfig.allInOne', { defaultValue: 'All in One' })}
+							</option>
+							<option value='one-question-per-page'>
+								{t('createModal.assessmentConfig.oneQuestionPerPage', { defaultValue: 'One Question Per Page (Typeform-like)' })}
+							</option>
+						</select>
+					</div>
+				</div>
+
 				{/* Assessment Configuration */}
 				{isAssessmentType && (
 					<div>
@@ -554,41 +586,7 @@ const CreateSurveyModal: React.FC = () => {
 								/>
 							</div>
 
-							<div>
-								<label className='block text-sm font-medium text-gray-700 mb-1'>
-									{t('createModal.assessmentConfig.navigationMode', {
-										defaultValue: 'Navigation Mode',
-									})}
-								</label>
-								<select
-									value={newSurvey.navigationMode}
-									onChange={e =>
-										handleInputChange('navigationMode', e.target.value)
-									}
-									className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-								>
-									<option value='step-by-step'>
-										{t('createModal.assessmentConfig.stepByStep', {
-											defaultValue: 'Step by Step',
-										})}
-									</option>
-									<option value='paginated'>
-										{t('createModal.assessmentConfig.paginated', {
-											defaultValue: 'Paginated',
-										})}
-									</option>
-									<option value='all-in-one'>
-										{t('createModal.assessmentConfig.allInOne', {
-											defaultValue: 'All in One',
-										})}
-									</option>
-									<option value='one-question-per-page'>
-										{t('createModal.assessmentConfig.oneQuestionPerPage', {
-											defaultValue: 'One Question Per Page (Typeform-like)',
-										})}
-									</option>
-								</select>
-							</div>
+
 
 							<div>
 								<label className='block text-sm font-medium text-gray-700 mb-1'>
