@@ -5,12 +5,12 @@ services:
           dockerfile: Dockerfile.uat
       environment:
           MONGODB_URI: ${MONGODB_URI}
-          PORT: ${PORT:-5174}
+          PORT: ${PORT:-5050}
           NODE_ENV: uat
           ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
           ADMIN_PASSWORD: ${ADMIN_PASSWORD:-password}
       ports:
-          - '${PORT:-5174}:${PORT:-5173}'
+          - '${PORT:-5050}:${PORT:-5050}'
       restart: unless-stopped
       logging:
           driver: 'json-file'

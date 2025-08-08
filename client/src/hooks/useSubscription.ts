@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '../utils/axiosConfig';
 
 interface SubscriptionInfo {
 	subscriptionTier: 'free' | 'basic' | 'pro' | null;
@@ -72,9 +72,7 @@ export const useSubscription = () => {
 				return;
 			}
 
-			const response = await axios.get('/api/stripe/subscription-status', {
-				headers: { Authorization: `Bearer ${token}` },
-			});
+			const response = await api.get('/stripe/subscription-status');
 
 			setSubscriptionInfo(response.data);
 			setError(null);

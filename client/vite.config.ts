@@ -17,10 +17,11 @@ export default defineConfig({
 	},
 	server: {
 		host: '0.0.0.0',
-		port: 5173,
+		port: 5051, // Frontend port
 		proxy: {
+			// Proxy API requests to backend in development
 			'/api': {
-				target: 'http://backend:5050',
+				target: 'http://localhost:5050', // Backend running on port 5050
 				changeOrigin: true,
 				secure: false,
 			},

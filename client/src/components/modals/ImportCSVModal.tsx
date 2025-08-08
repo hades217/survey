@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import api from '../../utils/axiosConfig';
 
 interface ImportCSVModalProps {
 	isOpen: boolean;
@@ -59,9 +60,10 @@ const ImportCSVModal: React.FC<ImportCSVModalProps> = ({ isOpen, onClose, onImpo
 	// 新增更兼容的下载模板方法
 	const handleDownloadTemplate = async () => {
 		try {
-			const response = await fetch('/api/admin/question-banks/csv-template/download');
-			if (!response.ok) throw new Error('下载失败');
-			const blob = await response.blob();
+			const response = await api.get('/admin/question-banks/csv-template/download', {
+				responseType: 'blob'
+			});
+			const blob = response.data;
 			const url = window.URL.createObjectURL(blob);
 			const a = document.createElement('a');
 			a.href = url;

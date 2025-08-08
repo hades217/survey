@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from './utils/axiosConfig';
 
 interface Question {
 	id: string;
@@ -13,7 +13,7 @@ const Survey: React.FC = () => {
 	const [submitted, setSubmitted] = useState(false);
 
 	useEffect(() => {
-		axios.get<Question[]>('/api/questions').then(res => setQuestions(res.data));
+		api.get<Question[]>('/questions').then(res => setQuestions(res.data));
 	}, []);
 
 	const handleChange = (id: string, value: string) => {
@@ -22,7 +22,7 @@ const Survey: React.FC = () => {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		await axios.post('/api/response', formData);
+		await api.post('/response', formData);
 		setSubmitted(true);
 	};
 
