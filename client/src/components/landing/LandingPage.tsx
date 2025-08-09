@@ -10,15 +10,15 @@ import LandingNavbar from './LandingNavbar';
 
 const LandingPage: React.FC = () => {
 	return (
-		<div className="min-h-screen bg-white">
+		<div className='min-h-screen bg-white'>
 			<LandingNavbar />
 			<main>
 				<Hero />
-				<section id="features">
+				<section id='features'>
 					<Features />
 				</section>
 				<UseCases />
-				<section id="pricing">
+				<section id='pricing'>
 					<Pricing />
 				</section>
 				<Testimonials />

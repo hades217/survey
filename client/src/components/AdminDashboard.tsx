@@ -46,7 +46,7 @@ const AdminDashboard: React.FC = () => {
 		<div className='min-h-screen bg-gradient-to-br from-gray-50 to-gray-100'>
 			{/* Top Navigation */}
 			<AdminNavbar />
-			
+
 			{/* Main Content */}
 			<div className='w-full mx-auto px-4 pt-8' style={{ maxWidth: '1440px' }}>
 				<AdminHeader />

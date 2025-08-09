@@ -3,6 +3,7 @@
 ## 📁 文件夹组织结构
 
 ### 🧪 test/ - 测试文件
+
 包含所有测试脚本和测试相关文件：
 
 ```
@@ -34,6 +35,7 @@ test/
 ```
 
 ### 📚 docs/ - 技术文档
+
 按功能分类的技术文档：
 
 ```
@@ -93,6 +95,7 @@ docs/
 ```
 
 ### 📋 rules/ - 编码规则和标准
+
 项目的编码规范和规则：
 
 ```
@@ -106,6 +109,7 @@ rules/
 ## 🗂️ 其他重要文件夹
 
 ### 源代码
+
 - `client/` - 前端React应用
 - `models/` - 数据模型
 - `routes/` - API路由
@@ -115,11 +119,13 @@ rules/
 - `utils/` - 工具函数
 
 ### 配置文件
+
 - `config/` - 配置文件
 - `schemas/` - 数据schema
 - `shared/` - 共享代码
 
 ### 部署文件
+
 - `Dockerfile.backend` - 后端Docker配置
 - `Dockerfile.frontend` - 前端Docker配置
 - `docker-compose.yml` - Docker Compose配置
@@ -128,28 +134,33 @@ rules/
 ## 📝 文件命名规范
 
 ### 测试文件
+
 - 格式：`test_[功能名称].js`
 - 调试脚本：`debug_[问题描述].js`
 - 示例：`test_user_registration.js`, `debug_backend_login.js`
 
 ### 文档文件
+
 - 格式：`[功能名称]_[文档类型].md`
 - 全大写用于重要配置：`README.md`, `DEPLOYMENT_GUIDE.md`
 - 示例：`user_registration_guide.md`, `API_DOCUMENTATION.md`
 
 ### 配置文件
+
 - Docker: `Dockerfile.[service]`, `docker-compose.[env].yml`
 - 示例：`Dockerfile.backend`, `docker-compose.prod.yml`
 
 ## 🚀 使用指南
 
 ### 添加新测试
+
 ```bash
 # 在test/文件夹下创建新的测试文件
 touch test/test_new_feature.js
 ```
 
 ### 添加新文档
+
 ```bash
 # 根据文档类型放入对应文件夹
 touch docs/features/NEW_FEATURE.md
@@ -157,6 +168,7 @@ touch docs/implementation/NEW_IMPLEMENTATION.md
 ```
 
 ### 添加新规则
+
 ```bash
 # 在rules/文件夹下添加编码规范
 touch rules/NEW_CODING_STANDARD.md

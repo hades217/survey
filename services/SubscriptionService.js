@@ -88,7 +88,9 @@ class SubscriptionService extends ISubscriptionService {
 			const planType = session.metadata.planType;
 
 			if (session.mode === 'subscription' && userId && planType) {
-				const subscription = await this.paymentService.getSubscriptionDetails(session.subscription);
+				const subscription = await this.paymentService.getSubscriptionDetails(
+					session.subscription
+				);
 				await this.updateUserSubscription(userId, subscription, planType);
 			}
 		} catch (error) {
@@ -104,7 +106,9 @@ class SubscriptionService extends ISubscriptionService {
 	 */
 	async handleSubscriptionUpdated(subscription) {
 		try {
-			const customer = await this.paymentService.stripe.customers.retrieve(subscription.customer);
+			const customer = await this.paymentService.stripe.customers.retrieve(
+				subscription.customer
+			);
 			const userId = customer.metadata.userId;
 
 			if (userId) {
@@ -124,7 +128,9 @@ class SubscriptionService extends ISubscriptionService {
 	 */
 	async handleSubscriptionDeleted(subscription) {
 		try {
-			const customer = await this.paymentService.stripe.customers.retrieve(subscription.customer);
+			const customer = await this.paymentService.stripe.customers.retrieve(
+				subscription.customer
+			);
 			const userId = customer.metadata.userId;
 
 			if (userId) {
@@ -151,8 +157,12 @@ class SubscriptionService extends ISubscriptionService {
 	async handlePaymentSucceeded(invoice) {
 		try {
 			if (invoice.subscription) {
-				const subscription = await this.paymentService.getSubscriptionDetails(invoice.subscription);
-				const customer = await this.paymentService.stripe.customers.retrieve(subscription.customer);
+				const subscription = await this.paymentService.getSubscriptionDetails(
+					invoice.subscription
+				);
+				const customer = await this.paymentService.stripe.customers.retrieve(
+					subscription.customer
+				);
 				const userId = customer.metadata.userId;
 
 				if (userId) {
@@ -174,8 +184,12 @@ class SubscriptionService extends ISubscriptionService {
 	async handlePaymentFailed(invoice) {
 		try {
 			if (invoice.subscription) {
-				const subscription = await this.paymentService.getSubscriptionDetails(invoice.subscription);
-				const customer = await this.paymentService.stripe.customers.retrieve(subscription.customer);
+				const subscription = await this.paymentService.getSubscriptionDetails(
+					invoice.subscription
+				);
+				const customer = await this.paymentService.stripe.customers.retrieve(
+					subscription.customer
+				);
 				const userId = customer.metadata.userId;
 
 				if (userId) {

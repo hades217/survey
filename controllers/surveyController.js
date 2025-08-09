@@ -28,9 +28,19 @@ async function submitSurveyResponse(req, res) {
 		const data = surveyResponseSchema.parse(requestData);
 		const saved = await saveSurveyResponse(data);
 
+		// For assessments, include scoring data in response
+		let responseData = saved;
+		if (saved && saved.score && saved.questionSnapshots) {
+			responseData = {
+				...saved,
+				scoring: saved.score,
+				questionSnapshots: saved.questionSnapshots,
+			};
+		}
+
 		res.status(HTTP_STATUS.CREATED).json({
 			success: true,
-			data: saved,
+			data: responseData,
 			message: 'Response submitted successfully',
 		});
 	} catch (error) {

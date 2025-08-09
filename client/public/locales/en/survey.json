@@ -55,6 +55,66 @@
 		"placeholders": {
 			"enterName": "Please enter your name",
 			"enterEmail": "Please enter your email"
+		},
+		"completed": {
+			"title": "Assessment Completed!",
+			"message": "Thank you for completing the assessment. Your responses have been submitted successfully.",
+			"success": "Submission Successful"
 		}
+	},
+	"responses": "Responses",
+	"lastActivity": "Last activity",
+	"noActivity": "No recent activity",
+	"createSurvey": "Create Survey",
+	"questions": {
+		"title": "Questions",
+		"add": "Add Question",
+		"edit": "Edit",
+		"delete": "Delete",
+		"moveUp": "Move up",
+		"moveDown": "Move down",
+		"hasImage": "Has Image",
+		"points": "pts",
+		"options": "Options",
+		"expectedAnswer": "Expected Answer",
+		"dragInstructions": "Tip: Drag questions by the handle (⋮⋮) to reorder them. Changes are saved automatically.",
+		"mobileInstructions": "Use the up/down arrow buttons to reorder questions on mobile devices.",
+		"autoSaving": "Saving order...",
+		"reorderError": "Failed to reorder questions. Please try again.",
+		"empty": {
+			"title": "No questions yet",
+			"description": "Add your first question to get started"
+		},
+		"type": {
+			"multipleChoice": "Multiple Choice",
+			"singleChoice": "Single Choice",
+			"shortText": "Short Text",
+			"textResponse": "Type: Text Response"
+		}
+	},
+	"dragHandle": {
+		"tooltip": "Drag to reorder"
+	},
+	"common": {
+		"loading": "Loading..."
+	},
+	"navigation": {
+		"previous": "Previous",
+		"next": "Next",
+		"submit": "Submit Survey",
+		"submitting": "Submitting...",
+		"progress": "Question {{current}} of {{total}}"
+	},
+	"oneQuestionPerPage": {
+		"noQuestions": "No questions available",
+		"noQuestionsDescription": "Please check back later.",
+		"questionTitle": "Question {{number}}",
+		"progressText": "{{current}} of {{total}} questions",
+		"questionImage": "Question image",
+		"descriptionImage": "Question illustration",
+		"textPlaceholder": "Share your thoughts here...",
+		"optionImage": "Option {{number}}",
+		"answerRequired": "Please provide an answer to continue.",
+		"keyboardHint": "Tip: Press Enter to proceed to the next question"
 	}
 }

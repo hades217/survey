@@ -12,6 +12,8 @@ import type {
 	SourceType,
 	ScoringMode,
 	QuestionDifficulty,
+    SelectedQuestion,
+    MultiQuestionBankConfig,
 } from './api';
 
 // 前端特有的Survey接口，继承API接口
@@ -100,33 +102,12 @@ export interface NewSurveyForm {
 	timeLimit?: number;
 	maxAttempts?: number;
 	instructions?: string;
-	navigationMode?: 'step-by-step' | 'paginated' | 'all-in-one';
+		navigationMode?: 'step-by-step' | 'paginated' | 'all-in-one' | 'one-question-per-page';
 	sourceType?: 'manual' | 'question_bank' | 'multi_question_bank' | 'manual_selection';
 	questionBankId?: string;
 	questionCount?: number;
-	multiQuestionBankConfig?: {
-		questionBankId: string;
-		questionCount: number;
-		filters?: {
-			tags?: string[];
-			difficulty?: 'easy' | 'medium' | 'hard';
-			questionTypes?: ('single_choice' | 'multiple_choice' | 'short_text')[];
-		};
-	}[];
-	selectedQuestions?: {
-		questionBankId: string;
-		questionId: string;
-		questionSnapshot?: {
-			text: string;
-			type: string;
-			options?: string[];
-			correctAnswer?: unknown;
-			explanation?: string;
-			points?: number;
-			tags?: string[];
-			difficulty?: string;
-		};
-	}[];
+    multiQuestionBankConfig?: MultiQuestionBankConfig[];
+    selectedQuestions?: SelectedQuestion[];
 	scoringSettings?: {
 		scoringMode: 'percentage' | 'accumulated';
 		totalPoints: number;

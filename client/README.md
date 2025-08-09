@@ -5,6 +5,7 @@ This is the frontend application for SigmaQ Survey Platform built with React, Ty
 ## Development Setup
 
 ### Prerequisites
+
 - Node.js (v16 or higher)
 - npm or yarn
 - Backend API running on port 5050
@@ -28,12 +29,12 @@ The frontend will run on **http://localhost:5051**
 The application uses environment variables for configuration:
 
 - **Development** (`.env.development`):
-  - `VITE_API_BASE_URL`: Backend API URL (default: http://localhost:5050/api)
-  - `VITE_APP_URL`: Frontend URL (default: http://localhost:5051)
+    - `VITE_API_BASE_URL`: Backend API URL (default: http://localhost:5050/api)
+    - `VITE_APP_URL`: Frontend URL (default: http://localhost:5051)
 
 - **Production** (`.env.production`):
-  - `VITE_API_BASE_URL`: Your production API endpoint
-  - `VITE_APP_URL`: Your production frontend URL
+    - `VITE_API_BASE_URL`: Your production API endpoint
+    - `VITE_APP_URL`: Your production frontend URL
 
 ### Frontend-Backend Separation
 
@@ -55,9 +56,10 @@ The built files will be in the `dist` directory, ready to be deployed to S3 or a
 ### Deploying to S3
 
 1. Build the application:
-   ```bash
-   npm run build
-   ```
+
+    ```bash
+    npm run build
+    ```
 
 2. Configure your S3 bucket for static website hosting
 

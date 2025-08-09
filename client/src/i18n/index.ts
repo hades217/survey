@@ -8,7 +8,12 @@ i18n.use(HttpBackend)
 	.use(initReactI18next)
 	.init({
 		fallbackLng: 'en',
+		lng: 'en', // Force default language
 		debug: true, // Enable debug to see what's happening
+
+		// Force reload translations
+		load: 'languageOnly',
+		preload: ['en', 'zh'],
 
 		interpolation: {
 			escapeValue: false, // React already does escaping
@@ -16,6 +21,11 @@ i18n.use(HttpBackend)
 
 		backend: {
 			loadPath: '/locales/{{lng}}/{{ns}}.json',
+			// Add cache busting and error handling
+			addPath: '/locales/add/{{lng}}/{{ns}}',
+			allowMultiLoading: false,
+			parse: (data: string) => JSON.parse(data),
+			crossDomain: false,
 		},
 
 		detection: {

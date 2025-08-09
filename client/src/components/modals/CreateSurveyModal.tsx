@@ -6,12 +6,13 @@ import { useQuestionBanks } from '../../hooks/useQuestionBanks';
 import Drawer from '../Drawer';
 import MultiQuestionBankModal from './MultiQuestionBankModal';
 import ManualQuestionSelectionModal from './ManualQuestionSelectionModal';
+import type { SelectedQuestion, MultiQuestionBankConfig } from '../../types/api';
 import { SOURCE_TYPE, SURVEY_TYPE } from '../../constants';
-import { 
-	ClipboardDocumentListIcon, 
-	AcademicCapIcon, 
-	CheckBadgeIcon, 
-	PuzzlePieceIcon 
+import {
+	ClipboardDocumentListIcon,
+	AcademicCapIcon,
+	CheckBadgeIcon,
+	PuzzlePieceIcon,
 } from '@heroicons/react/24/outline';
 
 const CreateSurveyModal: React.FC = () => {
@@ -26,28 +27,36 @@ const CreateSurveyModal: React.FC = () => {
 	const surveyTypeOptions = [
 		{
 			value: SURVEY_TYPE.SURVEY,
-			label: t('createModal.surveyTypes.survey.label'),
+			label: t('createModal.surveyTypes.survey.label', { defaultValue: 'Survey' }),
 			icon: ClipboardDocumentListIcon,
-			description: t('createModal.surveyTypes.survey.description')
+			description: t('createModal.surveyTypes.survey.description', {
+				defaultValue: 'Collect feedback and opinions',
+			}),
 		},
 		{
 			value: SURVEY_TYPE.QUIZ,
-			label: t('createModal.surveyTypes.quiz.label'),
+			label: t('createModal.surveyTypes.quiz.label', { defaultValue: 'Quiz' }),
 			icon: PuzzlePieceIcon,
-			description: t('createModal.surveyTypes.quiz.description')
+			description: t('createModal.surveyTypes.quiz.description', {
+				defaultValue: 'Test knowledge with scoring',
+			}),
 		},
 		{
 			value: SURVEY_TYPE.ASSESSMENT,
-			label: t('createModal.surveyTypes.assessment.label'),
+			label: t('createModal.surveyTypes.assessment.label', { defaultValue: 'Assessment' }),
 			icon: CheckBadgeIcon,
-			description: t('createModal.surveyTypes.assessment.description')
+			description: t('createModal.surveyTypes.assessment.description', {
+				defaultValue: 'Professional evaluation tool',
+			}),
 		},
 		{
 			value: SURVEY_TYPE.IQ,
-			label: t('createModal.surveyTypes.iq.label'),
+			label: t('createModal.surveyTypes.iq.label', { defaultValue: 'IQ Test' }),
 			icon: AcademicCapIcon,
-			description: t('createModal.surveyTypes.iq.description')
-		}
+			description: t('createModal.surveyTypes.iq.description', {
+				defaultValue: 'Intelligence assessment',
+			}),
+		},
 	];
 
 	// Modal states for multi-question selection
@@ -83,23 +92,25 @@ const CreateSurveyModal: React.FC = () => {
 		}));
 	};
 
-	const isAssessmentType = [SURVEY_TYPE.QUIZ, SURVEY_TYPE.ASSESSMENT, SURVEY_TYPE.IQ].includes(
-		newSurvey.type
+	const isAssessmentType = (
+		newSurvey.type === SURVEY_TYPE.QUIZ ||
+		newSurvey.type === SURVEY_TYPE.ASSESSMENT ||
+		newSurvey.type === SURVEY_TYPE.IQ
 	);
 
-	const handleMultiBankSave = (config: unknown[]) => {
-		setNewSurvey(prev => ({ ...prev, multiQuestionBankConfig: config }));
-	};
+const handleMultiBankSave = (config: MultiQuestionBankConfig[]) => {
+    setNewSurvey(prev => ({ ...prev, multiQuestionBankConfig: config }));
+};
 
-	const handleManualSelectionSave = (selectedQuestions: unknown[]) => {
-		setNewSurvey(prev => ({ ...prev, selectedQuestions }));
-	};
+const handleManualSelectionSave = (selectedQuestions: SelectedQuestion[]) => {
+    setNewSurvey(prev => ({ ...prev, selectedQuestions }));
+};
 
 	return (
 		<Drawer
 			show={showCreateModal}
 			onClose={() => setShowCreateModal(false)}
-			title={t('createModal.title')}
+			title={t('createModal.title', { defaultValue: 'Create New Survey' })}
 			actions={
 				<div className='flex justify-end space-x-3'>
 					<button
@@ -107,7 +118,7 @@ const CreateSurveyModal: React.FC = () => {
 						onClick={() => setShowCreateModal(false)}
 						className='btn-secondary'
 					>
-						{t('createModal.cancel')}
+						{t('createModal.cancel', { defaultValue: 'Cancel' })}
 					</button>
 					<button
 						type='submit'
@@ -115,7 +126,9 @@ const CreateSurveyModal: React.FC = () => {
 						disabled={loading}
 						className='btn-primary disabled:opacity-50 disabled:cursor-not-allowed'
 					>
-						{loading ? t('createModal.creating') : t('createModal.createButton')}
+						{loading
+							? t('createModal.creating', { defaultValue: 'Creating...' })
+							: t('createModal.createButton', { defaultValue: 'Create Survey' })}
 					</button>
 				</div>
 			}
@@ -123,11 +136,15 @@ const CreateSurveyModal: React.FC = () => {
 			<form id='create-survey-form' onSubmit={createSurvey} className='space-y-6'>
 				{/* Basic Information */}
 				<div>
-					<h3 className='text-lg font-medium text-gray-900 mb-4'>{t('createModal.basicInfo.title')}</h3>
+					<h3 className='text-lg font-medium text-gray-900 mb-4'>
+						{t('createModal.basicInfo.title', { defaultValue: 'Basic Information' })}
+					</h3>
 					<div className='space-y-4'>
 						<div>
 							<label className='block text-sm font-medium text-gray-700 mb-1'>
-								{t('createModal.basicInfo.titleRequired')}
+								{t('createModal.basicInfo.titleRequired', {
+									defaultValue: 'Title *',
+								})}
 							</label>
 							<input
 								type='text'
@@ -135,32 +152,40 @@ const CreateSurveyModal: React.FC = () => {
 								value={newSurvey.title}
 								onChange={e => handleInputChange('title', e.target.value)}
 								className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-								placeholder={t('createModal.basicInfo.titlePlaceholder')}
+								placeholder={t('createModal.basicInfo.titlePlaceholder', {
+									defaultValue: 'Enter survey title',
+								})}
 							/>
 						</div>
 
 						<div>
 							<label className='block text-sm font-medium text-gray-700 mb-1'>
-								{t('createModal.basicInfo.description')}
+								{t('createModal.basicInfo.description', {
+									defaultValue: 'Description',
+								})}
 							</label>
 							<textarea
 								value={newSurvey.description}
 								onChange={e => handleInputChange('description', e.target.value)}
 								className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 								rows={3}
-								placeholder={t('createModal.basicInfo.descriptionPlaceholder')}
+								placeholder={t('createModal.basicInfo.descriptionPlaceholder', {
+									defaultValue: 'Describe your survey',
+								})}
 							/>
 						</div>
 
 						<div>
 							<label className='block text-sm font-medium text-gray-700 mb-3'>
-								{t('createModal.basicInfo.typeRequired')}
+								{t('createModal.basicInfo.typeRequired', {
+									defaultValue: 'Type *',
+								})}
 							</label>
 							<div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-								{surveyTypeOptions.map((option) => {
+								{surveyTypeOptions.map(option => {
 									const IconComponent = option.icon;
 									const isSelected = newSurvey.type === option.value;
-									
+
 									return (
 										<label
 											key={option.value}
@@ -171,37 +196,53 @@ const CreateSurveyModal: React.FC = () => {
 											}`}
 										>
 											<input
-												type="radio"
-												name="surveyType"
+												type='radio'
+												name='surveyType'
 												value={option.value}
 												checked={isSelected}
-												onChange={(e) => handleInputChange('type', e.target.value)}
-												className="sr-only"
+												onChange={e =>
+													handleInputChange('type', e.target.value)
+												}
+												className='sr-only'
 											/>
-											<div className="flex items-start space-x-3 w-full">
-												<div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
-													isSelected 
-														? 'bg-[#FF5A5F] text-white' 
-														: 'bg-gray-100 text-gray-600'
-												}`}>
-													<IconComponent className="w-5 h-5" />
+											<div className='flex items-start space-x-3 w-full'>
+												<div
+													className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
+														isSelected
+															? 'bg-[#FF5A5F] text-white'
+															: 'bg-gray-100 text-gray-600'
+													}`}
+												>
+													<IconComponent className='w-5 h-5' />
 												</div>
-												<div className="flex-1 min-w-0">
-													<div className={`text-sm font-semibold ${
-														isSelected ? 'text-[#FF5A5F]' : 'text-gray-900'
-													}`}>
+												<div className='flex-1 min-w-0'>
+													<div
+														className={`text-sm font-semibold ${
+															isSelected
+																? 'text-[#FF5A5F]'
+																: 'text-gray-900'
+														}`}
+													>
 														{option.label}
 													</div>
-													<div className="text-xs text-gray-500 mt-1">
+													<div className='text-xs text-gray-500 mt-1'>
 														{option.description}
 													</div>
 												</div>
 											</div>
 											{isSelected && (
-												<div className="absolute top-2 right-2">
-													<div className="w-4 h-4 bg-[#FF5A5F] rounded-full flex items-center justify-center">
-														<svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-															<path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+												<div className='absolute top-2 right-2'>
+													<div className='w-4 h-4 bg-[#FF5A5F] rounded-full flex items-center justify-center'>
+														<svg
+															className='w-2.5 h-2.5 text-white'
+															fill='currentColor'
+															viewBox='0 0 20 20'
+														>
+															<path
+																fillRule='evenodd'
+																d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+																clipRule='evenodd'
+															/>
 														</svg>
 													</div>
 												</div>
@@ -216,11 +257,15 @@ const CreateSurveyModal: React.FC = () => {
 
 				{/* Question Source */}
 				<div>
-					<h3 className='text-lg font-medium text-gray-900 mb-4'>{t('createModal.questionSource.title')}</h3>
+					<h3 className='text-lg font-medium text-gray-900 mb-4'>
+						{t('createModal.questionSource.title', { defaultValue: 'Question Source' })}
+					</h3>
 					<div className='space-y-4'>
 						<div>
 							<label className='block text-sm font-medium text-gray-700 mb-1'>
-								{t('createModal.questionSource.sourceType')}
+								{t('createModal.questionSource.sourceType', {
+									defaultValue: 'Source Type',
+								})}
 							</label>
 							<select
 								value={newSurvey.sourceType}
@@ -229,21 +274,34 @@ const CreateSurveyModal: React.FC = () => {
 								disabled={newSurvey.type === SURVEY_TYPE.SURVEY}
 							>
 								<option value={SOURCE_TYPE.MANUAL}>
-									{t('createModal.questionSource.manual')}
+									{t('createModal.questionSource.manual', {
+										defaultValue: 'Manual (Create questions manually)',
+									})}
 								</option>
 								<option value={SOURCE_TYPE.QUESTION_BANK}>
-									{t('createModal.questionSource.singleBank')}
+									{t('createModal.questionSource.singleBank', {
+										defaultValue: 'Single Question Bank (Random selection)',
+									})}
 								</option>
 								<option value={SOURCE_TYPE.MULTI_QUESTION_BANK}>
-									{t('createModal.questionSource.multiBank')}
+									{t('createModal.questionSource.multiBank', {
+										defaultValue:
+											'Multiple Question Banks (Configured selection)',
+									})}
 								</option>
 								<option value={SOURCE_TYPE.MANUAL_SELECTION}>
-									{t('createModal.questionSource.manualSelection')}
+									{t('createModal.questionSource.manualSelection', {
+										defaultValue:
+											'Manual Selection (Choose specific questions)',
+									})}
 								</option>
 							</select>
 							{newSurvey.type === SURVEY_TYPE.SURVEY && (
 								<p className='text-sm text-gray-500 mt-1'>
-									{t('createModal.questionSource.surveyOnlyManual')}
+									{t('createModal.questionSource.surveyOnlyManual', {
+										defaultValue:
+											'Surveys only support manual question creation',
+									})}
 								</p>
 							)}
 						</div>
@@ -253,7 +311,9 @@ const CreateSurveyModal: React.FC = () => {
 							<>
 								<div>
 									<label className='block text-sm font-medium text-gray-700 mb-1'>
-										{t('createModal.questionSource.questionBank')}
+										{t('createModal.questionSource.questionBank', {
+											defaultValue: 'Question Bank',
+										})}
 									</label>
 									<select
 										value={newSurvey.questionBankId || ''}
@@ -262,10 +322,18 @@ const CreateSurveyModal: React.FC = () => {
 										}
 										className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 									>
-										<option value=''>{t('createModal.questionSource.selectBank')}</option>
+										<option value=''>
+											{t('createModal.questionSource.selectBank', {
+												defaultValue: 'Select a question bank',
+											})}
+										</option>
 										{questionBanks.map(bank => (
 											<option key={bank._id} value={bank._id}>
-												{bank.name} ({bank.questions.length} {t('createModal.questionSource.questions')})
+												{bank.name} ({bank.questions.length}{' '}
+												{t('createModal.questionSource.questions', {
+													defaultValue: 'questions',
+												})}
+												)
 											</option>
 										))}
 									</select>
@@ -274,7 +342,9 @@ const CreateSurveyModal: React.FC = () => {
 								{newSurvey.questionBankId && (
 									<div>
 										<label className='block text-sm font-medium text-gray-700 mb-1'>
-											{t('createModal.questionSource.questionCount')}
+											{t('createModal.questionSource.questionCount', {
+												defaultValue: 'Number of Questions',
+											})}
 										</label>
 										<input
 											type='number'
@@ -302,14 +372,16 @@ const CreateSurveyModal: React.FC = () => {
 						{newSurvey.sourceType === SOURCE_TYPE.MULTI_QUESTION_BANK && (
 							<div>
 								<label className='block text-sm font-medium text-gray-700 mb-1'>
-									{t('createModal.questionSource.multiBankConfig')}
+									{t('createModal.questionSource.multiBankConfig', {
+										defaultValue: 'Question Bank Configuration',
+									})}
 								</label>
 								<div className='border border-gray-300 rounded-lg p-4 bg-gray-50'>
 									{newSurvey.multiQuestionBankConfig &&
 									newSurvey.multiQuestionBankConfig.length > 0 ? (
 											<div className='space-y-2'>
-												{newSurvey.multiQuestionBankConfig.map(
-													(config: unknown, index: number) => {
+						{newSurvey.multiQuestionBankConfig.map(
+							(config, index: number) => {
 														const bank = questionBanks.find(
 															b => b._id === config.questionBankId
 														);
@@ -319,15 +391,32 @@ const CreateSurveyModal: React.FC = () => {
 																className='text-sm text-gray-700'
 															>
 																<strong>
-																	{bank?.name || t('createModal.questionSource.unknownBank')}
+																	{bank?.name ||
+																	t(
+																		'createModal.questionSource.unknownBank',
+																		{
+																			defaultValue:
+																				'Unknown Bank',
+																		}
+																	)}
 																</strong>
-															: {config.questionCount} {t('createModal.questionSource.questions')}
+															: {config.questionCount}{' '}
+																{t(
+																	'createModal.questionSource.questions',
+																	{ defaultValue: 'questions' }
+																)}
 																{config.filters &&
 																Object.keys(config.filters).length >
 																	0 && (
 																	<span className='text-gray-500'>
 																		{' '}
-																		{t('createModal.questionSource.withFilters')}
+																		{t(
+																			'createModal.questionSource.withFilters',
+																			{
+																				defaultValue:
+																					'with filters',
+																			}
+																		)}
 																	</span>
 																)}
 															</div>
@@ -335,18 +424,23 @@ const CreateSurveyModal: React.FC = () => {
 													}
 												)}
 												<div className='text-xs text-gray-500 mt-2'>
-												{t('createModal.questionSource.totalQuestions')}{' '}
-													{newSurvey.multiQuestionBankConfig.reduce(
-														(sum: number, config: unknown) =>
-															sum + config.questionCount,
+													{t('createModal.questionSource.totalQuestions', {
+														defaultValue: 'Total:',
+													})}{' '}
+							{newSurvey.multiQuestionBankConfig.reduce(
+								(sum: number, config) => sum + config.questionCount,
 														0
 													)}{' '}
-												{t('createModal.questionSource.questions')}
+													{t('createModal.questionSource.questions', {
+														defaultValue: 'questions',
+													})}
 												</div>
 											</div>
 										) : (
 											<div className='text-sm text-gray-500'>
-											{t('createModal.questionSource.noConfigurations')}
+												{t('createModal.questionSource.noConfigurations', {
+													defaultValue: 'No configurations set up yet',
+												})}
 											</div>
 										)}
 									<button
@@ -354,7 +448,9 @@ const CreateSurveyModal: React.FC = () => {
 										onClick={() => setShowMultiBankModal(true)}
 										className='mt-3 btn-primary btn-small'
 									>
-										{t('createModal.questionSource.configureQuestionBanks')}
+										{t('createModal.questionSource.configureQuestionBanks', {
+											defaultValue: 'Configure Question Banks',
+										})}
 									</button>
 								</div>
 							</div>
@@ -364,7 +460,9 @@ const CreateSurveyModal: React.FC = () => {
 						{newSurvey.sourceType === SOURCE_TYPE.MANUAL_SELECTION && (
 							<div>
 								<label className='block text-sm font-medium text-gray-700 mb-1'>
-									{t('createModal.questionSource.manualSelectionConfig')}
+									{t('createModal.questionSource.manualSelectionConfig', {
+										defaultValue: 'Manual Selection Configuration',
+									})}
 								</label>
 								<div className='border border-gray-300 rounded-lg p-4 bg-gray-50'>
 									{newSurvey.selectedQuestions &&
@@ -374,15 +472,22 @@ const CreateSurveyModal: React.FC = () => {
 													<strong>
 														{newSurvey.selectedQuestions.length}
 													</strong>{' '}
-												{t('createModal.questionSource.questionsSelected')}
+													{t('createModal.questionSource.questionsSelected', {
+														defaultValue: 'questions selected',
+													})}
 												</div>
 												<div className='text-xs text-gray-500'>
-												{t('createModal.questionSource.selectedFromBanks')}
+													{t('createModal.questionSource.selectedFromBanks', {
+														defaultValue:
+														'Selected from various question banks',
+													})}
 												</div>
 											</div>
 										) : (
 											<div className='text-sm text-gray-500'>
-											{t('createModal.questionSource.noQuestionsSelected')}
+												{t('createModal.questionSource.noQuestionsSelected', {
+													defaultValue: 'No questions selected yet',
+												})}
 											</div>
 										)}
 									<button
@@ -390,7 +495,9 @@ const CreateSurveyModal: React.FC = () => {
 										onClick={() => setShowManualSelectionModal(true)}
 										className='mt-3 btn-primary btn-small'
 									>
-										{t('createModal.questionSource.selectQuestions')}
+										{t('createModal.questionSource.selectQuestions', {
+											defaultValue: 'Select Questions',
+										})}
 									</button>
 								</div>
 							</div>
@@ -398,16 +505,50 @@ const CreateSurveyModal: React.FC = () => {
 					</div>
 				</div>
 
+				{/* Display / Navigation */}
+				<div>
+					<h3 className='text-lg font-medium text-gray-900 mb-4'>
+						{t('createModal.assessmentConfig.navigationMode', { defaultValue: 'Navigation Mode' })}
+					</h3>
+					<div>
+						<label className='block text-sm font-medium text-gray-700 mb-1'>
+							{t('createModal.assessmentConfig.navigationMode', { defaultValue: 'Navigation Mode' })}
+						</label>
+						<select
+							value={newSurvey.navigationMode}
+							onChange={e => handleInputChange('navigationMode', e.target.value)}
+							className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+						>
+							<option value='step-by-step'>
+								{t('createModal.assessmentConfig.stepByStep', { defaultValue: 'Step by Step' })}
+							</option>
+							<option value='paginated'>
+								{t('createModal.assessmentConfig.paginated', { defaultValue: 'Paginated' })}
+							</option>
+							<option value='all-in-one'>
+								{t('createModal.assessmentConfig.allInOne', { defaultValue: 'All in One' })}
+							</option>
+							<option value='one-question-per-page'>
+								{t('createModal.assessmentConfig.oneQuestionPerPage', { defaultValue: 'One Question Per Page (Typeform-like)' })}
+							</option>
+						</select>
+					</div>
+				</div>
+
 				{/* Assessment Configuration */}
 				{isAssessmentType && (
 					<div>
 						<h3 className='text-lg font-medium text-gray-900 mb-4'>
-							{t('createModal.assessmentConfig.title')}
+							{t('createModal.assessmentConfig.title', {
+								defaultValue: 'Assessment Configuration',
+							})}
 						</h3>
 						<div className='space-y-4'>
 							<div>
 								<label className='block text-sm font-medium text-gray-700 mb-1'>
-									{t('createModal.assessmentConfig.timeLimit')}
+									{t('createModal.assessmentConfig.timeLimit', {
+										defaultValue: 'Time Limit (minutes)',
+									})}
 								</label>
 								<input
 									type='number'
@@ -420,13 +561,18 @@ const CreateSurveyModal: React.FC = () => {
 										)
 									}
 									className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-									placeholder={t('createModal.assessmentConfig.timeLimitPlaceholder')}
+									placeholder={t(
+										'createModal.assessmentConfig.timeLimitPlaceholder',
+										{ defaultValue: 'No time limit' }
+									)}
 								/>
 							</div>
 
 							<div>
 								<label className='block text-sm font-medium text-gray-700 mb-1'>
-									{t('createModal.assessmentConfig.maxAttempts')}
+									{t('createModal.assessmentConfig.maxAttempts', {
+										defaultValue: 'Maximum Attempts',
+									})}
 								</label>
 								<input
 									type='number'
@@ -440,26 +586,13 @@ const CreateSurveyModal: React.FC = () => {
 								/>
 							</div>
 
-							<div>
-								<label className='block text-sm font-medium text-gray-700 mb-1'>
-									{t('createModal.assessmentConfig.navigationMode')}
-								</label>
-								<select
-									value={newSurvey.navigationMode}
-									onChange={e =>
-										handleInputChange('navigationMode', e.target.value)
-									}
-									className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-								>
-									<option value='step-by-step'>{t('createModal.assessmentConfig.stepByStep')}</option>
-									<option value='paginated'>{t('createModal.assessmentConfig.paginated')}</option>
-									<option value='all-in-one'>{t('createModal.assessmentConfig.allInOne')}</option>
-								</select>
-							</div>
+
 
 							<div>
 								<label className='block text-sm font-medium text-gray-700 mb-1'>
-									{t('createModal.assessmentConfig.instructions')}
+									{t('createModal.assessmentConfig.instructions', {
+										defaultValue: 'Instructions',
+									})}
 								</label>
 								<textarea
 									value={newSurvey.instructions}
@@ -468,7 +601,10 @@ const CreateSurveyModal: React.FC = () => {
 									}
 									className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 									rows={3}
-									placeholder={t('createModal.assessmentConfig.instructionsPlaceholder')}
+									placeholder={t(
+										'createModal.assessmentConfig.instructionsPlaceholder',
+										{ defaultValue: 'Special instructions for test takers' }
+									)}
 								/>
 							</div>
 						</div>
@@ -478,11 +614,17 @@ const CreateSurveyModal: React.FC = () => {
 				{/* Scoring Settings */}
 				{isAssessmentType && (
 					<div>
-						<h3 className='text-lg font-medium text-gray-900 mb-4'>{t('createModal.scoringSettings.title')}</h3>
+						<h3 className='text-lg font-medium text-gray-900 mb-4'>
+							{t('createModal.scoringSettings.title', {
+								defaultValue: 'Scoring Settings',
+							})}
+						</h3>
 						<div className='space-y-4'>
 							<div>
 								<label className='block text-sm font-medium text-gray-700 mb-1'>
-									{t('createModal.scoringSettings.scoringMode')}
+									{t('createModal.scoringSettings.scoringMode', {
+										defaultValue: 'Scoring Mode',
+									})}
 								</label>
 								<select
 									value={newSurvey.scoringSettings?.scoringMode || 'percentage'}
@@ -491,17 +633,30 @@ const CreateSurveyModal: React.FC = () => {
 									}
 									className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 								>
-									<option value='percentage'>{t('createModal.scoringSettings.percentage')}</option>
-									<option value='accumulated'>{t('createModal.scoringSettings.accumulated')}</option>
+									<option value='percentage'>
+										{t('createModal.scoringSettings.percentage', {
+											defaultValue: 'Percentage',
+										})}
+									</option>
+									<option value='accumulated'>
+										{t('createModal.scoringSettings.accumulated', {
+											defaultValue: 'Accumulated Points',
+										})}
+									</option>
 								</select>
 							</div>
 
 							<div>
 								<label className='block text-sm font-medium text-gray-700 mb-1'>
-									{t('createModal.scoringSettings.passingThreshold')} (
+									{t('createModal.scoringSettings.passingThreshold', {
+										defaultValue: 'Passing Threshold',
+									})}{' '}
+									(
 									{newSurvey.scoringSettings?.scoringMode === 'percentage'
 										? '%'
-										: t('createModal.scoringSettings.points')}
+										: t('createModal.scoringSettings.points', {
+											defaultValue: 'points',
+										})}
 									)
 								</label>
 								<input
@@ -524,17 +679,27 @@ const CreateSurveyModal: React.FC = () => {
 							</div>
 
 							<div className='space-y-3'>
-								<label className='flex items-center'>
-									<input
-										type='checkbox'
-										checked={newSurvey.scoringSettings?.showScore ?? true}
-										onChange={e =>
-											handleScoringChange('showScore', e.target.checked)
-										}
-										className='mr-2'
-									/>
-									{t('createModal.scoringSettings.showScore')}
-								</label>
+								<div className='space-y-1'>
+									<label className='flex items-center'>
+										<input
+											type='checkbox'
+											checked={newSurvey.scoringSettings?.showScore ?? true}
+											onChange={e =>
+												handleScoringChange('showScore', e.target.checked)
+											}
+											className='mr-2'
+										/>
+										{t('createModal.scoringSettings.showScore', {
+											defaultValue: 'Show final score to students',
+										})}
+									</label>
+									<p className='text-xs text-gray-500 ml-6'>
+										{t(
+											'createModal.scoringSettings.showScoreHelp',
+											'When enabled, students will see their final score after completing the assessment. When disabled, they will only see a completion message.'
+										)}
+									</p>
+								</div>
 
 								<label className='flex items-center'>
 									<input
@@ -550,7 +715,9 @@ const CreateSurveyModal: React.FC = () => {
 										}
 										className='mr-2'
 									/>
-									{t('createModal.scoringSettings.showCorrectAnswers')}
+									{t('createModal.scoringSettings.showCorrectAnswers', {
+										defaultValue: 'Show correct answers after completion',
+									})}
 								</label>
 
 								<label className='flex items-center'>
@@ -567,7 +734,9 @@ const CreateSurveyModal: React.FC = () => {
 										}
 										className='mr-2'
 									/>
-									{t('createModal.scoringSettings.showScoreBreakdown')}
+									{t('createModal.scoringSettings.showScoreBreakdown', {
+										defaultValue: 'Show detailed score breakdown',
+									})}
 								</label>
 
 								<label className='flex items-center'>
@@ -585,13 +754,18 @@ const CreateSurveyModal: React.FC = () => {
 										}
 										className='mr-2'
 									/>
-									{t('createModal.scoringSettings.useCustomPoints')}
+									{t('createModal.scoringSettings.useCustomPoints', {
+										defaultValue: 'Use custom point values per question',
+									})}
 								</label>
 
 								{newSurvey.scoringSettings?.customScoringRules?.useCustomPoints && (
 									<div className='ml-6'>
 										<label className='block text-sm font-medium text-gray-700 mb-1'>
-											{t('createModal.scoringSettings.defaultQuestionPoints')}
+											{t(
+												'createModal.scoringSettings.defaultQuestionPoints',
+												{ defaultValue: 'Default Points per Question' }
+											)}
 										</label>
 										<input
 											type='number'

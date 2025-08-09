@@ -67,26 +67,27 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 
 	const getValidationErrors = () => {
 		const errors: string[] = [];
-		
+
 		if (!form.text.trim()) {
 			errors.push('Question text is required');
 		}
 
 		if (form.type !== 'short_text') {
-			const validOptions = form.options?.filter(opt => {
-				const text = typeof opt === 'string' ? opt : opt.text || '';
-				return text.trim();
-			}) || [];
-			
+			const validOptions =
+				form.options?.filter(opt => {
+					const text = typeof opt === 'string' ? opt : opt.text || '';
+					return text.trim();
+				}) || [];
+
 			if (validOptions.length < 2) {
 				errors.push('At least 2 valid options are required');
 			}
-			
+
 			if (form.correctAnswer === undefined) {
 				errors.push('Please select a correct answer');
 			}
 		}
-		
+
 		return errors;
 	};
 
@@ -188,7 +189,9 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 									className='input-field w-full'
 									placeholder='Enter expected answer for scoring (optional)'
 									value={
-										typeof form.correctAnswer === 'string' ? form.correctAnswer : ''
+										typeof form.correctAnswer === 'string'
+											? form.correctAnswer
+											: ''
 									}
 									onChange={e => onChange('correctAnswer', e.target.value)}
 								/>
@@ -206,70 +209,70 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 								const text = typeof opt === 'string' ? opt : opt.text || '';
 								return text.trim();
 							}).length >= 2 && (
-								<div>
-									<label className='block text-sm font-medium text-gray-700 mb-2'>
+							<div>
+								<label className='block text-sm font-medium text-gray-700 mb-2'>
 										Select Correct Answer(s) *
-									</label>
-									<div className='space-y-2'>
-										{form.options.map((opt, idx) => {
-											const optionText =
+								</label>
+								<div className='space-y-2'>
+									{form.options.map((opt, idx) => {
+										const optionText =
 												typeof opt === 'string' ? opt : opt.text || '';
-											const optionImageUrl =
+										const optionImageUrl =
 												typeof opt === 'object' ? opt.imageUrl : undefined;
-											if (!optionText.trim()) return null;
-											const isCorrect = Array.isArray(form.correctAnswer)
-												? form.correctAnswer.includes(idx)
-												: form.correctAnswer === idx;
-											return (
-												<div key={idx} className='flex items-center gap-2'>
-													<button
-														type='button'
-														onClick={() => toggleCorrectAnswer(idx)}
-														className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-															isCorrect
-																? 'bg-green-500 border-green-500 text-white'
-																: 'border-gray-300 hover:border-green-400'
-														}`}
-													>
-														{isCorrect && (
-															<svg
-																className='w-3 h-3'
-																fill='currentColor'
-																viewBox='0 0 20 20'
-															>
-																<path
-																	fillRule='evenodd'
-																	d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-																	clipRule='evenodd'
-																/>
-															</svg>
-														)}
-													</button>
-													<div className='flex-1'>
-														<span className='text-sm text-gray-700'>
-															{optionText || `Option ${idx + 1}`}
-														</span>
-														{optionImageUrl && (
-															<div className='mt-1'>
-																<img
-																	src={optionImageUrl}
-																	alt={`Option ${idx + 1}`}
-																	className='w-16 h-16 object-cover rounded border border-gray-300'
-																/>
-															</div>
-														)}
-													</div>
+										if (!optionText.trim()) return null;
+										const isCorrect = Array.isArray(form.correctAnswer)
+											? form.correctAnswer.includes(idx)
+											: form.correctAnswer === idx;
+										return (
+											<div key={idx} className='flex items-center gap-2'>
+												<button
+													type='button'
+													onClick={() => toggleCorrectAnswer(idx)}
+													className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+														isCorrect
+															? 'bg-green-500 border-green-500 text-white'
+															: 'border-gray-300 hover:border-green-400'
+													}`}
+												>
+													{isCorrect && (
+														<svg
+															className='w-3 h-3'
+															fill='currentColor'
+															viewBox='0 0 20 20'
+														>
+															<path
+																fillRule='evenodd'
+																d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+																clipRule='evenodd'
+															/>
+														</svg>
+													)}
+												</button>
+												<div className='flex-1'>
+													<span className='text-sm text-gray-700'>
+														{optionText || `Option ${idx + 1}`}
+													</span>
+													{optionImageUrl && (
+														<div className='mt-1'>
+															<img
+																src={optionImageUrl}
+																alt={`Option ${idx + 1}`}
+																className='w-16 h-16 object-cover rounded border border-gray-300'
+															/>
+														</div>
+													)}
 												</div>
-											);
-										})}
-									</div>
-									<div className='text-xs text-gray-500 mt-1'>
-										{form.type === 'single_choice'
-											? 'Click to select the single correct answer'
-											: 'Click the checkboxes to select multiple correct answers'}
-									</div>
+											</div>
+										);
+									})}
 								</div>
-							)}
+								<div className='text-xs text-gray-500 mt-1'>
+									{form.type === 'single_choice'
+										? 'Click to select the single correct answer'
+										: 'Click the checkboxes to select multiple correct answers'}
+								</div>
+							</div>
+						)}
 
 						{/* Points */}
 						<div>
@@ -282,7 +285,10 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 								placeholder='Points for this question'
 								value={form.points || ''}
 								onChange={e =>
-									onChange('points', e.target.value ? parseInt(e.target.value) : 1)
+									onChange(
+										'points',
+										e.target.value ? parseInt(e.target.value) : 1
+									)
 								}
 								min='1'
 								max='100'
@@ -314,7 +320,9 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 									<div className='space-y-4'>
 										{form.options.map((option, index) => {
 											const optionText =
-												typeof option === 'string' ? option : option.text || '';
+												typeof option === 'string'
+													? option
+													: option.text || '';
 											const optionImageUrl =
 												typeof option === 'object'
 													? option.imageUrl
@@ -339,18 +347,22 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 																		? e.target.value
 																		: {
 																			...option,
-																			text: e.target.value,
+																			text: e.target
+																				.value,
 																		};
 																onOptionChange(index, newOption);
 															}}
 														/>
-														{form.options && form.options.length > 2 && (
+														{form.options &&
+															form.options.length > 2 && (
 															<button
 																className='btn-secondary btn-small text-red-600 hover:bg-red-50'
-																onClick={() => onRemoveOption(index)}
+																onClick={() =>
+																	onRemoveOption(index)
+																}
 																type='button'
 															>
-																Remove
+																	Remove
 															</button>
 														)}
 													</div>
@@ -368,7 +380,10 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 																			text: option,
 																			imageUrl: url,
 																		}
-																		: { ...option, imageUrl: url };
+																		: {
+																			...option,
+																			imageUrl: url,
+																		};
 																onOptionChange(index, newOption);
 															}}
 															onImageRemove={() => {
@@ -389,7 +404,7 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 												</div>
 											);
 										})}
-										
+
 										{/* Add Option Button at Bottom */}
 										<div className='flex justify-center pt-2'>
 											<button
@@ -397,8 +412,18 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 												onClick={onAddOption}
 												type='button'
 											>
-												<svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-													<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 6v6m0 0v6m0-6h6m-6 0H6' />
+												<svg
+													className='w-4 h-4'
+													fill='none'
+													stroke='currentColor'
+													viewBox='0 0 24 24'
+												>
+													<path
+														strokeLinecap='round'
+														strokeLinejoin='round'
+														strokeWidth={2}
+														d='M12 6v6m0 0v6m0-6h6m-6 0H6'
+													/>
 												</svg>
 												Add Option
 											</button>
@@ -408,7 +433,9 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 									<div className='text-gray-500 text-sm p-6 border-2 border-dashed border-gray-300 rounded-lg text-center bg-gray-50'>
 										<div className='mb-2'>📝</div>
 										<div>No options added yet</div>
-										<div className='text-xs mt-1'>Click "Add Option" to start creating answer choices</div>
+										<div className='text-xs mt-1'>
+											Click "Add Option" to start creating answer choices
+										</div>
 									</div>
 								)}
 							</div>
@@ -419,7 +446,9 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 							<div className='text-gray-500 text-sm p-6 border-2 border-dashed border-gray-300 rounded-lg text-center bg-gray-50'>
 								<div className='mb-2'>✍️</div>
 								<div>Short Text Question</div>
-								<div className='text-xs mt-1'>Users will be able to enter their own text response</div>
+								<div className='text-xs mt-1'>
+									Users will be able to enter their own text response
+								</div>
 							</div>
 						)}
 					</div>

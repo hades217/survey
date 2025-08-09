@@ -11,6 +11,20 @@
 		"billing": "Billing",
 		"dashboard": "Dashboard"
 	},
+	"profile": {
+		"settings": "Profile Settings",
+		"manageInfo": "Manage your personal, company and billing information",
+		"dismiss": "Dismiss",
+		"personalInfo": "Personal Info",
+		"companyInfo": "Company Info",
+		"updating": "Updating...",
+		"updatePersonalInfo": "Update Profile",
+		"updatePassword": "Update Password",
+		"companyName": "Company Name",
+		"industry": "Industry",
+		"website": "Website",
+		"updateCompanyInfo": "Update Company Info"
+	},
 	"buttons": {
 		"submit": "Submit",
 		"cancel": "Cancel",

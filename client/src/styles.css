@@ -1,23 +1,30 @@
 @import 'tailwindcss';
-@import url('https://fonts.googleapis.com/css2?family=Cereal:wght@300;400;500;600;700&display=swap'), url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cereal:wght@300;400;500;600;700&display=swap'),
+	url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* Airbnb-inspired design system */
 :root {
 	/* Airbnb Color Palette */
-	--airbnb-rausch: #FF5A5F;
-	--airbnb-babu: #00A699;
-	--airbnb-arches: #FC642D;
+	--airbnb-rausch: #ff5a5f;
+	--airbnb-babu: #00a699;
+	--airbnb-arches: #fc642d;
 	--airbnb-hof: #484848;
 	--airbnb-foggy: #767676;
-	--airbnb-pearl: #EBEBEB;
-	--airbnb-white: #FFFFFF;
-	--airbnb-light-gray: #F7F7F7;
-	--airbnb-medium-gray: #DDDDDD;
+	--airbnb-pearl: #ebebeb;
+	--airbnb-white: #ffffff;
+	--airbnb-light-gray: #f7f7f7;
+	--airbnb-medium-gray: #dddddd;
 }
 
 /* Global font family */
 body {
-	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	font-family:
+		'Inter',
+		-apple-system,
+		BlinkMacSystemFont,
+		'Segoe UI',
+		Roboto,
+		sans-serif;
 	color: var(--airbnb-hof);
 }
 
@@ -137,7 +144,8 @@ button {
 	}
 
 	@keyframes float {
-		0%, 100% {
+		0%,
+		100% {
 			transform: translateY(0px);
 		}
 		50% {
@@ -154,7 +162,7 @@ button {
 
 	/* Gradient text */
 	.gradient-text {
-		background: linear-gradient(135deg, #FF5A5F 0%, #FC642D 100%);
+		background: linear-gradient(135deg, #ff5a5f 0%, #fc642d 100%);
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
 		background-clip: text;

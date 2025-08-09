@@ -56,7 +56,11 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
 	});
 
 	// Handle multiple choice changes
-	const handleMultipleChoiceChange = (questionId: string, optionValue: string, checked: boolean) => {
+	const handleMultipleChoiceChange = (
+		questionId: string,
+		optionValue: string,
+		checked: boolean
+	) => {
 		const currentAnswers = (getValues(questionId) as string[]) || [];
 		let newAnswers: string[];
 
@@ -126,7 +130,13 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions }) => {
 										type='checkbox'
 										value={optionValue}
 										checked={currentAnswers.includes(optionValue)}
-										onChange={(e) => handleMultipleChoiceChange(q.id, optionValue, e.target.checked)}
+										onChange={e =>
+											handleMultipleChoiceChange(
+												q.id,
+												optionValue,
+												e.target.checked
+											)
+										}
 										className='mr-2'
 									/>
 									{optionText}

@@ -175,29 +175,29 @@ class SubscriptionController {
 
 		try {
 			switch (event.type) {
-				case 'checkout.session.completed':
-					await this.subscriptionService.handleSubscriptionCreated(event.data.object);
-					break;
+			case 'checkout.session.completed':
+				await this.subscriptionService.handleSubscriptionCreated(event.data.object);
+				break;
 
-				case 'customer.subscription.created':
-				case 'customer.subscription.updated':
-					await this.subscriptionService.handleSubscriptionUpdated(event.data.object);
-					break;
+			case 'customer.subscription.created':
+			case 'customer.subscription.updated':
+				await this.subscriptionService.handleSubscriptionUpdated(event.data.object);
+				break;
 
-				case 'customer.subscription.deleted':
-					await this.subscriptionService.handleSubscriptionDeleted(event.data.object);
-					break;
+			case 'customer.subscription.deleted':
+				await this.subscriptionService.handleSubscriptionDeleted(event.data.object);
+				break;
 
-				case 'invoice.payment_succeeded':
-					await this.subscriptionService.handlePaymentSucceeded(event.data.object);
-					break;
+			case 'invoice.payment_succeeded':
+				await this.subscriptionService.handlePaymentSucceeded(event.data.object);
+				break;
 
-				case 'invoice.payment_failed':
-					await this.subscriptionService.handlePaymentFailed(event.data.object);
-					break;
+			case 'invoice.payment_failed':
+				await this.subscriptionService.handlePaymentFailed(event.data.object);
+				break;
 
-				default:
-					console.log(`Unhandled event type ${event.type}`);
+			default:
+				console.log(`Unhandled event type ${event.type}`);
 			}
 
 			res.json({ received: true });

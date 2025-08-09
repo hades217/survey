@@ -153,12 +153,54 @@ responseSchema.methods.createQuestionSnapshots = function (questions, userAnswer
 			if (question.type === 'single_choice') {
 				// For single choice, compare user answer with correct answer
 				const correctOption = question.options[question.correctAnswer];
-				isCorrect = userAnswer === correctOption;
+				let correctAnswerText;
+
+				if (typeof correctOption === 'string') {
+					// Check if it's a stringified object
+					if (correctOption.startsWith('{') && correctOption.includes('text:')) {
+						try {
+							// Try to extract text from stringified object using regex
+							const textMatch = correctOption.match(/text:\s*'([^']+)'/);
+							if (textMatch) {
+								correctAnswerText = textMatch[1];
+							} else {
+								correctAnswerText = correctOption;
+							}
+						} catch (e) {
+							// If parsing fails, use the string as-is
+							correctAnswerText = correctOption;
+						}
+					} else {
+						correctAnswerText = correctOption;
+					}
+				} else {
+					correctAnswerText = correctOption?.text || correctOption;
+				}
+
+				isCorrect = userAnswer === correctAnswerText;
 			} else if (question.type === 'multiple_choice') {
 				// For multiple choice, compare arrays
+				const parseOption = option => {
+					if (typeof option === 'string') {
+						// Check if it's a stringified object
+						if (option.startsWith('{') && option.includes('text:')) {
+							try {
+								const textMatch = option.match(/text:\s*'([^']+)'/);
+								return textMatch ? textMatch[1] : option;
+							} catch (e) {
+								return option;
+							}
+						} else {
+							return option;
+						}
+					} else {
+						return option?.text || option;
+					}
+				};
+
 				const correctOptions = Array.isArray(question.correctAnswer)
-					? question.correctAnswer.map(idx => question.options[idx])
-					: [question.options[question.correctAnswer]];
+					? question.correctAnswer.map(idx => parseOption(question.options[idx]))
+					: [parseOption(question.options[question.correctAnswer])];
 				const userAnswerArray = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
 
 				isCorrect =
@@ -223,9 +265,7 @@ responseSchema.methods.calculateScore = function (survey) {
 			isCorrect = false;
 			pointsAwarded = 0;
 
-			if (userAnswer === undefined || userAnswer === null) {
-				wrongAnswers++;
-			} else {
+			if (userAnswer !== undefined && userAnswer !== null) {
 				// Check if answer is correct
 				if (question.type === 'single_choice') {
 					isCorrect = userAnswer === correctAnswer;
@@ -241,11 +281,7 @@ responseSchema.methods.calculateScore = function (survey) {
 				}
 
 				if (isCorrect) {
-					correctAnswers++;
 					pointsAwarded = questionPoints;
-					totalPoints += questionPoints;
-				} else {
-					wrongAnswers++;
 				}
 			}
 		}
@@ -258,8 +294,10 @@ responseSchema.methods.calculateScore = function (survey) {
 			isCorrect,
 		});
 
-		// Update totals from snapshots
-		if (this.questionSnapshots && this.questionSnapshots[index]) {
+		// Update totals for all questions
+		if (userAnswer === undefined || userAnswer === null) {
+			wrongAnswers++;
+		} else {
 			if (isCorrect) {
 				correctAnswers++;
 				totalPoints += pointsAwarded;
