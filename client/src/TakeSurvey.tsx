@@ -222,7 +222,12 @@ const TakeSurvey: React.FC = () => {
 				surveyId: survey._id,
 				answers: questions.map(q => form.answers[q._id]),
 			};
-			await axios.post(getApiPath(`/surveys/${survey._id}/responses`), payload);
+			// Preview suppression: if global preview flag is set, skip network write
+			if ((window as any).__PREVIEW__ === true) {
+				console.debug('Preview mode: write suppressed');
+			} else {
+				await axios.post(getApiPath(`/surveys/${survey._id}/responses`), payload);
+			}
 
 			// Calculate assessment results if this is an assessment, quiz, or iq test
 			if (TYPES_REQUIRING_ANSWERS.includes(survey.type)) {

@@ -22,6 +22,7 @@ import {
 	SCORING_MODE,
 	TYPES_REQUIRING_ANSWERS,
 } from '../../constants';
+import SurveyPreviewTab from './SurveyPreviewTab';
 
 interface SurveyDetailViewProps {
 	survey: Survey;
@@ -77,7 +78,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	const [showEditQuestionModal, setShowEditQuestionModal] = useState(false);
 	const [editingQuestionIndex, setEditingQuestionIndex] = useState<number>(-1);
 	const [showInviteModal, setShowInviteModal] = useState(false);
-	const [tabLocal, setTabLocal] = useState<'detail' | 'invitations' | 'statistics'>(
+	const [tabLocal, setTabLocal] = useState<'detail' | 'invitations' | 'statistics' | 'preview'>(
 		TAB_TYPES.DETAIL
 	);
 	const [invitations, setInvitations] = useState<any[]>([]);
@@ -831,6 +832,12 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 					>
 						Statistics
 					</button>
+					<button
+						className={`py-2 px-4 font-semibold border-b-2 transition-colors ${tabLocal === TAB_TYPES.PREVIEW ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-blue-600'}`}
+						onClick={() => setTabLocal(TAB_TYPES.PREVIEW)}
+					>
+						Preview
+					</button>
 				</div>
 				{/* Tab content */}
 				{tabLocal === TAB_TYPES.DETAIL && (
@@ -1480,7 +1487,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 								{/* Individual User Responses */}
 								{statsView === STATS_VIEW.INDIVIDUAL && (
 									<div className='space-y-4'>
-										{stats[s._id]?.userResponses?.length > 0 ? (
+										{stats[s._id].userResponses?.length > 0 ? (
 											<>
 												{/* Pagination info */}
 												<div className='flex justify-between items-center text-sm text-gray-600 mb-4'>
@@ -1976,6 +1983,11 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 								</button>
 							</div>
 						)}
+					</div>
+				)}
+				{tabLocal === TAB_TYPES.PREVIEW && (
+					<div className='card'>
+						<SurveyPreviewTab survey={s} />
 					</div>
 				)}
 				{/* Only show modal when showInviteModal is true */}
