@@ -24,8 +24,8 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
 	const isFirstQuestion = currentQuestion === 0;
 	const isLastQuestion = currentQuestion === totalQuestions - 1;
 
-	return (
-		<div className='flex justify-between items-center pt-8 border-t border-[#EBEBEB] mt-8'>
+    return (
+        <div className='flex justify-between items-center pt-8 border-t border-[#EBEBEB] mt-8 md:sticky md:bottom-0 md:bg-white md:rounded-t-2xl md:px-4 md:py-3 md:border md:shadow-sm'>
 			{/* Previous Button */}
 			<button
 				type='button'
@@ -49,7 +49,7 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
 			</button>
 
 			{/* Progress Indicator */}
-			<div className='flex items-center gap-4'>
+            <div className='flex items-center gap-4'>
 				<div className='text-sm text-[#767676] font-medium'>
 					{t('survey.navigation.progress', 'Question {{current}} of {{total}}', {
 						current: currentQuestion + 1,
@@ -58,7 +58,7 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
 				</div>
 
 				{/* Progress Bar */}
-				<div className='w-32 h-2 bg-[#EBEBEB] rounded-full overflow-hidden'>
+                <div className='w-40 h-2 bg-[#EBEBEB] rounded-full overflow-hidden'>
 					<div
 						className='h-full bg-gradient-to-r from-[#FF5A5F] to-[#FF8A8D] transition-all duration-500 ease-out'
 						style={{
@@ -69,7 +69,7 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
 			</div>
 
 			{/* Next/Submit Button */}
-			{isLastQuestion ? (
+            {isLastQuestion ? (
 				<button
 					type='submit'
 					disabled={!canProceed || loading}
@@ -103,15 +103,15 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
 						</>
 					)}
 				</button>
-			) : (
-				<button
+            ) : (
+                <button
 					type='button'
 					onClick={onNext}
 					disabled={!canProceed || loading}
-					className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
 						!canProceed || loading
 							? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-							: 'bg-[#FF5A5F] text-white hover:bg-[#E54A4F] shadow-lg hover:shadow-xl transform hover:scale-[1.02]'
+                            : 'bg-[#FF5A5F] text-white hover:bg-[#E54A4F] shadow-lg hover:shadow-xl transform hover:scale-[1.02]'
 					}`}
 				>
 					{t('survey.navigation.next', 'Next')}

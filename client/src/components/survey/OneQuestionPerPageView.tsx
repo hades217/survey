@@ -32,7 +32,9 @@ const OneQuestionPerPageView: React.FC<OneQuestionPerPageViewProps> = ({
 	getInputProps = () => ({}),
 }) => {
 	const { t } = useTranslation();
-	const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [transitionDirection, setTransitionDirection] = useState<'up' | 'down'>('up');
+    const [showHint, setShowHint] = useState(false);
 
 	// Reset to first question when questions change
 	useEffect(() => {
@@ -45,15 +47,17 @@ const OneQuestionPerPageView: React.FC<OneQuestionPerPageViewProps> = ({
 	// Check if current question is answered (required for proceeding)
 	const canProceed = currentAnswer.trim() !== '';
 
-	const handleNext = () => {
-		if (currentQuestionIndex < questions.length - 1 && canProceed) {
-			setCurrentQuestionIndex(prev => prev + 1);
-		}
-	};
+    const handleNext = () => {
+        if (currentQuestionIndex < questions.length - 1 && canProceed) {
+            setTransitionDirection('up');
+            setCurrentQuestionIndex(prev => prev + 1);
+        }
+    };
 
-	const handlePrevious = () => {
+    const handlePrevious = () => {
 		if (currentQuestionIndex > 0) {
-			setCurrentQuestionIndex(prev => prev - 1);
+            setTransitionDirection('down');
+            setCurrentQuestionIndex(prev => prev - 1);
 		}
 	};
 
@@ -64,23 +68,23 @@ const OneQuestionPerPageView: React.FC<OneQuestionPerPageViewProps> = ({
 	};
 
 	// Handle keyboard navigation
-	useEffect(() => {
-		const handleKeyPress = (e: KeyboardEvent) => {
-			if (e.key === 'Enter' && !e.shiftKey) {
-				e.preventDefault();
-				if (currentQuestionIndex === questions.length - 1) {
-					handleSubmitWrapper();
-				} else {
-					handleNext();
-				}
-			}
-		};
+    useEffect(() => {
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (currentQuestionIndex === questions.length - 1) {
+                    handleSubmitWrapper();
+                } else {
+                    handleNext();
+                }
+            }
+        };
 
-		document.addEventListener('keypress', handleKeyPress);
-		return () => document.removeEventListener('keypress', handleKeyPress);
-	}, [currentQuestionIndex, canProceed, questions.length]);
+        document.addEventListener('keypress', handleKeyPress);
+        return () => document.removeEventListener('keypress', handleKeyPress);
+    }, [currentQuestionIndex, canProceed, questions.length]);
 
-	if (!currentQuestion) {
+    if (!currentQuestion) {
 		return (
 			<div className='text-center py-8'>
 				<div className='text-gray-500 text-6xl mb-4'>❓</div>
@@ -97,7 +101,18 @@ const OneQuestionPerPageView: React.FC<OneQuestionPerPageViewProps> = ({
 		);
 	}
 
-	return (
+    // show lightweight hint bubble on first question for a few seconds
+    useEffect(() => {
+        if (currentQuestionIndex === 0) {
+            setShowHint(true);
+            const timer = setTimeout(() => setShowHint(false), 2400);
+            return () => clearTimeout(timer);
+        } else {
+            setShowHint(false);
+        }
+    }, [currentQuestionIndex]);
+
+    return (
 		<div className='space-y-8'>
 			{/* Question Header */}
 			<div className='text-center mb-8'>
@@ -122,11 +137,20 @@ const OneQuestionPerPageView: React.FC<OneQuestionPerPageViewProps> = ({
 			</div>
 
 			{/* Question Content */}
-			<div
-				className={`bg-white rounded-2xl p-8 border border-[#EBEBEB] shadow-sm hover:shadow-md transition-shadow ${
+            <div
+                className={`bg-white rounded-2xl p-8 border border-[#EBEBEB] shadow-sm hover:shadow-md transition-shadow ${
+                    transitionDirection === 'up' ? 'animate-slide-down' : 'animate-slide-up'
+                } ${
 					antiCheatEnabled ? 'anti-cheat-container' : ''
 				}`}
 			>
+                {showHint && (
+                    <div className='mb-3 flex justify-center'>
+                        <div className='text-xs text-[#767676] bg-[#F7F7F7] border border-[#EBEBEB] px-3 py-1.5 rounded-full animate-slide-down animate-fade-out'>
+                            {t('survey.oneQuestionPerPage.hintEnter', '按 Enter 继续')}
+                        </div>
+                    </div>
+                )}
 				{/* Question Text */}
 				<div className='mb-6'>
 					<h3 className='text-xl font-medium text-[#484848] leading-relaxed'>
@@ -186,33 +210,48 @@ const OneQuestionPerPageView: React.FC<OneQuestionPerPageViewProps> = ({
 				)}
 
 				{/* Answer Input */}
-				{currentQuestion.type === QUESTION_TYPE.SHORT_TEXT ? (
-					<div className='space-y-4'>
-						<textarea
-							className='input-field resize-none w-full'
-							placeholder={t(
-								'survey.oneQuestionPerPage.textPlaceholder',
-								'Share your thoughts here...'
-							)}
-							rows={6}
-							value={currentAnswer}
-							onChange={e => onAnswerChange(currentQuestion._id, e.target.value)}
-							{...getInputProps()}
-							autoFocus
-						/>
-					</div>
-				) : (
-					<div className='space-y-4'>
+                {currentQuestion.type === QUESTION_TYPE.SHORT_TEXT ? (
+                    <div className='space-y-4'>
+                        <textarea
+                            className='input-field resize-none w-full'
+                            placeholder={t(
+                                'survey.oneQuestionPerPage.textPlaceholder',
+                                'Share your thoughts here...'
+                            )}
+                            rows={6}
+                            value={currentAnswer}
+                            onChange={e => onAnswerChange(currentQuestion._id, e.target.value)}
+                            {...getInputProps()}
+                            autoFocus
+                            onKeyDown={e => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    if (currentAnswer.trim().length > 0) {
+                                        if (currentQuestionIndex === questions.length - 1) {
+                                            handleSubmitWrapper();
+                                        } else {
+                                            handleNext();
+                                        }
+                                    }
+                                }
+                            }}
+                        />
+                        <div className='text-xs text-[#767676] mt-1'>
+                            Press Enter to continue
+                        </div>
+                    </div>
+                ) : (
+                    <div className='space-y-4'>
 						{currentQuestion.options?.map((opt, optIndex) => {
 							const optionValue = typeof opt === 'string' ? opt : opt.text || '';
 							const optionText = typeof opt === 'string' ? opt : opt.text || '';
 							const optionImage = typeof opt === 'object' ? opt.imageUrl : null;
 							const isSelected = currentAnswer === optionValue;
 
-							return (
-								<label
+                            return (
+                                <label
 									key={`${currentQuestion._id}-${optIndex}-${optionText}`}
-									className={`group flex items-start p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                                    className={`group flex items-start p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg ${
 										isSelected
 											? 'border-[#FF5A5F] bg-[#FFF5F5] shadow-md'
 											: 'border-[#EBEBEB] bg-white hover:border-[#FF5A5F] hover:border-opacity-30'
@@ -226,19 +265,29 @@ const OneQuestionPerPageView: React.FC<OneQuestionPerPageViewProps> = ({
 											value={optionValue}
 											checked={isSelected}
 											onChange={() =>
-												onAnswerChange(currentQuestion._id, optionValue)
+                                            {
+                                                onAnswerChange(currentQuestion._id, optionValue);
+                                                // Auto-advance like Typeform
+                                                setTimeout(() => {
+                                                    if (currentQuestionIndex === questions.length - 1) {
+                                                        handleSubmitWrapper();
+                                                    } else {
+                                                        handleNext();
+                                                    }
+                                                }, 150);
+                                            }
 											}
 										/>
 										<div
-											className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center transition-all ${
+                                        className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center transition-all ${
 												isSelected
 													? 'border-[#FF5A5F] bg-[#FF5A5F]'
 													: 'border-[#DDDDDD] group-hover:border-[#FF5A5F]'
 											}`}
 										>
-											{isSelected && (
-												<div className='w-2 h-2 rounded-full bg-white'></div>
-											)}
+                                        {isSelected && (
+                                            <div className='w-2 h-2 rounded-full bg-white animate-pop'></div>
+                                        )}
 										</div>
 									</div>
 									<div className='flex-1'>

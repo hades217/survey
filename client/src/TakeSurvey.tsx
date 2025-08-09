@@ -577,43 +577,45 @@ const TakeSurvey: React.FC = () => {
 							onSubmit={handleSubmit}
 							className={`space-y-8 ${antiCheatEnabled && isAssessmentType ? 'anti-cheat-container' : ''}`}
 						>
-							<div className='grid md:grid-cols-2 gap-6'>
-								<div>
-									<label className='block mb-3 font-medium text-[#484848]'>
-										👤 Full Name *
-									</label>
-									<input
-										className='input-field'
-										value={form.name}
-										onChange={e => setForm({ ...form, name: e.target.value })}
-										required
-										placeholder='Enter your full name'
-										{...getInputProps()}
-									/>
-								</div>
-								<div>
-									<label className='block mb-3 font-medium text-[#484848]'>
-										✉️ Email Address *
-									</label>
-									<input
-										type='email'
-										className='input-field'
-										value={form.email}
-										onChange={e => handleEmailChange(e.target.value)}
-										required
-										placeholder='Enter your email address'
-										{...getInputProps()}
-									/>
-									{survey?.sourceType === 'question_bank' &&
-										form.email &&
-										!questionsLoaded && (
-										<div className='text-sm text-[#00A699] mt-2 flex items-center gap-2'>
-											<div className='w-4 h-4 border-2 border-[#00A699] border-t-transparent rounded-full animate-spin'></div>
-												Loading randomized questions...
-										</div>
-									)}
-								</div>
-							</div>
+                            {!(survey?.navigationMode === NAVIGATION_MODE.ONE_QUESTION_PER_PAGE && infoStepDone) && (
+                                <div className='grid md:grid-cols-2 gap-6'>
+                                    <div>
+                                        <label className='block mb-3 font-medium text-[#484848]'>
+                                            👤 Full Name *
+                                        </label>
+                                        <input
+                                            className='input-field'
+                                            value={form.name}
+                                            onChange={e => setForm({ ...form, name: e.target.value })}
+                                            required
+                                            placeholder='Enter your full name'
+                                            {...getInputProps()}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className='block mb-3 font-medium text-[#484848]'>
+                                            ✉️ Email Address *
+                                        </label>
+                                        <input
+                                            type='email'
+                                            className='input-field'
+                                            value={form.email}
+                                            onChange={e => handleEmailChange(e.target.value)}
+                                            required
+                                            placeholder='Enter your email address'
+                                            {...getInputProps()}
+                                        />
+                                        {survey?.sourceType === 'question_bank' &&
+                                            form.email &&
+                                            !questionsLoaded && (
+                                                <div className='text-sm text-[#00A699] mt-2 flex items-center gap-2'>
+                                                    <div className='w-4 h-4 border-2 border-[#00A699] border-t-transparent rounded-full animate-spin'></div>
+                                                        Loading randomized questions...
+                                                </div>
+                                            )}
+                                    </div>
+                                </div>
+                            )}
 
                             {questionsLoaded && (survey.navigationMode !== NAVIGATION_MODE.ONE_QUESTION_PER_PAGE || infoStepDone) ? (
 								// Conditional rendering based on navigation mode
