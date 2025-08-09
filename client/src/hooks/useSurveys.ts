@@ -203,7 +203,7 @@ export const useSurveys = () => {
 		console.log('Opening edit modal for survey:', survey);
 		console.log('questionBankId type:', typeof survey.questionBankId);
 		console.log('questionBankId value:', survey.questionBankId);
-		
+
 		// Extract the ID if questionBankId is an object
 		let questionBankId = survey.questionBankId;
 		if (questionBankId && typeof questionBankId === 'object') {
@@ -211,7 +211,7 @@ export const useSurveys = () => {
 			questionBankId = (questionBankId as any)._id || (questionBankId as any).id;
 			console.log('Extracted questionBankId:', questionBankId);
 		}
-		
+
 		setEditForm({
 			title: survey.title,
 			description: survey.description,

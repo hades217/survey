@@ -3,7 +3,7 @@ const { jwtAuth } = require('../../../middlewares/jwtAuth');
 const imageUpload = require('../../../middlewares/imageUpload');
 
 module.exports = {
-  asyncHandler,
-  jwtAuth,
-  imageUpload,
+	asyncHandler,
+	jwtAuth,
+	imageUpload,
 };

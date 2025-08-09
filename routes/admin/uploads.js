@@ -10,27 +10,27 @@ const router = express.Router();
  * @access  Private (Admin)
  */
 router.post(
-  '/upload-image',
-  jwtAuth,
-  imageUpload.single('image'),
-  asyncHandler(async (req, res) => {
-    if (!req.file) {
-      return res.status(HTTP_STATUS.BAD_REQUEST).json({
-        success: false,
-        error: 'No image file provided',
-      });
-    }
+	'/upload-image',
+	jwtAuth,
+	imageUpload.single('image'),
+	asyncHandler(async (req, res) => {
+		if (!req.file) {
+			return res.status(HTTP_STATUS.BAD_REQUEST).json({
+				success: false,
+				error: 'No image file provided',
+			});
+		}
 
-    // Return the image URL
-    const imageUrl = `/uploads/images/${req.file.filename}`;
+		// Return the image URL
+		const imageUrl = `/uploads/images/${req.file.filename}`;
 
-    res.json({
-      success: true,
-      imageUrl: imageUrl,
-      originalName: req.file.originalname,
-      size: req.file.size,
-    });
-  })
+		res.json({
+			success: true,
+			imageUrl: imageUrl,
+			originalName: req.file.originalname,
+			size: req.file.size,
+		});
+	})
 );
 
 module.exports = router;

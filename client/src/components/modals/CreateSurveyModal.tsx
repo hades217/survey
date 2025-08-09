@@ -92,19 +92,18 @@ const CreateSurveyModal: React.FC = () => {
 		}));
 	};
 
-	const isAssessmentType = (
+	const isAssessmentType =
 		newSurvey.type === SURVEY_TYPE.QUIZ ||
 		newSurvey.type === SURVEY_TYPE.ASSESSMENT ||
-		newSurvey.type === SURVEY_TYPE.IQ
-	);
+		newSurvey.type === SURVEY_TYPE.IQ;
 
-const handleMultiBankSave = (config: MultiQuestionBankConfig[]) => {
-    setNewSurvey(prev => ({ ...prev, multiQuestionBankConfig: config }));
-};
+	const handleMultiBankSave = (config: MultiQuestionBankConfig[]) => {
+		setNewSurvey(prev => ({ ...prev, multiQuestionBankConfig: config }));
+	};
 
-const handleManualSelectionSave = (selectedQuestions: SelectedQuestion[]) => {
-    setNewSurvey(prev => ({ ...prev, selectedQuestions }));
-};
+	const handleManualSelectionSave = (selectedQuestions: SelectedQuestion[]) => {
+		setNewSurvey(prev => ({ ...prev, selectedQuestions }));
+	};
 
 	return (
 		<Drawer
@@ -380,8 +379,8 @@ const handleManualSelectionSave = (selectedQuestions: SelectedQuestion[]) => {
 									{newSurvey.multiQuestionBankConfig &&
 									newSurvey.multiQuestionBankConfig.length > 0 ? (
 											<div className='space-y-2'>
-						{newSurvey.multiQuestionBankConfig.map(
-							(config, index: number) => {
+												{newSurvey.multiQuestionBankConfig.map(
+													(config, index: number) => {
 														const bank = questionBanks.find(
 															b => b._id === config.questionBankId
 														);
@@ -427,8 +426,9 @@ const handleManualSelectionSave = (selectedQuestions: SelectedQuestion[]) => {
 													{t('createModal.questionSource.totalQuestions', {
 														defaultValue: 'Total:',
 													})}{' '}
-							{newSurvey.multiQuestionBankConfig.reduce(
-								(sum: number, config) => sum + config.questionCount,
+													{newSurvey.multiQuestionBankConfig.reduce(
+														(sum: number, config) =>
+															sum + config.questionCount,
 														0
 													)}{' '}
 													{t('createModal.questionSource.questions', {
@@ -508,11 +508,15 @@ const handleManualSelectionSave = (selectedQuestions: SelectedQuestion[]) => {
 				{/* Display / Navigation */}
 				<div>
 					<h3 className='text-lg font-medium text-gray-900 mb-4'>
-						{t('createModal.assessmentConfig.navigationMode', { defaultValue: 'Navigation Mode' })}
+						{t('createModal.assessmentConfig.navigationMode', {
+							defaultValue: 'Navigation Mode',
+						})}
 					</h3>
 					<div>
 						<label className='block text-sm font-medium text-gray-700 mb-1'>
-							{t('createModal.assessmentConfig.navigationMode', { defaultValue: 'Navigation Mode' })}
+							{t('createModal.assessmentConfig.navigationMode', {
+								defaultValue: 'Navigation Mode',
+							})}
 						</label>
 						<select
 							value={newSurvey.navigationMode}
@@ -520,16 +524,24 @@ const handleManualSelectionSave = (selectedQuestions: SelectedQuestion[]) => {
 							className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 						>
 							<option value='step-by-step'>
-								{t('createModal.assessmentConfig.stepByStep', { defaultValue: 'Step by Step' })}
+								{t('createModal.assessmentConfig.stepByStep', {
+									defaultValue: 'Step by Step',
+								})}
 							</option>
 							<option value='paginated'>
-								{t('createModal.assessmentConfig.paginated', { defaultValue: 'Paginated' })}
+								{t('createModal.assessmentConfig.paginated', {
+									defaultValue: 'Paginated',
+								})}
 							</option>
 							<option value='all-in-one'>
-								{t('createModal.assessmentConfig.allInOne', { defaultValue: 'All in One' })}
+								{t('createModal.assessmentConfig.allInOne', {
+									defaultValue: 'All in One',
+								})}
 							</option>
 							<option value='one-question-per-page'>
-								{t('createModal.assessmentConfig.oneQuestionPerPage', { defaultValue: 'One Question Per Page (Typeform-like)' })}
+								{t('createModal.assessmentConfig.oneQuestionPerPage', {
+									defaultValue: 'One Question Per Page (Typeform-like)',
+								})}
 							</option>
 						</select>
 					</div>
@@ -585,8 +597,6 @@ const handleManualSelectionSave = (selectedQuestions: SelectedQuestion[]) => {
 									className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 								/>
 							</div>
-
-
 
 							<div>
 								<label className='block text-sm font-medium text-gray-700 mb-1'>

@@ -67,8 +67,13 @@ interface ScoringResult {
 
 const TakeSurvey: React.FC = () => {
 	const { t } = useTranslation();
-	const { slug } = useParams<{ slug: string }>();
+	const { slug, companySlug } = useParams<{ slug: string; companySlug?: string }>();
 	const navigate = useNavigate();
+
+	// Helper function to generate API paths with multi-tenant support
+	const getApiPath = (path: string) => {
+		return companySlug ? `/${companySlug}/api${path}` : `/api${path}`;
+	};
 	const [surveys, setSurveys] = useState<Survey[]>([]);
 	const [survey, setSurvey] = useState<Survey | null>(null);
 	const [questions, setQuestions] = useState<Question[]>([]);
@@ -88,11 +93,13 @@ const TakeSurvey: React.FC = () => {
 	// Control anti-cheating features - can be configured per survey or globally
 	const antiCheatEnabled = false; // Set to false to disable all anti-cheating features
 
-	// Debug logging
-	console.log('Survey type:', survey?.type);
-	console.log('Is assessment type:', isAssessmentType);
-	console.log('Anti-cheat enabled:', antiCheatEnabled);
-	console.log('TYPES_REQUIRING_ANSWERS:', TYPES_REQUIRING_ANSWERS);
+	// Debug logging removed
+
+	// Helper to check if survey questions come from any bank-based source
+	const isBankBasedSource = (sourceType: SourceType | undefined) =>
+		sourceType === SOURCE_TYPE.QUESTION_BANK ||
+		sourceType === SOURCE_TYPE.MULTI_QUESTION_BANK ||
+		sourceType === SOURCE_TYPE.MANUAL_SELECTION;
 
 	// Use both hooks for comprehensive protection
 	const { getInputProps } = useAntiCheating({
@@ -111,20 +118,20 @@ const TakeSurvey: React.FC = () => {
 	useWorkingAntiCheating(antiCheatEnabled && isAssessmentType);
 
 	const loadQuestions = async (survey: Survey, userEmail?: string) => {
-		if (survey.sourceType === SOURCE_TYPE.QUESTION_BANK) {
+		if (isBankBasedSource(survey.sourceType)) {
 			try {
-				const response = await axios.get(`/api/survey/${survey.slug}/questions`, {
+				const response = await axios.get(getApiPath(`/survey/${survey.slug}/questions`), {
 					params: { email: userEmail },
 				});
 				setQuestions(response.data.questions);
 			} catch (err) {
-				console.error('Error loading questions:', err);
 				setError('Failed to load questions');
 			}
 		} else {
 			// For manual surveys, use the questions from the survey object
 			setQuestions(survey.questions);
 		}
+		// Questions loaded
 		setQuestionsLoaded(true);
 	};
 
@@ -132,41 +139,25 @@ const TakeSurvey: React.FC = () => {
 		// If slug is provided, fetch that specific survey
 		if (slug) {
 			setLoading(true);
+			const apiUrl = getApiPath(`/survey/${slug}`);
 			axios
-				.get<Survey>(`/api/survey/${slug}`)
+				.get<Survey>(apiUrl)
 				.then(res => {
-					console.log('Survey data received:', res.data);
-					console.log('Questions length:', res.data.questions?.length);
+					setSurvey(res.data);
 
-					// Debug: Check for descriptionImage in questions
-					if (res.data.questions && res.data.questions.length > 0) {
-						console.log(
-							'Questions with descriptionImage:',
-							res.data.questions.map((q, idx) => ({
-								index: idx,
-								text: q.text?.substring(0, 50),
-								hasDescriptionImage: !!q.descriptionImage,
-								descriptionImage: q.descriptionImage,
-							}))
-						);
-					}
-
-                    setSurvey(res.data);
-
-					// For manual surveys, load questions immediately
-					// For question bank surveys, wait for user email
-					if (res.data.sourceType !== SOURCE_TYPE.QUESTION_BANK) {
+					// Load questions immediately only for manual surveys
+					// For bank-based surveys, wait for user email
+					if (res.data.sourceType === SOURCE_TYPE.MANUAL) {
 						loadQuestions(res.data);
 					}
 				})
-				.catch(err => {
+				.catch(() => {
 					setError('Survey not found');
-					console.error('Error fetching survey:', err);
 				})
 				.finally(() => setLoading(false));
 		} else {
 			// Otherwise fetch all surveys for selection
-			axios.get<Survey[]>('/api/surveys').then(res => setSurveys(res.data));
+			axios.get<Survey[]>(getApiPath('/surveys')).then(res => setSurveys(res.data));
 		}
     }, [slug]);
 
@@ -189,7 +180,7 @@ const TakeSurvey: React.FC = () => {
 		// For question bank surveys, load questions when email is entered
 		if (
 			survey &&
-			survey.sourceType === SOURCE_TYPE.QUESTION_BANK &&
+			isBankBasedSource(survey.sourceType) &&
 			email &&
 			!questionsLoaded
 		) {
@@ -204,10 +195,10 @@ const TakeSurvey: React.FC = () => {
     };
 
     const handleStart = async () => {
-        if (!survey) return;
+		if (!survey) return;
         if (!canStart()) return;
         // Ensure questions are loaded for question bank surveys before starting
-        if (survey.sourceType === SOURCE_TYPE.QUESTION_BANK && form.email && !questionsLoaded) {
+		if (isBankBasedSource(survey.sourceType) && form.email && !questionsLoaded) {
             await loadQuestions(survey, form.email);
         }
         setInfoStepDone(true);
@@ -225,7 +216,7 @@ const TakeSurvey: React.FC = () => {
 				surveyId: survey._id,
 				answers: questions.map(q => form.answers[q._id]),
 			};
-			await axios.post(`/api/surveys/${survey._id}/responses`, payload);
+			await axios.post(getApiPath(`/surveys/${survey._id}/responses`), payload);
 
 			// Calculate assessment results if this is an assessment, quiz, or iq test
 			if (TYPES_REQUIRING_ANSWERS.includes(survey.type)) {
@@ -357,7 +348,6 @@ const TakeSurvey: React.FC = () => {
 			setSubmitted(true);
 		} catch (err) {
 			setError('Failed to submit survey. Please try again.');
-			console.error('Error submitting survey:', err);
 		} finally {
 			setLoading(false);
 		}
@@ -635,8 +625,9 @@ const TakeSurvey: React.FC = () => {
 							</div>
                             )}
 
-                            {questionsLoaded && (survey.navigationMode !== NAVIGATION_MODE.ONE_QUESTION_PER_PAGE || infoStepDone) ? (
-								// Conditional rendering based on navigation mode
+            {(() => {
+                return questionsLoaded && (survey.navigationMode !== NAVIGATION_MODE.ONE_QUESTION_PER_PAGE || infoStepDone || survey.sourceType === SOURCE_TYPE.QUESTION_BANK);
+            })() && (
 								survey.navigationMode === NAVIGATION_MODE.ONE_QUESTION_PER_PAGE ? (
 									<OneQuestionPerPageView
 										questions={questions}
@@ -657,7 +648,7 @@ const TakeSurvey: React.FC = () => {
 												</div>
 											)}
 										</div>
-                                        {questions.map((q, index) => (
+                                        {questions && questions.length > 0 ? questions.map((q, index) => (
 											<div
 												key={q._id}
                                                 className={`bg-white rounded-xl p-6 border border-[#EBEBEB] ${antiCheatEnabled && isAssessmentType ? 'anti-cheat-container' : ''}`}
@@ -672,22 +663,12 @@ const TakeSurvey: React.FC = () => {
 												{/* Main question image */}
 												{q.imageUrl && (
 													<div className='mb-4'>
-														<img
+                                                <img
 															src={q.imageUrl}
 															alt='Question image'
                                                         className='max-w-full h-auto rounded-lg border border-gray-200'
-															onLoad={() => {
-																console.log(
-																	'Main image loaded successfully:',
-																	q.imageUrl
-																);
-															}}
+                                                    onLoad={() => {}}
 															onError={e => {
-																console.error(
-																	'Main image failed to load:',
-																	q.imageUrl
-																);
-																console.error('Error event:', e);
 																e.currentTarget.style.display =
 																	'none';
 															}}
@@ -698,37 +679,19 @@ const TakeSurvey: React.FC = () => {
 												{/* Description image */}
 												{q.descriptionImage && (
 													<div className='mb-4'>
-														<img
+                                                <img
 															src={q.descriptionImage}
 															alt='Question illustration'
 															className='max-w-full h-auto rounded-lg border border-gray-300'
-															onLoad={() => {
-																console.log(
-																	'Description image loaded successfully:',
-																	q.descriptionImage
-																);
-															}}
+                                                    onLoad={() => {}}
 															onError={e => {
-																console.error(
-																	'Description image failed to load:',
-																	q.descriptionImage
-																);
-																console.error('Error event:', e);
 																e.currentTarget.style.display =
 																	'none';
 															}}
 														/>
 													</div>
 												)}
-												{(q.imageUrl || q.descriptionImage) &&
-													console.log(
-														'Rendering images for question',
-														index,
-														'imageUrl:',
-														q.imageUrl,
-														'descriptionImage:',
-														q.descriptionImage
-													)}
+                                                {/* image debug removed */}
 												{q.type === QUESTION_TYPE.SHORT_TEXT ? (
 													<div className='space-y-4'>
 														<textarea
@@ -825,20 +788,11 @@ const TakeSurvey: React.FC = () => {
 																							maxHeight:
 																								'200px',
 																						}}
-																						onLoad={() => {
-																							console.log(
-																								'Option image loaded successfully:',
-																								optionImage
-																							);
-																						}}
-																						onError={e => {
-																							console.error(
-																								'Option image failed to load:',
-																								optionImage
-																							);
-																							e.currentTarget.style.display =
-																								'none';
-																						}}
+                                                                                        onLoad={() => {}}
+                                                                                        onError={e => {
+                                                                                            e.currentTarget.style.display =
+                                                                                                'none';
+                                                                                        }}
 																					/>
 																				</div>
 																			)}
@@ -849,22 +803,20 @@ const TakeSurvey: React.FC = () => {
 													</div>
 												)}
 											</div>
-										))}
+										)) : (
+											<div className='text-center py-8'>
+												<div className='text-gray-500 text-4xl mb-4'>⚠️</div>
+												<h3 className='text-lg font-semibold text-gray-700 mb-2'>
+													No Questions Available
+												</h3>
+												<p className='text-gray-500'>
+													{loading ? 'Loading questions...' : 'Questions could not be loaded.'}
+												</p>
+											</div>
+										)}
 									</div>
-								)
-                            ) : survey?.sourceType === SOURCE_TYPE.QUESTION_BANK && (survey.navigationMode !== NAVIGATION_MODE.ONE_QUESTION_PER_PAGE || infoStepDone) ? (
-								<div className='text-center py-8'>
-									<div className='text-purple-500 text-6xl mb-4'>🎲</div>
-									<h3 className='text-xl font-semibold text-gray-700 mb-2'>
-										Questions Will Load Soon
-									</h3>
-									<p className='text-gray-500'>
-										{form.email
-											? 'Preparing your randomized questions...'
-											: 'Enter your email address above to load your personalized questions.'}
-									</p>
-								</div>
-							) : null}
+							)
+							)}
 
                             {/* Start button for one-question-per-page before entering questions */}
                             {survey?.navigationMode === NAVIGATION_MODE.ONE_QUESTION_PER_PAGE && !infoStepDone && (
@@ -884,16 +836,33 @@ const TakeSurvey: React.FC = () => {
 							{survey?.navigationMode !== NAVIGATION_MODE.ONE_QUESTION_PER_PAGE && (
 								<div className='flex justify-center pt-8 border-t border-[#EBEBEB] mt-8'>
 									<button
-										className='btn-primary px-8 py-3 text-base font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300'
-										type='submit'
-										disabled={loading || !questionsLoaded}
-									>
-										{loading
-											? '✨ Submitting...'
-											: !questionsLoaded
-												? '🎲 Loading...'
-												: '🚀 Submit Response'}
-									</button>
+							className='btn-primary px-8 py-3 text-base font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300'
+							type='submit'
+							disabled={
+								loading || (isBankBasedSource(survey?.sourceType) ? !form.email : !questionsLoaded)
+							}
+							onClick={e => {
+								// For bank-based sources, if questions aren't loaded yet, load them on button click
+								if (
+									survey &&
+									isBankBasedSource(survey.sourceType) &&
+									!questionsLoaded
+								) {
+									e.preventDefault();
+									if (form.email) {
+										void loadQuestions(survey, form.email);
+									}
+								}
+							}}
+						>
+							{loading
+								? '✨ Submitting...'
+								: isBankBasedSource(survey?.sourceType) && !questionsLoaded
+									? '🎲 Load Questions'
+									: !questionsLoaded
+										? '🎲 Loading...'
+										: '🚀 Submit Response'}
+						</button>
 								</div>
 							)}
 						</form>

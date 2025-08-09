@@ -89,6 +89,25 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	const PAGE_SIZE = 10;
 	const RESPONSE_PAGE_SIZE = 5;
 
+	// Get company information for generating tenant URLs
+	const [companySlug, setCompanySlug] = useState<string>('');
+
+	// Load company information
+	useEffect(() => {
+		const loadCompanyInfo = async () => {
+			try {
+				const res = await api.get('/companies/current');
+				if (res.data.success && res.data.company?.slug) {
+					setCompanySlug(res.data.company.slug);
+				}
+			} catch (err) {
+				console.error('Failed to load company info:', err);
+			}
+		};
+
+		loadCompanyInfo();
+	}, []);
+
 	// Handle statistics filter
 	const handleStatisticsFilter = async (filters: {
 		name?: string;
@@ -142,7 +161,8 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 
 	// Copy link
 	const handleCopy = (token: string) => {
-		const url = `${window.location.origin}/assessment/${token}`;
+		const basePath = companySlug ? `/${companySlug}` : '';
+		const url = `${window.location.origin}${basePath}/assessment/${token}`;
 		navigator.clipboard.writeText(url);
 	};
 
@@ -231,8 +251,14 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		setShowEditModal(true);
 	};
 
-	const getSurveyUrl = (slug: string) => {
-		return `${window.location.origin}/survey/${slug}`;
+	const getSurveyUrl = (slug: string, companySlug?: string) => {
+		const basePath = companySlug ? `/${companySlug}` : '';
+		return `${window.location.origin}${basePath}/survey/${slug}`;
+	};
+
+	const getAssessmentUrl = (slug: string, companySlug?: string) => {
+		const basePath = companySlug ? `/${companySlug}` : '';
+		return `${window.location.origin}${basePath}/assessment/${slug}`;
 	};
 
 	const toggleQR = (surveyId: string) => {
@@ -876,32 +902,34 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 										<p className='text-gray-600 mb-3'>{s.description}</p>
 									)}
 								</div>
-							<div className='flex items-center gap-2'>
-								<button
-									className='btn-secondary text-sm px-3 py-1'
-									onClick={() => openEditModal(s)}
-								>
-									Edit
-								</button>
-								<button
-									className='btn-secondary text-sm px-3 py-1'
-									onClick={() => toggleSurveyStatus(s._id)}
-								>
-									{s.status === SURVEY_STATUS.ACTIVE ? 'Deactivate' : 'Activate'}
-								</button>
-								<button
-									className='px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors'
-									onClick={() => duplicateSurvey(s._id)}
-								>
-									{t('buttons.duplicate')}
-								</button>
-								<button
-									className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
-									onClick={() => deleteSurvey(s._id)}
-								>
-									Delete
-								</button>
-							</div>
+								<div className='flex items-center gap-2'>
+									<button
+										className='btn-secondary text-sm px-3 py-1'
+										onClick={() => openEditModal(s)}
+									>
+										Edit
+									</button>
+									<button
+										className='btn-secondary text-sm px-3 py-1'
+										onClick={() => toggleSurveyStatus(s._id)}
+									>
+										{s.status === SURVEY_STATUS.ACTIVE
+											? 'Deactivate'
+											: 'Activate'}
+									</button>
+									<button
+										className='px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors'
+										onClick={() => duplicateSurvey(s._id)}
+									>
+										{t('buttons.duplicate')}
+									</button>
+									<button
+										className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
+										onClick={() => deleteSurvey(s._id)}
+									>
+										Delete
+									</button>
+								</div>
 							</div>
 
 							{/* Assessment Configuration Display */}
@@ -1032,13 +1060,18 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 											<span className='font-medium text-purple-600'>
 												{(() => {
 													// Extract ID if questionBankId is an object
-													const questionBankId = s.questionBankId && typeof s.questionBankId === 'object'
-														? (s.questionBankId as any)._id || (s.questionBankId as any).id
-														: s.questionBankId;
+													const questionBankId =
+														s.questionBankId &&
+														typeof s.questionBankId === 'object'
+															? (s.questionBankId as any)._id ||
+																(s.questionBankId as any).id
+															: s.questionBankId;
 
-													return questionBanks.find(
-														bank => bank._id === questionBankId
-													)?.name || 'Unknown Question Bank';
+													return (
+														questionBanks.find(
+															bank => bank._id === questionBankId
+														)?.name || 'Unknown Question Bank'
+													);
 												})()}
 											</span>
 										</div>
@@ -1058,7 +1091,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 								Created: {new Date(s.createdAt).toLocaleDateString()}
 							</div>
 
-						{/* Actions moved next to Edit button above */}
+							{/* Actions moved next to Edit button above */}
 
 							{/* Survey URLs */}
 							<div className='bg-gray-50 rounded-lg p-4 mb-4'>
@@ -1071,10 +1104,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 													Enhanced Assessment URL
 												</label>
 												<div className='text-sm text-gray-600 font-mono'>
-													{getSurveyUrl(s.slug).replace(
-														'/survey/',
-														'/assessment/'
-													)}
+													{getAssessmentUrl(s.slug, companySlug)}
 												</div>
 											</div>
 											<div className='flex gap-2'>
@@ -1082,26 +1112,23 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 													className='btn-secondary text-sm'
 													onClick={() =>
 														copyToClipboard(
-															getSurveyUrl(s.slug).replace(
-																'/survey/',
-																'/assessment/'
-															)
+															getAssessmentUrl(s.slug, companySlug)
 														)
 													}
 												>
 													Copy URL
 												</button>
-										<button
-											className='btn-outline text-sm'
-											onClick={() =>
-												window.open(
-													getSurveyUrl(s.slug).replace('/survey/', '/assessment/'),
-													'_blank'
-												)
-											}
-										>
-											Open
-										</button>
+												<button
+													className='btn-outline text-sm'
+													onClick={() =>
+														window.open(
+															getAssessmentUrl(s.slug, companySlug),
+															'_blank'
+														)
+													}
+												>
+													Open
+												</button>
 												<button
 													className='btn-primary text-sm'
 													onClick={() => toggleQR(s._id)}
@@ -1119,17 +1146,30 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 														Classic Survey URL
 													</label>
 													<div className='text-sm text-gray-600 font-mono'>
-														{getSurveyUrl(s.slug)}
+														{getSurveyUrl(s.slug, companySlug)}
 													</div>
 												</div>
 												<div className='flex gap-2'>
 													<button
 														className='btn-secondary text-sm'
 														onClick={() =>
-															copyToClipboard(getSurveyUrl(s.slug))
+															copyToClipboard(
+																getSurveyUrl(s.slug, companySlug)
+															)
 														}
 													>
 														Copy URL
+													</button>
+													<button
+														className='btn-outline text-sm'
+														onClick={() =>
+															window.open(
+																getSurveyUrl(s.slug, companySlug),
+																'_blank'
+															)
+														}
+													>
+														Open
 													</button>
 													<button
 														className='btn-primary text-sm'
@@ -1149,38 +1189,38 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 															Enhanced Assessment URL
 														</label>
 														<div className='text-sm text-gray-600 font-mono'>
-															{getSurveyUrl(s.slug).replace(
-																'/survey/',
-																'/assessment/'
-															)}
+															{getAssessmentUrl(s.slug, companySlug)}
 														</div>
 													</div>
-									<div className='flex gap-2'>
-										<button
-											className='btn-secondary text-sm'
-											onClick={() =>
-												copyToClipboard(
-													getSurveyUrl(s.slug).replace(
-														'/survey/',
-														'/assessment/'
-													)
-												)
-											}
-										>
-											Copy Enhanced URL
-										</button>
-										<button
-											className='btn-outline text-sm'
-											onClick={() =>
-												window.open(
-													getSurveyUrl(s.slug).replace('/survey/', '/assessment/'),
-													'_blank'
-												)
-											}
-										>
-											Open
-										</button>
-									</div>
+													<div className='flex gap-2'>
+														<button
+															className='btn-secondary text-sm'
+															onClick={() =>
+																copyToClipboard(
+																	getAssessmentUrl(
+																		s.slug,
+																		companySlug
+																	)
+																)
+															}
+														>
+															Copy Enhanced URL
+														</button>
+														<button
+															className='btn-outline text-sm'
+															onClick={() =>
+																window.open(
+																	getAssessmentUrl(
+																		s.slug,
+																		companySlug
+																	),
+																	'_blank'
+																)
+															}
+														>
+															Open
+														</button>
+													</div>
 												</div>
 											)}
 										</>
@@ -1191,11 +1231,8 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 										<QRCodeComponent
 											url={
 												s.type === SURVEY_TYPE.ASSESSMENT
-													? getSurveyUrl(s.slug).replace(
-														'/survey/',
-														'/assessment/'
-													)
-													: getSurveyUrl(s.slug)
+													? getAssessmentUrl(s.slug, companySlug)
+													: getSurveyUrl(s.slug, companySlug)
 											}
 										/>
 									</div>

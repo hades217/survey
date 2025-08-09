@@ -31,8 +31,13 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 				<Route path='/admin/profile' element={<Admin />} />
 				<Route path='/admin/billing' element={<Admin />} />
 				<Route path='/admin/:id' element={<Admin />} />
+				{/* Non-tenant routes (backward compatibility) */}
 				<Route path='/survey/:slug' element={<TakeSurvey />} />
 				<Route path='/assessment/:slug' element={<StudentAssessment />} />
+
+				{/* Multi-tenant routes */}
+				<Route path='/:companySlug/survey/:slug' element={<TakeSurvey />} />
+				<Route path='/:companySlug/assessment/:slug' element={<StudentAssessment />} />
 				<Route path='/legacy' element={<Survey />} />
 			</Routes>
 		</BrowserRouter>

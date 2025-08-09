@@ -7,10 +7,10 @@ const Company = require('../../../models/Company');
 const QuestionBank = require('../../../models/QuestionBank');
 
 module.exports = {
-  Survey,
-  Response,
-  Invitation,
-  User,
-  Company,
-  QuestionBank,
+	Survey,
+	Response,
+	Invitation,
+	User,
+	Company,
+	QuestionBank,
 };

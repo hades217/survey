@@ -13,6 +13,7 @@ const questionBanksRouter = require('./routes/questionBanks');
 const subscriptionRouter = require('./routes/subscription');
 const companiesRouter = require('./routes/companies');
 const errorHandler = require('./middlewares/errorHandler');
+const { extractTenantFromUrl, multiTenant } = require('./middlewares/multiTenant');
 
 // Initialize service container
 const serviceContainer = require('./services/ServiceContainer');
@@ -41,7 +42,18 @@ app.use(
 	})
 );
 
+// Multi-tenant middleware - extract tenant info from URL
+app.use(extractTenantFromUrl);
+
+// Regular API routes (non-tenant)
 app.use('/api', questionsRouter);
+// Multi-tenant routes with company validation (must come before static files)
+app.use('/:companySlug/api', multiTenant, questionsRouter);
+app.use('/:companySlug/api', multiTenant, responsesRouter);
+app.use('/:companySlug/api', multiTenant, surveysRouter);
+app.use('/:companySlug/api/invitations', multiTenant, invitationsRouter);
+
+// Regular API routes
 app.use('/api', responsesRouter);
 app.use('/api', surveysRouter);
 app.use('/api/admin', adminRouter);
@@ -50,6 +62,7 @@ app.use('/api/admin/question-banks', questionBanksRouter);
 app.use('/api/invitations', invitationsRouter);
 app.use('/api/subscription', subscriptionRouter);
 app.use('/api/companies', companiesRouter);
+
 app.use(errorHandler);
 
 // Serve uploaded images

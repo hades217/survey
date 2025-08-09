@@ -7,7 +7,6 @@ import Drawer from '../Drawer';
 import MultiQuestionBankModal from './MultiQuestionBankModal';
 import ManualQuestionSelectionModal from './ManualQuestionSelectionModal';
 
-
 const EditSurveyModal: React.FC = () => {
 	const {
 		showEditModal,
@@ -46,7 +45,6 @@ const EditSurveyModal: React.FC = () => {
 			}));
 		}
 	}, [selectedSurvey, editForm.scoringSettings, setEditForm]);
-
 
 	// Debug log for editForm changes
 	useEffect(() => {
@@ -125,12 +123,16 @@ const EditSurveyModal: React.FC = () => {
 							</h3>
 							<div className='space-y-4'>
 								<div>
-									<label className='block text-sm font-medium text-gray-700 mb-1'>Title *</label>
+									<label className='block text-sm font-medium text-gray-700 mb-1'>
+										Title *
+									</label>
 									<input
 										className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 										placeholder='Enter survey title'
 										value={editForm.title}
-										onChange={e => setEditForm({ ...editForm, title: e.target.value })}
+										onChange={e =>
+											setEditForm({ ...editForm, title: e.target.value })
+										}
 										required
 									/>
 								</div>
@@ -143,19 +145,29 @@ const EditSurveyModal: React.FC = () => {
 										className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 										placeholder='Enter description'
 										value={editForm.description}
-										onChange={e => setEditForm({ ...editForm, description: e.target.value })}
+										onChange={e =>
+											setEditForm({
+												...editForm,
+												description: e.target.value,
+											})
+										}
 										rows={3}
 									/>
 								</div>
 
 								<div className='grid grid-cols-2 gap-4'>
 									<div>
-										<label className='block text-sm font-medium text-gray-700 mb-1'>Type</label>
+										<label className='block text-sm font-medium text-gray-700 mb-1'>
+											Type
+										</label>
 										<select
 											className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 											value={editForm.type}
 											onChange={e =>
-												setEditForm({ ...editForm, type: e.target.value as any })
+												setEditForm({
+													...editForm,
+													type: e.target.value as any,
+												})
 											}
 										>
 											<option value='survey'>Survey</option>
@@ -175,7 +187,10 @@ const EditSurveyModal: React.FC = () => {
 											onChange={e =>
 												setEditForm({
 													...editForm,
-													status: e.target.value as 'draft' | 'active' | 'closed',
+													status: e.target.value as
+														| 'draft'
+														| 'active'
+														| 'closed',
 												})
 											}
 										>
@@ -190,7 +205,9 @@ const EditSurveyModal: React.FC = () => {
 
 						{/* Question Source */}
 						<div>
-							<h3 className='text-lg font-medium text-gray-900 mb-4'>Question Source</h3>
+							<h3 className='text-lg font-medium text-gray-900 mb-4'>
+								Question Source
+							</h3>
 							<div className='space-y-4'>
 								<div>
 									<label className='block text-sm font-medium text-gray-700 mb-1'>
@@ -205,9 +222,11 @@ const EditSurveyModal: React.FC = () => {
 												? 'Manual Questions'
 												: editForm.sourceType === SOURCE_TYPE.QUESTION_BANK
 													? 'Question Bank (Random)'
-													: editForm.sourceType === SOURCE_TYPE.MULTI_QUESTION_BANK
+													: editForm.sourceType ===
+														  SOURCE_TYPE.MULTI_QUESTION_BANK
 														? 'Multi-Question Bank'
-														: editForm.sourceType === SOURCE_TYPE.MANUAL_SELECTION
+														: editForm.sourceType ===
+															  SOURCE_TYPE.MANUAL_SELECTION
 															? 'Manual Selection'
 															: 'Manual Questions (default)'}
 										</div>
@@ -226,7 +245,8 @@ const EditSurveyModal: React.FC = () => {
 													questionBankId: undefined,
 													questionCount: undefined,
 												}),
-												...(sourceType !== SOURCE_TYPE.MULTI_QUESTION_BANK && {
+												...(sourceType !==
+													SOURCE_TYPE.MULTI_QUESTION_BANK && {
 													multiQuestionBankConfig: [],
 												}),
 												...(sourceType !== SOURCE_TYPE.MANUAL_SELECTION && {
@@ -242,163 +262,170 @@ const EditSurveyModal: React.FC = () => {
 										<option value={SOURCE_TYPE.MULTI_QUESTION_BANK}>
 											Multi-Question Bank
 										</option>
-										<option value={SOURCE_TYPE.MANUAL_SELECTION}>Manual Selection</option>
+										<option value={SOURCE_TYPE.MANUAL_SELECTION}>
+											Manual Selection
+										</option>
 									</select>
 									<div className='text-xs text-gray-500 mt-1'>
 										Choose how questions are sourced for this survey
 									</div>
 								</div>
 
-						{/* Single Question Bank */}
-						{editForm.sourceType === SOURCE_TYPE.QUESTION_BANK && (
-							<>
-								<div>
-									<label className='block text-sm font-medium text-gray-700 mb-1'>
-										Question Bank
-									</label>
+								{/* Single Question Bank */}
+								{editForm.sourceType === SOURCE_TYPE.QUESTION_BANK && (
+									<>
+										<div>
+											<label className='block text-sm font-medium text-gray-700 mb-1'>
+												Question Bank
+											</label>
 
-									{/* Display current selection info */}
-									{editForm.questionBankId && (
-										<div className='mb-2 p-2 bg-blue-50 border border-blue-200 rounded-lg'>
-											<div className='text-sm text-blue-800'>
-												<strong>Currently selected:</strong>{' '}
-												{questionBanks?.find(
-													bank => bank._id === editForm.questionBankId
-												)?.name ||
-													'Unknown Bank (ID: ' +
-														editForm.questionBankId +
-														')'}
-											</div>
-											{editForm.questionCount && (
-												<div className='text-xs text-blue-600 mt-1'>
-													Configured to select {editForm.questionCount}{' '}
-													questions
+											{/* Display current selection info */}
+											{editForm.questionBankId && (
+												<div className='mb-2 p-2 bg-blue-50 border border-blue-200 rounded-lg'>
+													<div className='text-sm text-blue-800'>
+														<strong>Currently selected:</strong>{' '}
+														{questionBanks?.find(
+															bank =>
+																bank._id === editForm.questionBankId
+														)?.name ||
+															'Unknown Bank (ID: ' +
+																editForm.questionBankId +
+																')'}
+													</div>
+													{editForm.questionCount && (
+														<div className='text-xs text-blue-600 mt-1'>
+															Configured to select{' '}
+															{editForm.questionCount} questions
+														</div>
+													)}
+												</div>
+											)}
+
+											<select
+												className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+												value={editForm.questionBankId || ''}
+												onChange={e =>
+													setEditForm({
+														...editForm,
+														questionBankId: e.target.value || undefined,
+													})
+												}
+												required
+											>
+												<option value=''>Select a question bank</option>
+												{questionBanks?.map(bank => (
+													<option key={bank._id} value={bank._id}>
+														{bank.name} ({bank.questions?.length || 0}{' '}
+														questions)
+													</option>
+												))}
+											</select>
+
+											{(!questionBanks || questionBanks.length === 0) && (
+												<div className='text-sm text-red-600 mt-1'>
+													No question banks available. Please create a
+													question bank first.
 												</div>
 											)}
 										</div>
-									)}
 
-									<select
-										className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-										value={editForm.questionBankId || ''}
-										onChange={e =>
-											setEditForm({
-												...editForm,
-												questionBankId: e.target.value || undefined,
-											})
-										}
-										required
-									>
-										<option value=''>Select a question bank</option>
-										{questionBanks?.map(bank => (
-											<option key={bank._id} value={bank._id}>
-												{bank.name} ({bank.questions?.length || 0} questions)
-											</option>
-										))}
-									</select>
+										{editForm.questionBankId && (
+											<div>
+												<label className='block text-sm font-medium text-gray-700 mb-1'>
+													Number of Questions
+												</label>
+												<input
+													type='number'
+													className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+													value={editForm.questionCount || ''}
+													onChange={e =>
+														setEditForm({
+															...editForm,
+															questionCount: e.target.value
+																? parseInt(e.target.value)
+																: undefined,
+														})
+													}
+													placeholder='All questions'
+													min='1'
+													max={
+														questionBanks?.find(
+															b => b._id === editForm.questionBankId
+														)?.questions?.length || 100
+													}
+												/>
+												<div className='text-xs text-gray-500 mt-1'>
+													Number of questions to randomly select (leave
+													empty for all)
+												</div>
+											</div>
+										)}
+									</>
+								)}
 
-									{(!questionBanks || questionBanks.length === 0) && (
-										<div className='text-sm text-red-600 mt-1'>
-											No question banks available. Please create a question bank
-											first.
-										</div>
-									)}
-								</div>
-
-								{editForm.questionBankId && (
+								{/* Multiple Question Banks */}
+								{editForm.sourceType === SOURCE_TYPE.MULTI_QUESTION_BANK && (
 									<div>
 										<label className='block text-sm font-medium text-gray-700 mb-1'>
-											Number of Questions
+											Question Bank Configuration
 										</label>
-										<input
-											type='number'
-											className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-											value={editForm.questionCount || ''}
-											onChange={e =>
-												setEditForm({
-													...editForm,
-													questionCount: e.target.value
-														? parseInt(e.target.value)
-														: undefined,
-												})
-											}
-											placeholder='All questions'
-											min='1'
-											max={
-												questionBanks?.find(
-													b => b._id === editForm.questionBankId
-												)?.questions?.length || 100
-											}
-										/>
-										<div className='text-xs text-gray-500 mt-1'>
-											Number of questions to randomly select (leave empty for all)
+										<div className='border border-gray-300 rounded-lg p-4 bg-gray-50'>
+											{editForm.multiQuestionBankConfig &&
+											editForm.multiQuestionBankConfig.length > 0 ? (
+													<div className='space-y-2'>
+														{editForm.multiQuestionBankConfig.map(
+															(config: unknown, index: number) => {
+																const bank = questionBanks?.find(
+																	b => b._id === config.questionBankId
+																);
+																return (
+																	<div
+																		key={index}
+																		className='text-sm text-gray-700'
+																	>
+																		<strong>
+																			{bank?.name ||
+																			'Unknown Bank'}
+																		</strong>
+																	: {config.questionCount}{' '}
+																	questions
+																		{config.filters &&
+																		Object.keys(config.filters)
+																			.length > 0 && (
+																			<span className='text-gray-500'>
+																				{' '}
+																				(with filters)
+																			</span>
+																		)}
+																	</div>
+																);
+															}
+														)}
+														<div className='text-xs text-gray-500 mt-2'>
+														Total:{' '}
+															{editForm.multiQuestionBankConfig.reduce(
+																(sum: number, config: unknown) =>
+																	sum + config.questionCount,
+																0
+															)}{' '}
+														questions
+														</div>
+													</div>
+												) : (
+													<div className='text-sm text-gray-500'>
+													No configurations set up yet
+													</div>
+												)}
+											<button
+												type='button'
+												onClick={() => setShowMultiBankModal(true)}
+												className='mt-3 btn-primary btn-small'
+											>
+												Configure Question Banks
+											</button>
 										</div>
 									</div>
 								)}
-							</>
-						)}
-
-						{/* Multiple Question Banks */}
-						{editForm.sourceType === SOURCE_TYPE.MULTI_QUESTION_BANK && (
-							<div>
-								<label className='block text-sm font-medium text-gray-700 mb-1'>
-									Question Bank Configuration
-								</label>
-								<div className='border border-gray-300 rounded-lg p-4 bg-gray-50'>
-									{editForm.multiQuestionBankConfig &&
-									editForm.multiQuestionBankConfig.length > 0 ? (
-											<div className='space-y-2'>
-												{editForm.multiQuestionBankConfig.map(
-													(config: unknown, index: number) => {
-														const bank = questionBanks?.find(
-															b => b._id === config.questionBankId
-														);
-														return (
-															<div
-																key={index}
-																className='text-sm text-gray-700'
-															>
-																<strong>
-																	{bank?.name || 'Unknown Bank'}
-																</strong>
-															: {config.questionCount} questions
-																{config.filters &&
-																Object.keys(config.filters).length >
-																	0 && (
-																	<span className='text-gray-500'>
-																		{' '}
-																		(with filters)
-																	</span>
-																)}
-															</div>
-														);
-													}
-												)}
-												<div className='text-xs text-gray-500 mt-2'>
-												Total:{' '}
-													{editForm.multiQuestionBankConfig.reduce(
-														(sum: number, config: unknown) =>
-															sum + config.questionCount,
-														0
-													)}{' '}
-												questions
-												</div>
-											</div>
-										) : (
-											<div className='text-sm text-gray-500'>
-											No configurations set up yet
-											</div>
-										)}
-									<button
-										type='button'
-										onClick={() => setShowMultiBankModal(true)}
-										className='mt-3 btn-primary btn-small'
-									>
-										Configure Question Banks
-									</button>
-								</div>
-							</div>
-						)}
 
 								{/* Manual Question Selection */}
 								{editForm.sourceType === SOURCE_TYPE.MANUAL_SELECTION && (
@@ -411,7 +438,9 @@ const EditSurveyModal: React.FC = () => {
 											editForm.selectedQuestions.length > 0 ? (
 													<div className='space-y-2'>
 														<div className='text-sm text-gray-700'>
-															<strong>{editForm.selectedQuestions.length}</strong>{' '}
+															<strong>
+																{editForm.selectedQuestions.length}
+															</strong>{' '}
 														questions selected
 														</div>
 														<div className='text-xs text-gray-500'>
@@ -441,7 +470,9 @@ const EditSurveyModal: React.FC = () => {
 					<div className='space-y-6'>
 						{/* Display / Navigation */}
 						<div>
-							<h3 className='text-lg font-medium text-gray-900 mb-4'>Navigation Mode</h3>
+							<h3 className='text-lg font-medium text-gray-900 mb-4'>
+								Navigation Mode
+							</h3>
 							<div>
 								<label className='block text-sm font-medium text-gray-700 mb-1'>
 									Navigation Mode
@@ -463,7 +494,9 @@ const EditSurveyModal: React.FC = () => {
 									<option value='step-by-step'>Step by Step</option>
 									<option value='paginated'>Paginated</option>
 									<option value='all-in-one'>All in One</option>
-									<option value='one-question-per-page'>One Question Per Page (Typeform-like)</option>
+									<option value='one-question-per-page'>
+										One Question Per Page (Typeform-like)
+									</option>
 								</select>
 							</div>
 						</div>
@@ -524,7 +557,10 @@ const EditSurveyModal: React.FC = () => {
 										<textarea
 											value={editForm.instructions}
 											onChange={e =>
-												setEditForm({ ...editForm, instructions: e.target.value })
+												setEditForm({
+													...editForm,
+													instructions: e.target.value,
+												})
 											}
 											className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 											rows={3}
@@ -548,7 +584,10 @@ const EditSurveyModal: React.FC = () => {
 												Scoring Mode
 											</label>
 											<select
-												value={editForm.scoringSettings?.scoringMode || 'percentage'}
+												value={
+													editForm.scoringSettings?.scoringMode ||
+													'percentage'
+												}
 												onChange={e =>
 													setEditForm({
 														...editForm,
@@ -561,15 +600,17 @@ const EditSurveyModal: React.FC = () => {
 												className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 											>
 												<option value='percentage'>Percentage</option>
-												<option value='accumulated'>Accumulated Points</option>
+												<option value='accumulated'>
+													Accumulated Points
+												</option>
 											</select>
 										</div>
 
 										<div>
 											<label className='block text-sm font-medium text-gray-700 mb-1'>
-												Passing Threshold{' '}
-												(
-												{editForm.scoringSettings?.scoringMode === 'percentage'
+												Passing Threshold (
+												{editForm.scoringSettings?.scoringMode ===
+												'percentage'
 													? '%'
 													: 'points'}
 												)
@@ -578,17 +619,21 @@ const EditSurveyModal: React.FC = () => {
 												type='number'
 												min='0'
 												max={
-													editForm.scoringSettings?.scoringMode === 'percentage'
+													editForm.scoringSettings?.scoringMode ===
+													'percentage'
 														? 100
 														: 1000
 												}
-												value={editForm.scoringSettings?.passingThreshold || 70}
+												value={
+													editForm.scoringSettings?.passingThreshold || 70
+												}
 												onChange={e =>
 													setEditForm({
 														...editForm,
 														scoringSettings: {
 															...editForm.scoringSettings,
-															passingThreshold: parseInt(e.target.value) || 0,
+															passingThreshold:
+																parseInt(e.target.value) || 0,
 														},
 													})
 												}
@@ -602,7 +647,9 @@ const EditSurveyModal: React.FC = () => {
 											<label className='flex items-center'>
 												<input
 													type='checkbox'
-													checked={editForm.scoringSettings?.showScore ?? true}
+													checked={
+														editForm.scoringSettings?.showScore ?? true
+													}
 													onChange={e =>
 														setEditForm({
 															...editForm,
@@ -617,7 +664,9 @@ const EditSurveyModal: React.FC = () => {
 												Show final score to students
 											</label>
 											<p className='text-xs text-gray-500 ml-6'>
-												When enabled, students will see their final score after completing the assessment. When disabled, they will only see a completion message.
+												When enabled, students will see their final score
+												after completing the assessment. When disabled, they
+												will only see a completion message.
 											</p>
 										</div>
 
@@ -625,7 +674,8 @@ const EditSurveyModal: React.FC = () => {
 											<input
 												type='checkbox'
 												checked={
-													editForm.scoringSettings?.showCorrectAnswers ?? false
+													editForm.scoringSettings?.showCorrectAnswers ??
+													false
 												}
 												onChange={e =>
 													setEditForm({
@@ -645,7 +695,8 @@ const EditSurveyModal: React.FC = () => {
 											<input
 												type='checkbox'
 												checked={
-													editForm.scoringSettings?.showScoreBreakdown ?? true
+													editForm.scoringSettings?.showScoreBreakdown ??
+													true
 												}
 												onChange={e =>
 													setEditForm({
@@ -666,7 +717,6 @@ const EditSurveyModal: React.FC = () => {
 						)}
 					</div>
 				</div>
-
 			</form>
 
 			{/* Question Bank Configuration Modals */}

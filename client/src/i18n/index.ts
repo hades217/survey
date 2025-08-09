@@ -9,7 +9,7 @@ i18n.use(HttpBackend)
 	.init({
 		fallbackLng: 'en',
 		lng: 'en', // Force default language
-		debug: true, // Enable debug to see what's happening
+		debug: false, // Disable debug logs in production
 
 		// Force reload translations
 		load: 'languageOnly',

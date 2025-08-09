@@ -26,17 +26,46 @@ router.get('/current', jwtAuth, async (req, res) => {
 			user = await User.findById(req.user.id).populate('companyId');
 		}
 
-		if (!user.companyId) {
+    if (!user.companyId) {
 			return res.status(404).json({
 				success: false,
 				error: 'No company associated with this user',
 			});
 		}
 
-		res.json({
-			success: true,
-			company: user.companyId,
-		});
+    // Ensure company has a slug (auto-generate for legacy companies)
+    const companyDoc = await Company.findById(user.companyId);
+    if (companyDoc && !companyDoc.slug) {
+      const generateSlug = name => {
+        return (name || 'company')
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/(^-)|(-$)/g, '');
+      };
+
+      let slug = generateSlug(companyDoc.name);
+      const originalSlug = slug;
+      let counter = 1;
+      // Ensure uniqueness
+      // eslint-disable-next-line no-await-in-loop
+      while (await Company.findOne({ slug, _id: { $ne: companyDoc._id } })) {
+        slug = `${originalSlug}-${counter}`;
+        counter++;
+      }
+
+      companyDoc.slug = slug;
+      await companyDoc.save();
+    }
+
+    // Reload lean doc for response
+    const companyForResponse = await Company.findById(user.companyId).lean();
+
+    res.json({
+      success: true,
+      company: companyForResponse,
+    });
 	} catch (error) {
 		console.error('Error fetching company:', error);
 		res.status(500).json({
@@ -79,8 +108,29 @@ router.patch('/current', jwtAuth, async (req, res) => {
 
 		// If user doesn't have a company, create one
 		if (!user.companyId) {
+			const generateSlug = name => {
+				return name
+					.toLowerCase()
+					.replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+					.replace(/\s+/g, '-') // Replace spaces with hyphens
+					.replace(/-+/g, '-') // Replace multiple hyphens with single
+					.trim('-'); // Remove leading/trailing hyphens
+			};
+
+			const companyName = req.body.name || 'My Company';
+			let slug = generateSlug(companyName);
+
+			// Ensure slug is unique
+			let counter = 1;
+			let originalSlug = slug;
+			while (await Company.findOne({ slug })) {
+				slug = `${originalSlug}-${counter}`;
+				counter++;
+			}
+
 			company = new Company({
-				name: req.body.name || 'My Company',
+				name: companyName,
+				slug: slug,
 				...req.body,
 			});
 			await company.save();
@@ -98,9 +148,32 @@ router.patch('/current', jwtAuth, async (req, res) => {
 				});
 			}
 
-			// Update company fields
+			// If name is changing, regenerate a unique slug unless an explicit slug is provided
+			if (req.body.name && req.body.name !== company.name && !req.body.slug) {
+				const generateSlug = name => {
+					return name
+						.toLowerCase()
+						.replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+						.replace(/\s+/g, '-') // Replace spaces with hyphens
+						.replace(/-+/g, '-') // Replace multiple hyphens with single
+						.replace(/(^-)|(-$)/g, ''); // Trim leading/trailing hyphens
+				};
+
+				let slug = generateSlug(req.body.name);
+				const originalSlug = slug;
+				let counter = 1;
+				// Ensure uniqueness excluding current company
+				// eslint-disable-next-line no-await-in-loop
+				while (await Company.findOne({ slug, _id: { $ne: company._id } })) {
+					slug = `${originalSlug}-${counter}`;
+					counter++;
+				}
+				company.slug = slug;
+			}
+
+			// Update other company fields
 			Object.keys(req.body).forEach(key => {
-				if (req.body[key] !== undefined) {
+				if (req.body[key] !== undefined && key !== 'slug') {
 					company[key] = req.body[key];
 				}
 			});

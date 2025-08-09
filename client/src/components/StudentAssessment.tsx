@@ -11,9 +11,7 @@ import type {
 	ApiResponse,
 } from '../types/api';
 
-const api = axios.create({
-	baseURL: '/api',
-});
+// Note: We'll use axios directly with getApiPath instead of api instance for multi-tenant support
 
 const isInvitationCode = (str: string): boolean => /^[a-f0-9]{32}$/i.test(str);
 
@@ -49,7 +47,12 @@ interface AssessmentResult {
 type StepType = 'instructions' | 'questions' | 'results';
 
 const StudentAssessment: React.FC = () => {
-	const { slug } = useParams<{ slug: string }>();
+	const { slug, companySlug } = useParams<{ slug: string; companySlug?: string }>();
+
+	// Helper function to generate API paths with multi-tenant support
+	const getApiPath = (path: string) => {
+		return companySlug ? `/${companySlug}/api${path}` : `/api${path}`;
+	};
 	const navigate = useNavigate();
 
 	// State
@@ -76,36 +79,36 @@ const StudentAssessment: React.FC = () => {
 	const timerRef = useRef<NodeJS.Timeout | null>(null);
 	const autoSubmitRef = useRef(false);
 
-    // Company Logo (left, fallback to SigmaQ)
-    const CompanyLogo: React.FC<{ company?: Company }> = ({ company }) => {
-        const src = company?.logoUrl || '/SigmaQ-logo.svg';
-        return (
-            <div className='flex items-center gap-3 mb-4'>
-                <img
-                    src={src}
-                    alt={(company?.name || 'SigmaQ') + ' Logo'}
-                    className='h-8 md:h-10 w-auto object-contain'
-                    onError={e => {
-                        if (!e.currentTarget.src.includes('/SigmaQ-logo.svg')) {
-                            e.currentTarget.src = '/SigmaQ-logo.svg';
-                        } else {
-                            e.currentTarget.remove();
-                        }
-                    }}
-                />
-                {survey && (
-                    <div className='min-w-0'>
-                        <h1 className='text-xl md:text-2xl font-semibold text-[#484848] truncate'>
-                            {survey.title}
-                        </h1>
-                        {survey.description && (
-                            <p className='text-sm text-[#767676] truncate'>{survey.description}</p>
-                        )}
-                    </div>
-                )}
-            </div>
-        );
-    };
+	// Company Logo (left, fallback to SigmaQ)
+	const CompanyLogo: React.FC<{ company?: Company }> = ({ company }) => {
+		const src = company?.logoUrl || '/SigmaQ-logo.svg';
+		return (
+			<div className='flex items-center gap-3 mb-4'>
+				<img
+					src={src}
+					alt={(company?.name || 'SigmaQ') + ' Logo'}
+					className='h-8 md:h-10 w-auto object-contain'
+					onError={e => {
+						if (!e.currentTarget.src.includes('/SigmaQ-logo.svg')) {
+							e.currentTarget.src = '/SigmaQ-logo.svg';
+						} else {
+							e.currentTarget.remove();
+						}
+					}}
+				/>
+				{survey && (
+					<div className='min-w-0'>
+						<h1 className='text-xl md:text-2xl font-semibold text-[#484848] truncate'>
+							{survey.title}
+						</h1>
+						{survey.description && (
+							<p className='text-sm text-[#767676] truncate'>{survey.description}</p>
+						)}
+					</div>
+				)}
+			</div>
+		);
+	};
 
 	// Load survey data and questions (supports invitation code and slug)
 	useEffect(() => {
@@ -136,9 +139,12 @@ const StudentAssessment: React.FC = () => {
 					(!surveyData.questions || surveyData.questions.length === 0)
 				) {
 					try {
-						const questionsResponse = await api.get(`/survey/${slug}/questions`, {
-							params: { email: form.email || 'anonymous' },
-						});
+						const questionsResponse = await axios.get(
+							getApiPath(`/survey/${slug}/questions`),
+							{
+								params: { email: form.email || 'anonymous' },
+							}
+						);
 						setSurvey(prev =>
 							prev
 								? {
@@ -164,13 +170,13 @@ const StudentAssessment: React.FC = () => {
 			try {
 				if (isInvitationCode(slug)) {
 					// Access through invitation code
-					const response = await api.get<AssessmentAccessResponse>(
-						`/invitations/access/${slug}`
+					const response = await axios.get<AssessmentAccessResponse>(
+						getApiPath(`/invitations/access/${slug}`)
 					);
 					await loadSurveyAndQuestions(response.data.survey, response.data.invitation);
 				} else {
 					// Access directly through slug
-					const response = await api.get<Survey>(`/survey/${slug}`);
+					const response = await axios.get<Survey>(getApiPath(`/survey/${slug}`));
 					await loadSurveyAndQuestions(response.data);
 				}
 			} catch (error: any) {
@@ -442,12 +448,12 @@ const StudentAssessment: React.FC = () => {
 				answerDurations,
 			};
 
-			await api.post('/responses', responseData);
+			await axios.post(getApiPath('/responses'), responseData);
 
 			// Mark invitation as completed (if accessed through invitation code)
 			if (isInvitationCode(slug) && invitationInfo) {
 				try {
-					await api.post(`/invitations/complete/${slug}`, {
+					await axios.post(getApiPath(`/invitations/complete/${slug}`), {
 						email: form.email,
 					});
 				} catch (completeError) {
@@ -526,28 +532,30 @@ const StudentAssessment: React.FC = () => {
 
 				{/* Instructions Step */}
 				{currentStep === 'instructions' && (
-                    <div className='max-w-2xl mx-auto bg-white rounded-xl border border-[#EBEBEB] p-6'>
+					<div className='max-w-2xl mx-auto bg-white rounded-xl border border-[#EBEBEB] p-6'>
 						<div className='text-center mb-8'>
-                            <div className='text-sm text-[#767676]'>
-                                Please read the instructions carefully before starting.
-                            </div>
+							<div className='text-sm text-[#767676]'>
+								Please read the instructions carefully before starting.
+							</div>
 						</div>
 
-                        {survey.instructions && (
-                            <div className='bg-blue-50 rounded-lg p-3 mb-5'>
-                                <h3 className='font-medium text-blue-800 mb-1'>Instructions</h3>
-                                <p className='text-blue-700 text-sm leading-relaxed'>{survey.instructions}</p>
-                            </div>
-                        )}
+						{survey.instructions && (
+							<div className='bg-blue-50 rounded-lg p-3 mb-5'>
+								<h3 className='font-medium text-blue-800 mb-1'>Instructions</h3>
+								<p className='text-blue-700 text-sm leading-relaxed'>
+									{survey.instructions}
+								</p>
+							</div>
+						)}
 
 						<div className='grid md:grid-cols-2 gap-6 mb-8'>
 							<div>
-                                <label className='block mb-2 font-medium text-gray-700'>
+								<label className='block mb-2 font-medium text-gray-700'>
 									Full Name *
 								</label>
-                                <input
-                                    type='text'
-                                    className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+								<input
+									type='text'
+									className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 									value={form.name}
 									onChange={e =>
 										setForm(prev => ({ ...prev, name: e.target.value }))
@@ -557,12 +565,12 @@ const StudentAssessment: React.FC = () => {
 								/>
 							</div>
 							<div>
-                                <label className='block mb-2 font-medium text-gray-700'>
+								<label className='block mb-2 font-medium text-gray-700'>
 									Email Address *
 								</label>
-                                <input
-                                    type='email'
-                                    className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+								<input
+									type='email'
+									className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 									value={form.email}
 									onChange={e =>
 										setForm(prev => ({ ...prev, email: e.target.value }))
@@ -573,78 +581,80 @@ const StudentAssessment: React.FC = () => {
 							</div>
 						</div>
 
-                        {survey.timeLimit && (
-                            <div className='bg-yellow-50 rounded-lg p-3 mb-5'>
-                                <div className='flex items-center'>
-                                    <span className='text-yellow-600 text-base mr-2'>⏱️</span>
-                                    <div className='text-sm'>
-                                        <p className='font-medium text-yellow-800'>Time Limit</p>
-                                        <p className='text-yellow-700'>You have {survey.timeLimit} minutes in total.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+						{survey.timeLimit && (
+							<div className='bg-yellow-50 rounded-lg p-3 mb-5'>
+								<div className='flex items-center'>
+									<span className='text-yellow-600 text-base mr-2'>⏱️</span>
+									<div className='text-sm'>
+										<p className='font-medium text-yellow-800'>Time Limit</p>
+										<p className='text-yellow-700'>
+											You have {survey.timeLimit} minutes in total.
+										</p>
+									</div>
+								</div>
+							</div>
+						)}
 
-                        <div className='text-center'>
-                            <button
-                                onClick={startAssessment}
-                                disabled={!form.name || !form.email}
-                                className='btn-primary disabled:opacity-50 disabled:cursor-not-allowed'
-                            >
-                                Start Assessment
-                            </button>
-                        </div>
+						<div className='text-center'>
+							<button
+								onClick={startAssessment}
+								disabled={!form.name || !form.email}
+								className='btn-primary disabled:opacity-50 disabled:cursor-not-allowed'
+							>
+								Start Assessment
+							</button>
+						</div>
 					</div>
 				)}
 
 				{/* Questions Step */}
-                {currentStep === 'questions' && currentQuestion && (
-                    <div className='max-w-2xl mx-auto bg-white rounded-xl border border-[#EBEBEB] p-6'>
-                        {/* Header with steps, progress and timer */}
-                        <div className='flex items-center justify-between mb-4'>
-                            <div className='flex-1'>
-                                <div className='flex items-center justify-center gap-2 mb-2'>
-                                    {survey.questions.map((_, i) => (
-                                        <span
-                                            key={`step-${i}`}
-                                            className={
-                                                'rounded-full transition-all ' +
-                                                (i === currentQuestionIndex
-                                                    ? 'bg-blue-600 h-2.5 w-6'
-                                                    : i < currentQuestionIndex
-                                                    ? 'bg-blue-500 bg-opacity-30 h-2 w-5'
-                                                    : 'bg-gray-200 h-2 w-4')
-                                            }
-                                            aria-hidden='true'
-                                        />
-                                    ))}
-                                </div>
-                                <div className='flex items-center justify-center gap-3'>
-                                    <span className='text-xs text-gray-600'>
-                                        Question {currentQuestionIndex + 1} of {totalQuestions}
-                                    </span>
-                                    <div className='w-40 bg-gray-200 rounded-full h-2'>
-                                        <div
-                                            className='bg-blue-600 h-2 rounded-full transition-all duration-300'
-                                            style={{ width: `${progress}%` }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            {timer.isActive && (
-                                <div
-                                    className={`ml-4 text-sm font-medium ${
-                                        timer.timeLeft < 60 ? 'text-red-600' : 'text-gray-600'
-                                    }`}
-                                >
-                                    ⏱️ {formatTime(timer.timeLeft)}
-                                </div>
-                            )}
-                        </div>
+				{currentStep === 'questions' && currentQuestion && (
+					<div className='max-w-2xl mx-auto bg-white rounded-xl border border-[#EBEBEB] p-6'>
+						{/* Header with steps, progress and timer */}
+						<div className='flex items-center justify-between mb-4'>
+							<div className='flex-1'>
+								<div className='flex items-center justify-center gap-2 mb-2'>
+									{survey.questions.map((_, i) => (
+										<span
+											key={`step-${i}`}
+											className={
+												'rounded-full transition-all ' +
+												(i === currentQuestionIndex
+													? 'bg-blue-600 h-2.5 w-6'
+													: i < currentQuestionIndex
+														? 'bg-blue-500 bg-opacity-30 h-2 w-5'
+														: 'bg-gray-200 h-2 w-4')
+											}
+											aria-hidden='true'
+										/>
+									))}
+								</div>
+								<div className='flex items-center justify-center gap-3'>
+									<span className='text-xs text-gray-600'>
+										Question {currentQuestionIndex + 1} of {totalQuestions}
+									</span>
+									<div className='w-40 bg-gray-200 rounded-full h-2'>
+										<div
+											className='bg-blue-600 h-2 rounded-full transition-all duration-300'
+											style={{ width: `${progress}%` }}
+										/>
+									</div>
+								</div>
+							</div>
+							{timer.isActive && (
+								<div
+									className={`ml-4 text-sm font-medium ${
+										timer.timeLeft < 60 ? 'text-red-600' : 'text-gray-600'
+									}`}
+								>
+									⏱️ {formatTime(timer.timeLeft)}
+								</div>
+							)}
+						</div>
 
 						{/* Question */}
-                        <div className='mb-6 animate-slide-down'>
-                            <h2 className='text-xl font-semibold text-gray-800 mb-3'>
+						<div className='mb-6 animate-slide-down'>
+							<h2 className='text-xl font-semibold text-gray-800 mb-3'>
 								{currentQuestion.text}
 							</h2>
 
@@ -662,7 +672,7 @@ const StudentAssessment: React.FC = () => {
 
 							{/* Options */}
 							{currentQuestion.type !== 'short_text' && currentQuestion.options && (
-                                <div className='space-y-3'>
+								<div className='space-y-3'>
 									{currentQuestion.options.map((option, index) => {
 										const optionText =
 											typeof option === 'string' ? option : option.text || '';
@@ -678,15 +688,15 @@ const StudentAssessment: React.FC = () => {
 														optionText
 													);
 
-                                        return (
-                                            <label
-                                                key={index}
-                                                className={`flex items-start p-4 border rounded-xl cursor-pointer transition-colors duration-150 ${
-                                                    isSelected
-                                                        ? 'border-blue-500 bg-blue-50'
-                                                        : 'border-gray-200 hover:border-blue-300/60'
-                                                }`}
-                                            >
+										return (
+											<label
+												key={index}
+												className={`flex items-start p-4 border rounded-xl cursor-pointer transition-colors duration-150 ${
+													isSelected
+														? 'border-blue-500 bg-blue-50'
+														: 'border-gray-200 hover:border-blue-300/60'
+												}`}
+											>
 												<input
 													type={
 														currentQuestion.type === 'single_choice'
@@ -725,9 +735,9 @@ const StudentAssessment: React.FC = () => {
 														}
 													}}
 												/>
-                                                <div className='flex-1'>
+												<div className='flex-1'>
 													{optionText && (
-                                                        <span className='text-gray-700 block mb-2'>
+														<span className='text-gray-700 block mb-2'>
 															{optionText}
 														</span>
 													)}
@@ -735,7 +745,7 @@ const StudentAssessment: React.FC = () => {
 														<img
 															src={optionImage}
 															alt={`Option ${index + 1}`}
-                                                            className='max-w-full h-auto rounded border border-gray-200'
+															className='max-w-full h-auto rounded border border-gray-200'
 															style={{ maxHeight: '200px' }}
 														/>
 													)}
@@ -748,8 +758,8 @@ const StudentAssessment: React.FC = () => {
 
 							{/* Short Text Input */}
 							{currentQuestion.type === 'short_text' && (
-                                <textarea
-                                    className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+								<textarea
+									className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
 									rows={4}
 									value={form.answers[currentQuestion._id] || ''}
 									onChange={e =>
@@ -760,39 +770,39 @@ const StudentAssessment: React.FC = () => {
 							)}
 						</div>
 
-                        {/* Navigation */}
-                        <div className='flex justify-between pt-2'>
+						{/* Navigation */}
+						<div className='flex justify-between pt-2'>
 							<button
 								onClick={prevQuestion}
 								disabled={currentQuestionIndex === 0}
-                                className='btn-secondary disabled:opacity-50 disabled:cursor-not-allowed'
+								className='btn-secondary disabled:opacity-50 disabled:cursor-not-allowed'
 							>
 								Previous
 							</button>
 
 							{currentQuestionIndex === totalQuestions - 1 ? (
-                                <button
-                                    onClick={handleSubmit}
-                                    disabled={loading}
-                                    className='btn-primary disabled:opacity-50'
-                                >
+								<button
+									onClick={handleSubmit}
+									disabled={loading}
+									className='btn-primary disabled:opacity-50'
+								>
 									{loading ? 'Submitting...' : 'Submit Assessment'}
 								</button>
 							) : (
-                                <button onClick={nextQuestion} className='btn-primary'>
+								<button onClick={nextQuestion} className='btn-primary'>
 									Next
 								</button>
 							)}
 						</div>
-                        <div className='text-center mt-3 text-xs text-gray-500'>
-                            Tip: Press Enter to proceed to the next question
-                        </div>
+						<div className='text-center mt-3 text-xs text-gray-500'>
+							Tip: Press Enter to proceed to the next question
+						</div>
 					</div>
 				)}
 
 				{/* Results Step */}
 				{currentStep === 'results' && submitted && (
-                    <div className='max-w-2xl mx-auto bg-white rounded-xl border border-[#EBEBEB] p-6'>
+					<div className='max-w-2xl mx-auto bg-white rounded-xl border border-[#EBEBEB] p-6'>
 						<div className='text-center mb-8'>
 							<div className='text-green-500 text-6xl mb-4'>✅</div>
 							<h1 className='text-3xl font-bold text-gray-800 mb-2'>
@@ -802,12 +812,12 @@ const StudentAssessment: React.FC = () => {
 						</div>
 
 						{/* Score Summary (for quiz/assessment/iq types) */}
-                        {['quiz', 'assessment', 'iq'].includes(survey.type) && (
-                            <div className='bg-blue-50 rounded-lg p-4 mb-5'>
-                                <h3 className='font-medium text-blue-800 mb-3'>Your Results</h3>
-                                <div className='grid grid-cols-3 gap-3 text-center'>
+						{['quiz', 'assessment', 'iq'].includes(survey.type) && (
+							<div className='bg-blue-50 rounded-lg p-4 mb-5'>
+								<h3 className='font-medium text-blue-800 mb-3'>Your Results</h3>
+								<div className='grid grid-cols-3 gap-3 text-center'>
 									<div>
-                                        <div className='text-2xl font-bold text-green-600'>
+										<div className='text-2xl font-bold text-green-600'>
 											{assessmentResults.filter(r => r.isCorrect).length}
 										</div>
 										<div className='text-sm text-gray-600'>Correct</div>
@@ -819,7 +829,7 @@ const StudentAssessment: React.FC = () => {
 										<div className='text-sm text-gray-600'>Incorrect</div>
 									</div>
 									<div>
-                                        <div className='text-2xl font-bold text-blue-600'>
+										<div className='text-2xl font-bold text-blue-600'>
 											{Math.round(
 												(assessmentResults.filter(r => r.isCorrect).length /
 													assessmentResults.length) *
@@ -835,23 +845,23 @@ const StudentAssessment: React.FC = () => {
 
 						{/* Detailed Results */}
 						{survey.scoringSettings?.showCorrectAnswers && (
-                            <div className='space-y-3 mb-5'>
-                                <h3 className='font-medium text-gray-800'>Detailed Results</h3>
+							<div className='space-y-3 mb-5'>
+								<h3 className='font-medium text-gray-800'>Detailed Results</h3>
 								{assessmentResults.map((result, index) => (
 									<div
 										key={result.questionId}
-                                        className={`p-3 rounded-lg border ${
-                                            result.isCorrect
-                                                ? 'border-green-200 bg-green-50'
-                                                : 'border-red-200 bg-red-50'
-                                        }`}
+										className={`p-3 rounded-lg border ${
+											result.isCorrect
+												? 'border-green-200 bg-green-50'
+												: 'border-red-200 bg-red-50'
+										}`}
 									>
 										<div className='flex justify-between items-start mb-2'>
-                                            <div className='font-medium text-gray-800'>
+											<div className='font-medium text-gray-800'>
 												Question {index + 1}: {result.questionText}
 											</div>
 											{result.durationInSeconds !== undefined && (
-                                                <div className='flex items-center text-sm text-gray-500 ml-4'>
+												<div className='flex items-center text-sm text-gray-500 ml-4'>
 													<svg
 														className='w-4 h-4 mr-1'
 														fill='none'

@@ -7,6 +7,15 @@ const companySchema = new mongoose.Schema({
 		required: true,
 		trim: true,
 	},
+	// URL slug for multi-tenant routing (e.g., /company1/assessment/...)
+	slug: {
+		type: String,
+		required: true,
+		unique: true,
+		trim: true,
+		lowercase: true,
+		match: /^[a-z0-9-]+$/,
+	},
 	website: {
 		type: String,
 		trim: true,

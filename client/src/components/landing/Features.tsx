@@ -84,7 +84,9 @@ const Features: React.FC = () => {
 							>
 								<div className='flex-1'>
 									<div
-										className={'inline-flex p-4 rounded-2xl bg-gradient-to-br from-[#FF5A5F] to-[#FC642D] text-white mb-6 shadow-lg'}
+										className={
+											'inline-flex p-4 rounded-2xl bg-gradient-to-br from-[#FF5A5F] to-[#FC642D] text-white mb-6 shadow-lg'
+										}
 									>
 										<Icon className='h-8 w-8' />
 									</div>

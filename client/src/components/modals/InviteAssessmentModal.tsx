@@ -90,9 +90,31 @@ const InviteAssessmentModal: React.FC<InviteAssessmentModalProps> = ({
 		onClose();
 	};
 
+	// Get company information for generating tenant URLs
+	const [companySlug, setCompanySlug] = useState<string>('');
+
+	// Load company information
+	useEffect(() => {
+		const loadCompanyInfo = async () => {
+			try {
+				const res = await api.get('/companies/current');
+				if (res.data.success && res.data.company?.slug) {
+					setCompanySlug(res.data.company.slug);
+				}
+			} catch (err) {
+				console.error('Failed to load company info:', err);
+			}
+		};
+
+		if (show) {
+			loadCompanyInfo();
+		}
+	}, [show]);
+
 	// 复制链接
 	const handleCopy = (token: string) => {
-		const url = `${window.location.origin}/assessment/${token}`;
+		const basePath = companySlug ? `/${companySlug}` : '';
+		const url = `${window.location.origin}${basePath}/assessment/${token}`;
 		navigator.clipboard.writeText(url);
 	};
 

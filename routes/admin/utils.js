@@ -8,10 +8,10 @@ const router = express.Router();
  * @access  Public
  */
 router.get('/debug-timestamp', (req, res) => {
-  res.json({
-    timestamp: new Date().toISOString(),
-    message: 'Server updated at this time',
-  });
+	res.json({
+		timestamp: new Date().toISOString(),
+		message: 'Server updated at this time',
+	});
 });
 
 module.exports = router;

@@ -253,9 +253,9 @@ const surveyUpdateSchema = z.object({
 	timeLimit: z.number().positive().optional(),
 	maxAttempts: z.number().positive().optional(),
 	instructions: z.string().optional(),
-    navigationMode: z
-        .enum(['step-by-step', 'paginated', 'all-in-one', 'one-question-per-page'])
-        .optional(),
+	navigationMode: z
+		.enum(['step-by-step', 'paginated', 'all-in-one', 'one-question-per-page'])
+		.optional(),
 	questions: z.array(questionSchema).min(1, 'At least one question is required').optional(),
 	distributionSettings: z
 		.object({

@@ -12,8 +12,8 @@ import type {
 	SourceType,
 	ScoringMode,
 	QuestionDifficulty,
-    SelectedQuestion,
-    MultiQuestionBankConfig,
+	SelectedQuestion,
+	MultiQuestionBankConfig,
 } from './api';
 
 // 前端特有的Survey接口，继承API接口
@@ -102,12 +102,12 @@ export interface NewSurveyForm {
 	timeLimit?: number;
 	maxAttempts?: number;
 	instructions?: string;
-		navigationMode?: 'step-by-step' | 'paginated' | 'all-in-one' | 'one-question-per-page';
+	navigationMode?: 'step-by-step' | 'paginated' | 'all-in-one' | 'one-question-per-page';
 	sourceType?: 'manual' | 'question_bank' | 'multi_question_bank' | 'manual_selection';
 	questionBankId?: string;
 	questionCount?: number;
-    multiQuestionBankConfig?: MultiQuestionBankConfig[];
-    selectedQuestions?: SelectedQuestion[];
+	multiQuestionBankConfig?: MultiQuestionBankConfig[];
+	selectedQuestions?: SelectedQuestion[];
 	scoringSettings?: {
 		scoringMode: 'percentage' | 'accumulated';
 		totalPoints: number;

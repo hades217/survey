@@ -11,12 +11,12 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'password';
 const RESPONSES_FILE = path.join(__dirname, '..', '..', '..', 'responses.json');
 
 module.exports = {
-  ERROR_MESSAGES,
-  DATA_TYPES,
-  HTTP_STATUS,
-  AppError,
-  readJson,
-  ADMIN_USERNAME,
-  ADMIN_PASSWORD,
-  RESPONSES_FILE,
+	ERROR_MESSAGES,
+	DATA_TYPES,
+	HTTP_STATUS,
+	AppError,
+	readJson,
+	ADMIN_USERNAME,
+	ADMIN_PASSWORD,
+	RESPONSES_FILE,
 };
