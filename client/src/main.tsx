@@ -8,6 +8,7 @@ import Admin from './Admin';
 import OnboardingPage from './components/onboarding/OnboardingPage';
 import LandingPage from './components/landing/LandingPage';
 import './styles.css';
+import './styles/markdown.css';
 import './i18n';
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(

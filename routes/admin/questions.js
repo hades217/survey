@@ -133,11 +133,12 @@ router.post(
 			throw new AppError('Question bank not found', HTTP_STATUS.NOT_FOUND);
 		}
 
-		const { text, type, options, correctAnswer, explanation, points, tags, difficulty } =
+		const { text, description, type, options, correctAnswer, explanation, points, tags, difficulty } =
 			req.body;
 
 		questionBank.questions.push({
 			text,
+			description: description || '',
 			type: type || 'single_choice',
 			options,
 			correctAnswer,
@@ -219,7 +220,7 @@ router.put(
 	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { id } = req.params;
-		const { text, imageUrl, descriptionImage, options, correctAnswer, points, type } = req.body;
+		const { text, description, imageUrl, descriptionImage, options, correctAnswer, points, type } = req.body;
 
 		// Debug: Log the received data
 		console.log('Add question request body:', req.body);
@@ -352,6 +353,11 @@ router.put(
 			type: questionType,
 		};
 
+		// Add description if provided
+		if (description !== undefined) {
+			question.description = description;
+		}
+
 		// Add question image if provided
 		if (imageUrl) {
 			question.imageUrl = imageUrl;
@@ -425,7 +431,7 @@ router.patch(
 	jwtAuth,
 	asyncHandler(async (req, res) => {
 		const { id, questionIndex } = req.params;
-		const { text, imageUrl, descriptionImage, type, options, correctAnswer, points } = req.body;
+		const { text, description, imageUrl, descriptionImage, type, options, correctAnswer, points } = req.body;
 
 		// Validate input - only validate fields that are provided (PATCH method)
 		if (text !== undefined && typeof text !== DATA_TYPES.STRING) {
@@ -485,6 +491,7 @@ router.patch(
 
 		// Update fields if provided
 		if (text !== undefined) question.text = text;
+		if (description !== undefined) question.description = description;
 		if (imageUrl !== undefined) question.imageUrl = imageUrl;
 		if (descriptionImage !== undefined) question.descriptionImage = descriptionImage;
 		if (type !== undefined) question.type = type;
@@ -648,6 +655,7 @@ router.patch(
 				return {
 					_id: question._id,
 					text: question.text,
+					description: question.description || '',
 					imageUrl: question.imageUrl || null,
 					descriptionImage: question.descriptionImage || null,
 					type: question.type,

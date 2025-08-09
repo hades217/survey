@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import api from '../utils/axiosConfig';
 import { useAdmin } from '../contexts/AdminContext';
 import { QuestionBank, Question } from '../types/admin';
@@ -28,9 +28,13 @@ export const useQuestionBanks = () => {
 		location,
 	} = useAdmin();
 
-	// Load question banks
+	// Track if question banks have been loaded to prevent duplicate calls
+	const questionBanksLoadedRef = useRef(false);
+
+	// Load question banks - only once when logged in
 	useEffect(() => {
-		if (loggedIn) {
+		if (loggedIn && !questionBanksLoadedRef.current) {
+			questionBanksLoadedRef.current = true;
 			loadQuestionBanks();
 		}
 	}, [loggedIn]);
@@ -73,6 +77,12 @@ export const useQuestionBanks = () => {
 			console.error('Error loading question banks:', err);
 			setError('Failed to load question banks');
 		}
+	};
+
+	const refreshQuestionBanks = async () => {
+		questionBanksLoadedRef.current = false;
+		await loadQuestionBanks();
+		questionBanksLoadedRef.current = true;
 	};
 
 	const createQuestionBank = async (e: React.FormEvent) => {
@@ -313,6 +323,8 @@ export const useQuestionBanks = () => {
 		error,
 		setError,
 		// Functions
+		loadQuestionBanks,
+		refreshQuestionBanks,
 		createQuestionBank,
 		updateQuestionBank,
 		deleteQuestionBank,

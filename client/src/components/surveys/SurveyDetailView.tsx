@@ -190,13 +190,6 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		token ? token.slice(0, 6) + '****' + token.slice(-4) : '';
 
 	const s = survey;
-	console.log('Survey details:', {
-		id: s._id,
-		title: s.title,
-		sourceType: s.sourceType,
-		questionsCount: s.questions?.length,
-		type: s.type,
-	});
 	const currentForm = questionForms[s._id] || {
 		text: '',
 		imageUrl: null,
@@ -448,6 +441,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			...prev,
 			[formKey]: {
 				text: question.text,
+				description: question.description || '',
 				imageUrl: question.imageUrl || null,
 				descriptionImage: question.descriptionImage || null,
 				type: questionType,
@@ -466,7 +460,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		setEditingQuestionIndex(-1);
 	};
 
-	const handleEditQuestionSubmit = async (form: SurveyQuestionForm) => {
+	const handleEditQuestionSubmit = async (form: QuestionForm) => {
 		if (editingQuestionIndex === -1) return;
 
 		try {
@@ -477,6 +471,11 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				text: form.text,
 				type: form.type,
 			};
+
+			// Add description if provided
+			if (form.description !== undefined) {
+				updateData.description = form.description;
+			}
 
 			// Add description image if provided
 			if (form.descriptionImage !== undefined) {
@@ -667,6 +666,11 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				type: editForm.type,
 			};
 
+			// Include description if provided
+			if (editForm.description !== undefined) {
+				updateData.description = editForm.description;
+			}
+
 			// Include description image if provided
 			if (editForm.descriptionImage !== undefined) {
 				updateData.descriptionImage = editForm.descriptionImage;
@@ -719,13 +723,6 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 
 	// Handle question reordering
 	const handleQuestionsReorder = async (surveyId: string, newQuestions: Question[]) => {
-		console.log('=== FRONTEND REORDER START ===');
-		console.log('Survey ID:', surveyId);
-		console.log('Questions count:', newQuestions.length);
-		console.log(
-			'First few questions:',
-			newQuestions.slice(0, 2).map(q => ({ id: q._id, text: q.text?.substring(0, 30) }))
-		);
 
 		// Set loading state to prevent multiple reorders
 		setLoading(true);
@@ -741,9 +738,6 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 				return q._id;
 			})
 			.filter(id => id != null); // Remove null/undefined IDs
-
-		console.log('Extracted question IDs:', questionIds);
-		console.log('IDs count:', questionIds.length);
 
 		if (questionIds.length !== newQuestions.length) {
 			console.error('ERROR: Some questions are missing IDs');
@@ -762,16 +756,11 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 		}
 
 		try {
-			console.log('=== SENDING API REQUEST ===');
-			console.log('Request payload:', { questionIds });
 
 			// Update backend with just the IDs
 			const response = await api.patch(`/admin/surveys/${surveyId}/questions-reorder`, {
 				questionIds: questionIds,
 			});
-
-			console.log('=== API SUCCESS ===');
-			console.log('API response:', response.data);
 
 			// Optimistically update the local state immediately
 			const updatedSurvey = {
@@ -785,17 +774,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			// Also update selectedSurvey if it's the current survey
 			setSelectedSurvey(updatedSurvey);
 
-			console.log('=== REORDER COMPLETE ===');
 		} catch (err: any) {
-			console.error('=== API ERROR ===');
-			console.error('Failed to reorder questions:', err);
-			console.error('Error response:', err.response?.data);
-			console.error('Request that failed:', {
-				url: `/admin/surveys/${surveyId}/questions-reorder`,
-				method: 'PATCH',
-				data: { questionIds },
-			});
-
 			const errorMessage =
 				err.response?.data?.error ||
 				err.response?.data?.message ||

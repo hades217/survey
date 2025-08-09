@@ -289,7 +289,6 @@ const ProfileView: React.FC = () => {
 							Company Details
 						</h3>
 						<form onSubmit={handleCompanySubmit} className='space-y-4 max-w-2xl'>
-							{/* Company Slug (read-only) */}
 							{(profileData?.company as any)?.slug && (
 								<div className='flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg'>
 									<div className='text-sm text-gray-600'>Company URL slug</div>

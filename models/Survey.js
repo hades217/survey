@@ -108,6 +108,7 @@ const surveySchema = new mongoose.Schema({
 			// Store question snapshot for consistency
 			questionSnapshot: {
 				text: String,
+				description: String,
 				type: String,
 				options: [String],
 				correctAnswer: mongoose.Schema.Types.Mixed,
@@ -124,10 +125,10 @@ const surveySchema = new mongoose.Schema({
 				type: String,
 				required: true,
 			},
-			// Question image (for visual questions like IQ tests)
-			imageUrl: {
+			// Description field for markdown context/scenario
+			description: {
 				type: String,
-				default: null,
+				default: '',
 			},
 			// Description image (embedded in question text for context)
 			descriptionImage: {

@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
+import rehypeSanitize from 'rehype-sanitize';
 import QuestionNavigator from './QuestionNavigator';
 import { QUESTION_TYPE } from '../../constants';
 
 interface Question {
 	_id: string;
 	text: string;
+	description?: string;
 	type: string;
 	options?: Array<string | { text?: string; imageUrl?: string }>;
-	imageUrl?: string;
 	descriptionImage?: string;
 }
 
@@ -166,29 +170,35 @@ const OneQuestionPerPageView: React.FC<OneQuestionPerPageViewProps> = ({
 					</h3>
 				</div>
 
-				{/* Main Question Image */}
-				{currentQuestion.imageUrl && (
-					<div className='mb-6'>
-						<img
-							src={currentQuestion.imageUrl}
-							alt={t('survey.oneQuestionPerPage.questionImage', 'Question image')}
-							className='max-w-full h-auto rounded-lg border border-gray-300 mx-auto'
-							onLoad={() => {
-								console.log(
-									'Main image loaded successfully:',
-									currentQuestion.imageUrl
-								);
-							}}
-							onError={e => {
-								console.error(
-									'Main image failed to load:',
-									currentQuestion.imageUrl
-								);
-								e.currentTarget.style.display = 'none';
-							}}
-						/>
-					</div>
-				)}
+				{/* Question Description (Markdown) */}
+                {currentQuestion.description && (
+                    <div className='mb-6 prose prose-sm max-w-none'>
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            rehypePlugins={[
+                                rehypeRaw,
+                                [
+                                    rehypeSanitize,
+                                    {
+                                        tagNames: [
+                                            'p', 'br', 'span',
+                                            'strong', 'em', 'del', 'code', 'pre', 'blockquote', 'a',
+                                            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                                            'ul', 'ol', 'li'
+                                        ],
+                                        attributes: {
+                                            a: ['href', 'title', 'rel', 'target'],
+                                            code: ['className'],
+                                            span: ['className'],
+                                        },
+                                    },
+                                ],
+                            ]}
+                        >
+                            {currentQuestion.description}
+                        </ReactMarkdown>
+                    </div>
+                )}
 
 				{/* Description Image */}
 				{currentQuestion.descriptionImage && (

@@ -60,7 +60,7 @@ export type StatsViewType = 'aggregated' | 'individual';
 
 export interface QuestionForm {
 	text: string;
-	imageUrl?: string;
+	description?: string;
 	descriptionImage?: string;
 	options?: string[] | { text?: string; imageUrl?: string }[];
 	type: 'single_choice' | 'multiple_choice' | 'short_text';

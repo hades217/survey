@@ -296,8 +296,8 @@ router.get(
 							questionIndex: index,
 							questionData: {
 								text: q.text,
+								description: q.description,
 								type: q.type,
-								imageUrl: q.imageUrl,
 								descriptionImage: q.descriptionImage,
 								options: q.options,
 								correctAnswer: q.correctAnswer,

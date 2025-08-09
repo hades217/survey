@@ -6,10 +6,11 @@ import {
 	type SurveyType,
 } from '../../constants';
 import ImageUpload from '../common/ImageUpload';
+import SimpleQuillEditor from '../common/SimpleQuillEditor';
 
 interface SurveyQuestionForm {
 	text: string;
-	imageUrl?: string;
+	description?: string;
 	descriptionImage?: string;
 	options?: string[] | { text?: string; imageUrl?: string }[];
 	type: QuestionType;
@@ -118,37 +119,6 @@ const EditSurveyQuestionModal: React.FC<EditSurveyQuestionModalProps> = ({
 
 					<div>
 						<label className='block text-sm font-medium text-gray-700 mb-2'>
-							Question Image (Optional)
-						</label>
-						<ImageUpload
-							imageUrl={form.imageUrl}
-							onImageUpload={url => onChange('imageUrl', url)}
-							onImageRemove={() => onChange('imageUrl', null)}
-							placeholder='Upload question image for visual questions (IQ tests, etc.)'
-							uploadMethod='cloudinary'
-						/>
-					</div>
-
-					<div>
-						<label className='block text-sm font-medium text-gray-700 mb-2'>
-							Description Image (Optional)
-						</label>
-						<ImageUpload
-							imageUrl={form.descriptionImage || null}
-							onImageUpload={url => onChange('descriptionImage', url)}
-							onImageRemove={() => onChange('descriptionImage', '')}
-							placeholder='Upload image to illustrate question content'
-							uploadMethod='cloudinary'
-							className='w-full'
-						/>
-						<div className='text-xs text-gray-500 mt-1'>
-							Add an image to help explain the question context (charts, diagrams,
-							scenarios, etc.)
-						</div>
-					</div>
-
-					<div>
-						<label className='block text-sm font-medium text-gray-700 mb-2'>
 							Question Type *
 						</label>
 						<select
@@ -168,6 +138,36 @@ const EditSurveyQuestionModal: React.FC<EditSurveyQuestionModalProps> = ({
 								'Users can select multiple answers'}
 							{form.type === QUESTION_TYPE.SHORT_TEXT &&
 								'Users can enter a text response'}
+						</div>
+					</div>
+
+					<div>
+						<label className='block text-sm font-medium text-gray-700 mb-2'>
+							Question Description (Optional)
+						</label>
+						<SimpleQuillEditor
+							value={form.description || ''}
+							onChange={value => onChange('description', value)}
+							placeholder='Enter scenario or context for the question...'
+							className='w-full'
+						/>
+					</div>
+
+					<div>
+						<label className='block text-sm font-medium text-gray-700 mb-2'>
+							Description Image (Optional)
+						</label>
+						<ImageUpload
+							imageUrl={form.descriptionImage || null}
+							onImageUpload={url => onChange('descriptionImage', url)}
+							onImageRemove={() => onChange('descriptionImage', '')}
+							placeholder='Upload image to illustrate question content'
+							uploadMethod='cloudinary'
+							className='w-full'
+						/>
+						<div className='text-xs text-gray-500 mt-1'>
+							Add an image to help explain the question context (charts, diagrams,
+							scenarios, etc.)
 						</div>
 					</div>
 

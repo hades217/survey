@@ -64,11 +64,11 @@ button {
 
 	/* Airbnb-style cards */
 	.card {
-		@apply bg-white rounded-2xl shadow-sm border border-[#EBEBEB] p-6 hover:shadow-lg transition-shadow duration-300;
+		@apply bg-white rounded-2xl border border-[#EBEBEB] p-6;
 	}
 
 	.card-hover {
-		@apply bg-white rounded-2xl shadow-sm border border-[#EBEBEB] p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1;
+		@apply bg-white rounded-2xl border border-[#EBEBEB] p-6 transition-all duration-300;
 	}
 
 	/* Typography styles - Airbnb inspired, more refined */

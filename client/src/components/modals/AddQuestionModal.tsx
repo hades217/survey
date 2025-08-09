@@ -1,6 +1,7 @@
 import React from 'react';
 import { QuestionForm } from '../../types/admin';
 import ImageUpload from '../common/ImageUpload';
+import SimpleQuillEditor from '../common/SimpleQuillEditor';
 import Drawer from '../Drawer';
 
 interface AddQuestionModalProps {
@@ -157,6 +158,19 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 									'Students can select multiple correct answers'}
 								{form.type === 'short_text' && 'Students can enter a text response'}
 							</div>
+						</div>
+
+						{/* Question Description (Rich Text) */}
+						<div>
+							<label className='block text-sm font-medium text-gray-700 mb-2'>
+								Question Description (Optional)
+							</label>
+							<SimpleQuillEditor
+								value={form.description || ''}
+								onChange={value => onChange('description', value)}
+								placeholder='Enter scenario or context for the question...'
+								className='w-full'
+							/>
 						</div>
 
 						{/* Description Image */}

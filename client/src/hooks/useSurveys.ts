@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../utils/axiosConfig';
 import { useAdmin } from '../contexts/AdminContext';
@@ -48,9 +48,13 @@ export const useSurveys = () => {
 		location,
 	} = useAdmin();
 
-	// Load surveys
+	// Track if surveys have been loaded to prevent duplicate calls
+	const surveysLoadedRef = useRef(false);
+
+	// Load surveys - only once when logged in
 	useEffect(() => {
-		if (loggedIn) {
+		if (loggedIn && !surveysLoadedRef.current) {
+			surveysLoadedRef.current = true;
 			loadSurveys();
 		}
 	}, [loggedIn]);
@@ -84,6 +88,12 @@ export const useSurveys = () => {
 			console.error('Error loading surveys:', err);
 			setError('Failed to load surveys');
 		}
+	};
+
+	const refreshSurveys = async () => {
+		surveysLoadedRef.current = false;
+		await loadSurveys();
+		surveysLoadedRef.current = true;
 	};
 
 	const createSurvey = async (e: React.FormEvent) => {
@@ -474,6 +484,7 @@ export const useSurveys = () => {
 		setError,
 		// Functions
 		loadSurveys,
+		refreshSurveys,
 		createSurvey,
 		updateSurvey,
 		deleteSurvey,

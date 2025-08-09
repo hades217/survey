@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
+import rehypeSanitize from 'rehype-sanitize';
 import { useAntiCheating } from './hooks/useAntiCheating';
 import { useSimpleAntiCheating } from './hooks/useSimpleAntiCheating';
 import { useAggressiveAntiCheating } from './hooks/useAggressiveAntiCheating';
@@ -47,11 +51,13 @@ interface FormState {
 interface AssessmentResult {
 	questionId: string;
 	questionText: string;
+	questionDescription?: string;
 	userAnswer: string;
 	correctAnswer: string;
 	isCorrect: boolean;
 	pointsAwarded: number;
 	maxPoints: number;
+	descriptionImage?: string;
 }
 
 interface ScoringResult {
@@ -301,6 +307,7 @@ const TakeSurvey: React.FC = () => {
 					return {
 						questionId: q._id,
 						questionText: q.text,
+						questionDescription: q.description,
 						descriptionImage: q.descriptionImage,
 						userAnswer: userAnswer || '',
 						correctAnswer: correctAnswerText,
@@ -660,6 +667,36 @@ const TakeSurvey: React.FC = () => {
 													{q.text}
 												</label>
 
+												{/* Question Description (Markdown) */}
+                                                {q.description && (
+                                                    <div className='mb-6 prose prose-sm max-w-none'>
+                                                        <ReactMarkdown
+                                                            remarkPlugins={[remarkGfm]}
+                                                            rehypePlugins={[
+                                                                rehypeRaw,
+                                                                [
+                                                                    rehypeSanitize,
+                                                                    {
+                                                                        tagNames: [
+                                                                            'p', 'br', 'span',
+                                                                            'strong', 'em', 'del', 'code', 'pre', 'blockquote', 'a',
+                                                                            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                                                                            'ul', 'ol', 'li'
+                                                                        ],
+                                                                        attributes: {
+                                                                            a: ['href', 'title', 'rel', 'target'],
+                                                                            code: ['className'],
+                                                                            span: ['className'],
+                                                                        },
+                                                                    },
+                                                                ],
+                                                            ]}
+                                                        >
+                                                            {q.description}
+                                                        </ReactMarkdown>
+                                                    </div>
+                                                )}
+
 												{/* Main question image */}
 												{q.imageUrl && (
 													<div className='mb-4'>
@@ -783,7 +820,7 @@ const TakeSurvey: React.FC = () => {
 																							optionImage
 																						}
 																						alt={`Option ${optIndex + 1}`}
-																						className='max-w-full h-auto rounded-lg border border-[#EBEBEB] shadow-sm'
+                                                                                className='max-w-full h-auto rounded-lg border border-[#EBEBEB]'
 																						style={{
 																							maxHeight:
 																								'200px',
@@ -835,8 +872,8 @@ const TakeSurvey: React.FC = () => {
 							{/* Submit button - only show for non-one-question-per-page modes */}
 							{survey?.navigationMode !== NAVIGATION_MODE.ONE_QUESTION_PER_PAGE && (
 								<div className='flex justify-center pt-8 border-t border-[#EBEBEB] mt-8'>
-									<button
-							className='btn-primary px-8 py-3 text-base font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300'
+                                    <button
+                            className='btn-primary px-8 py-3 text-base font-medium'
 							type='submit'
 							disabled={
 								loading || (isBankBasedSource(survey?.sourceType) ? !form.email : !questionsLoaded)
@@ -869,8 +906,8 @@ const TakeSurvey: React.FC = () => {
 					</div>
 				)}
 
-				{submitted && (
-					<div className='card shadow-airbnb animate-fade-in'>
+                {submitted && (
+                    <div className='card animate-fade-in'>
 						{TYPES_REQUIRING_ANSWERS.includes(survey?.type || '') &&
 						assessmentResults.length > 0 &&
 						scoringResult &&
@@ -923,19 +960,6 @@ const TakeSurvey: React.FC = () => {
 															<div className='font-semibold text-gray-800'>
 																{index + 1}. {result.questionText}
 															</div>
-															{result.descriptionImage && (
-																<div className='mb-2'>
-																	<img
-																		src={result.descriptionImage}
-																		alt='Question illustration'
-																		className='max-w-full h-auto rounded-lg border border-gray-300'
-																		onError={e => {
-																			e.currentTarget.style.display =
-																			'none';
-																		}}
-																	/>
-																</div>
-															)}
 														</div>
 														<div
 															className={`text-sm font-medium px-2 py-1 rounded ${result.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
@@ -944,6 +968,51 @@ const TakeSurvey: React.FC = () => {
 														pts
 														</div>
 													</div>
+
+													{/* Question Description (Markdown) */}
+                                                    {result.questionDescription && (
+                                                        <div className='mb-4 prose prose-sm max-w-none'>
+                                                            <ReactMarkdown
+                                                                remarkPlugins={[remarkGfm]}
+                                                                rehypePlugins={[
+                                                                    rehypeRaw,
+                                                                    [
+                                                                        rehypeSanitize,
+                                                                        {
+                                                                            tagNames: [
+                                                                                'p', 'br', 'span',
+                                                                                'strong', 'em', 'del', 'code', 'pre', 'blockquote', 'a',
+                                                                                'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                                                                                'ul', 'ol', 'li'
+                                                                            ],
+                                                                            attributes: {
+                                                                                a: ['href', 'title', 'rel', 'target'],
+                                                                                code: ['className'],
+                                                                                span: ['className'],
+                                                                            },
+                                                                        },
+                                                                    ],
+                                                                ]}
+                                                            >
+                                                                {result.questionDescription}
+                                                            </ReactMarkdown>
+                                                        </div>
+                                                    )}
+
+													{/* Description Image */}
+													{result.descriptionImage && (
+														<div className='mb-4'>
+															<img
+																src={result.descriptionImage}
+																alt='Question illustration'
+																className='max-w-full h-auto rounded-lg border border-gray-300'
+																onError={e => {
+																	e.currentTarget.style.display = 'none';
+																}}
+															/>
+														</div>
+													)}
+
 													<div className='space-y-1 text-sm'>
 														<div className='text-gray-700'>
 															<span className='font-medium'>
@@ -1006,32 +1075,18 @@ const TakeSurvey: React.FC = () => {
 											)}
 										</div>
 									</div>
-								) : (
-									<div className='text-center py-8'>
-										<div className='text-[#00A699] text-8xl mb-6 animate-bounce'>
-									🎉
-										</div>
-										<h2 className='heading-lg mb-6 gradient-text'>Thank You!</h2>
-										<p className='body-lg mb-8 max-w-2xl mx-auto'>
-									Your response has been submitted successfully. We truly
-									appreciate your time and valuable insights!
-										</p>
-										<div className='inline-flex items-center gap-3 bg-[#00A699] bg-opacity-10 text-[#00A699] px-6 py-3 rounded-xl font-medium'>
-											<svg
-												className='w-5 h-5'
-												fill='currentColor'
-												viewBox='0 0 20 20'
-											>
-												<path
-													fillRule='evenodd'
-													d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-													clipRule='evenodd'
-												/>
-											</svg>
-									Response Recorded Successfully
-										</div>
-									</div>
-								)}
+                                ) : (
+                                    <div className='text-center py-8'>
+                                        <div className='text-[#FF5A5F] text-7xl mb-6'>🎉</div>
+                                        <h2 className='heading-lg mb-4 gradient-text'>Thank You!</h2>
+                                        <p className='body-lg mb-2 max-w-2xl mx-auto'>
+                                            Your response has been submitted successfully.
+                                        </p>
+                                        <p className='body-md text-[#767676] max-w-2xl mx-auto'>
+                                            We truly appreciate your time and valuable insights!
+                                        </p>
+                                    </div>
+                                )}
 					</div>
 				)}
 			</div>

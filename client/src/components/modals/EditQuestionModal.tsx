@@ -1,6 +1,7 @@
 import React from 'react';
 import { QuestionForm } from '../../types/admin';
 import ImageUpload from '../common/ImageUpload';
+import SimpleQuillEditor from '../common/SimpleQuillEditor';
 
 interface EditQuestionModalProps {
 	isOpen: boolean;
@@ -114,24 +115,6 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
 
 					<div>
 						<label className='block text-sm font-medium text-gray-700 mb-2'>
-							Description Image (Optional)
-						</label>
-						<ImageUpload
-							imageUrl={form.descriptionImage || null}
-							onImageUpload={url => onChange('descriptionImage', url)}
-							onImageRemove={() => onChange('descriptionImage', '')}
-							placeholder='Upload image to illustrate question content'
-							uploadMethod='cloudinary'
-							className='w-full'
-						/>
-						<div className='text-xs text-gray-500 mt-1'>
-							Add an image to help explain the question context (charts, diagrams,
-							scenarios, etc.)
-						</div>
-					</div>
-
-					<div>
-						<label className='block text-sm font-medium text-gray-700 mb-2'>
 							Question Type *
 						</label>
 						<select
@@ -149,6 +132,37 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
 							{form.type === 'multiple_choice' &&
 								'Students can select multiple correct answers'}
 							{form.type === 'short_text' && 'Students can enter a text response'}
+						</div>
+					</div>
+
+					{/* Question Description (Rich Text) */}
+					<div>
+						<label className='block text-sm font-medium text-gray-700 mb-2'>
+							Question Description (Optional)
+						</label>
+						<SimpleQuillEditor
+							value={form.description || ''}
+							onChange={value => onChange('description', value)}
+							placeholder='Enter scenario or context for the question...'
+							className='w-full'
+						/>
+					</div>
+
+					<div>
+						<label className='block text-sm font-medium text-gray-700 mb-2'>
+							Description Image (Optional)
+						</label>
+						<ImageUpload
+							imageUrl={form.descriptionImage || null}
+							onImageUpload={url => onChange('descriptionImage', url)}
+							onImageRemove={() => onChange('descriptionImage', '')}
+							placeholder='Upload image to illustrate question content'
+							uploadMethod='cloudinary'
+							className='w-full'
+						/>
+						<div className='text-xs text-gray-500 mt-1'>
+							Add an image to help explain the question context (charts, diagrams,
+							scenarios, etc.)
 						</div>
 					</div>
 

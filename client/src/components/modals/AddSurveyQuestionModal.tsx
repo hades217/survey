@@ -6,11 +6,12 @@ import {
 	type SurveyType,
 } from '../../constants';
 import ImageUpload from '../common/ImageUpload';
+import SimpleQuillEditor from '../common/SimpleQuillEditor';
 import Drawer from '../Drawer';
 
 interface SurveyQuestionForm {
 	text: string;
-	imageUrl?: string;
+	description?: string;
 	descriptionImage?: string;
 	options?: string[] | { text?: string; imageUrl?: string }[];
 	type: QuestionType;
@@ -194,20 +195,19 @@ const AddSurveyQuestionModal: React.FC<AddSurveyQuestionModalProps> = ({
 							</div>
 						</div>
 
-						{/* Question Image */}
+						{/* Question Description (Rich Text) */}
 						<div>
 							<label className='block text-sm font-medium text-gray-700 mb-2'>
-								Question Image (Optional)
+								Question Description (Optional)
 							</label>
-							<ImageUpload
-								imageUrl={form.imageUrl || null}
-								onImageUpload={url => onChange('imageUrl', url)}
-								onImageRemove={() => onChange('imageUrl', null)}
-								placeholder='Upload question image for visual questions (IQ tests, etc.)'
-								uploadMethod='cloudinary'
+							<SimpleQuillEditor
+								value={form.description || ''}
+								onChange={value => onChange('description', value)}
+								placeholder='Enter scenario or context for the question...'
 								className='w-full'
 							/>
 						</div>
+
 
 						{/* Description Image */}
 						<div>

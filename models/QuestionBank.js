@@ -17,6 +17,11 @@ const questionBankSchema = new mongoose.Schema({
 				type: String,
 				required: true,
 			},
+			// Description field for markdown context/scenario
+			description: {
+				type: String,
+				default: '',
+			},
 			type: {
 				type: String,
 				enum: [

@@ -314,8 +314,10 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 				const response = await api.get('/admin/check-auth');
 				console.log('Auth check response:', response);
 				setLoggedIn(true);
-				// Load profile data if already logged in
-				await loadProfile();
+				// Load profile data if already logged in and not already loaded
+				if (!profileData) {
+					await loadProfile();
+				}
 			} catch (err) {
 				console.log('Auth check failed:', err);
 				setLoggedIn(false);
@@ -324,7 +326,7 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 			}
 		};
 		checkAuth();
-	}, []);
+	}, []); // Remove profileData from deps to avoid circular dependency
 
 	// Handle route changes
 	useEffect(() => {
@@ -357,8 +359,10 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 				setLoggedIn(true);
 				// Only clear form on successful login
 				setLoginForm({ username: '', password: '' });
-				// Load profile data after successful login
-				await loadProfile();
+				// Load profile data after successful login only if not already loaded
+				if (!profileData) {
+					await loadProfile();
+				}
 			} else {
 				setError(response.data.error || 'Login failed');
 			}
@@ -412,7 +416,9 @@ export const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
 					companyName: '',
 				});
 				// Load profile data after successful registration
-				await loadProfile();
+				if (!profileData) {
+					await loadProfile();
+				}
 				// Redirect to onboarding for new companies
 				navigate('/onboarding');
 			} else {
