@@ -24,6 +24,9 @@ interface OneQuestionPerPageViewProps {
 	loading?: boolean;
 	antiCheatEnabled?: boolean;
 	getInputProps?: () => any;
+	// Preview support
+	externalPageIndex?: number;
+	ignoreRequiredForNavigation?: boolean;
 }
 
 const OneQuestionPerPageView: React.FC<OneQuestionPerPageViewProps> = ({
@@ -34,6 +37,8 @@ const OneQuestionPerPageView: React.FC<OneQuestionPerPageViewProps> = ({
 	loading = false,
 	antiCheatEnabled = false,
 	getInputProps = () => ({}),
+	externalPageIndex,
+	ignoreRequiredForNavigation = false,
 }) => {
 	const { t } = useTranslation();
 	const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -45,11 +50,18 @@ const OneQuestionPerPageView: React.FC<OneQuestionPerPageViewProps> = ({
 		setCurrentQuestionIndex(0);
 	}, [questions]);
 
+	// Sync external page index
+	useEffect(() => {
+		if (typeof externalPageIndex === 'number') {
+			setCurrentQuestionIndex(Math.max(0, Math.min(externalPageIndex, (questions?.length || 1) - 1)));
+		}
+	}, [externalPageIndex, questions?.length]);
+
 	const currentQuestion = questions?.[currentQuestionIndex];
 	const currentAnswer = answers[currentQuestion?._id] || '';
 
 	// Check if current question is answered (required for proceeding)
-	const canProceed = currentAnswer.trim() !== '';
+	const canProceed = ignoreRequiredForNavigation || currentAnswer.trim() !== '';
 
 	const handleNext = () => {
 		if (currentQuestionIndex < (questions?.length || 0) - 1 && canProceed) {

@@ -41,6 +41,7 @@ export const TAB_TYPES = {
 	STATISTICS: 'statistics',
 	LIST: 'list',
 	QUESTION_BANKS: 'question-banks',
+	PREVIEW: 'preview',
 } as const;
 
 // Stats view constants
