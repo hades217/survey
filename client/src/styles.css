@@ -123,6 +123,24 @@ button {
 		animation: slideUp 0.3s ease-out;
 	}
 
+	/* Added for Typeform-like UX */
+	.animate-slide-down {
+		animation: slideDown 0.3s ease-out;
+	}
+
+	.animate-fade-out {
+		animation: fadeOut 0.4s ease-in forwards;
+	}
+
+	.animate-pop {
+		animation: pop 0.2s ease-out;
+	}
+
+	/* Subtle appear animation */
+	.animate-question-in {
+		animation: questionIn 260ms ease-out;
+	}
+
 	@keyframes fadeIn {
 		from {
 			opacity: 0;
@@ -140,6 +158,49 @@ button {
 		}
 		to {
 			transform: translateY(0);
+		}
+	}
+
+	@keyframes slideDown {
+		from {
+			transform: translateY(-8%);
+			opacity: 0.95;
+		}
+		to {
+			transform: translateY(0);
+			opacity: 1;
+		}
+	}
+
+	@keyframes fadeOut {
+		from {
+			opacity: 1;
+		}
+		to {
+			opacity: 0;
+		}
+	}
+
+	@keyframes pop {
+		0% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(1.12);
+		}
+		100% {
+			transform: scale(1);
+		}
+	}
+
+	@keyframes questionIn {
+		from {
+			opacity: 0;
+			transform: translateY(14px) scale(0.98);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0) scale(1);
 		}
 	}
 

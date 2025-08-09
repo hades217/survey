@@ -441,32 +441,54 @@ const TakeSurvey: React.FC = () => {
 		);
 	}
 
-	// 公司Logo组件
-	const CompanyLogo: React.FC<{ company?: Company }> = ({ company }) => {
-		if (!company?.logoUrl) return null;
+    // 公司Logo组件（左上角，弱化阴影与边框）
+    const CompanyLogo: React.FC<{ company?: Company }> = ({ company }) => {
+        if (!company?.logoUrl) return null;
 
-		return (
-			<div className='flex justify-center mb-8'>
-				<div className='bg-white rounded-lg shadow-sm p-4 border border-gray-200'>
-					<img
-						src={company.logoUrl}
-						alt={company.name || 'Company Logo'}
-						className='h-12 md:h-16 w-auto object-contain'
-						onError={e => {
-							// 如果logo加载失败，隐藏元素
-							e.currentTarget.parentElement?.parentElement?.remove();
-						}}
-					/>
-				</div>
-			</div>
-		);
-	};
+        return (
+            <div className='flex justify-start mb-6'>
+                <img
+                    src={company.logoUrl}
+                    alt={company.name || 'Company Logo'}
+                    className='h-8 md:h-10 w-auto object-contain'
+                    onError={e => {
+                        e.currentTarget.remove();
+                    }}
+                />
+            </div>
+        );
+    };
 
 	return (
 		<div className='min-h-screen bg-[#F7F7F7] py-12'>
-			<div className={`mx-auto px-4 ${slug ? 'max-w-3xl' : 'max-w-7xl'}`}>
-				{/* 显示公司Logo */}
-				<CompanyLogo company={survey?.company} />
+            <div className={`mx-auto px-4 ${slug ? 'max-w-3xl' : 'max-w-7xl'}`}>
+                {/* 顶部并列：Logo + Survey 标题/描述 */}
+                {survey && (
+                    <div className='flex items-center gap-3 mb-3'>
+                        <img
+                            src={survey.company?.logoUrl || '/SigmaQ-logo.svg'}
+                            alt={(survey.company?.name || 'SigmaQ') + ' Logo'}
+                            className='h-8 md:h-10 w-auto object-contain'
+                            onError={e => {
+                                if (!e.currentTarget.src.includes('/SigmaQ-logo.svg')) {
+                                    e.currentTarget.src = '/SigmaQ-logo.svg';
+                                } else {
+                                    e.currentTarget.remove();
+                                }
+                            }}
+                        />
+                        <div className='min-w-0'>
+                            <h1 className='text-xl md:text-2xl font-semibold text-[#484848] truncate'>
+                                {survey.title}
+                            </h1>
+                            {survey.description && (
+                                <p className='text-sm text-[#767676] truncate'>
+                                    {survey.description}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                )}
 
 				{!slug && (
 					<div className='mb-12'>
@@ -566,18 +588,15 @@ const TakeSurvey: React.FC = () => {
 					</div>
 				)}
 
-				{survey && !submitted && (
-					<div className='card shadow-airbnb'>
-						<div className='mb-8'>
-							<h1 className='heading-lg mb-4'>{survey.title}</h1>
-							{survey.description && <p className='body-lg'>{survey.description}</p>}
-						</div>
+                {survey && !submitted && (
+                    <div className='bg-white rounded-xl border border-[#EBEBEB] p-6'>
 
 						<form
 							onSubmit={handleSubmit}
 							className={`space-y-8 ${antiCheatEnabled && isAssessmentType ? 'anti-cheat-container' : ''}`}
 						>
-							<div className='grid md:grid-cols-2 gap-6'>
+                            {!(survey?.navigationMode === NAVIGATION_MODE.ONE_QUESTION_PER_PAGE && infoStepDone) && (
+                            <div className='grid md:grid-cols-2 gap-6 animate-slide-down'>
 								<div>
 									<label className='block mb-3 font-medium text-[#484848]'>
 										👤 Full Name *
@@ -614,6 +633,7 @@ const TakeSurvey: React.FC = () => {
 									)}
 								</div>
 							</div>
+                            )}
 
                             {questionsLoaded && (survey.navigationMode !== NAVIGATION_MODE.ONE_QUESTION_PER_PAGE || infoStepDone) ? (
 								// Conditional rendering based on navigation mode
@@ -628,19 +648,19 @@ const TakeSurvey: React.FC = () => {
 										getInputProps={getInputProps}
 									/>
 								) : (
-									<div className='space-y-8'>
+                                    <div className='space-y-8'>
 										<div className='flex items-center justify-between border-b border-[#EBEBEB] pb-4'>
 											<h3 className='heading-sm'>📝 Survey Questions</h3>
 											{survey.sourceType === 'question_bank' && (
-												<div className='text-sm text-[#FC642D] bg-[#FC642D] bg-opacity-10 px-4 py-2 rounded-xl font-medium'>
+                                                <div className='text-sm text-[#FC642D] bg-[#FC642D] bg-opacity-10 px-3 py-1.5 rounded-lg font-medium'>
 													🎲 Randomized Questions
 												</div>
 											)}
 										</div>
-										{questions.map((q, index) => (
+                                        {questions.map((q, index) => (
 											<div
 												key={q._id}
-												className={`bg-white rounded-2xl p-8 border border-[#EBEBEB] shadow-sm hover:shadow-md transition-shadow ${antiCheatEnabled && isAssessmentType ? 'anti-cheat-container' : ''}`}
+                                                className={`bg-white rounded-xl p-6 border border-[#EBEBEB] ${antiCheatEnabled && isAssessmentType ? 'anti-cheat-container' : ''}`}
 											>
 												<label className='block mb-5 font-medium text-[#484848] text-lg leading-relaxed'>
 													<span className='inline-flex items-center justify-center w-7 h-7 bg-[#FF5A5F] bg-opacity-10 text-[#FF5A5F] rounded-full text-sm font-bold mr-3'>
@@ -655,7 +675,7 @@ const TakeSurvey: React.FC = () => {
 														<img
 															src={q.imageUrl}
 															alt='Question image'
-															className='max-w-full h-auto rounded-lg border border-gray-300'
+                                                        className='max-w-full h-auto rounded-lg border border-gray-200'
 															onLoad={() => {
 																console.log(
 																	'Main image loaded successfully:',
@@ -727,7 +747,7 @@ const TakeSurvey: React.FC = () => {
 														/>
 													</div>
 												) : (
-													<div className='space-y-4'>
+                                                    <div className='space-y-4'>
 														{q.options &&
 															q.options.map((opt, optIndex) => {
 																const optionValue =
@@ -748,10 +768,10 @@ const TakeSurvey: React.FC = () => {
 																return (
 																	<label
 																		key={`${q._id}-${optIndex}-${optionText}`}
-																		className={`group flex items-start p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-md ${
+                                                                className={`group flex items-start p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
 																			isSelected
-																				? 'border-[#FF5A5F] bg-[#FFF5F5] shadow-sm'
-																				: 'border-[#EBEBEB] bg-white hover:border-[#FF5A5F] hover:border-opacity-30'
+                                                                        ? 'border-[#FF5A5F] bg-[#FFF5F5]'
+                                                                        : 'border-[#EBEBEB] bg-white hover:border-[#FF5A5F] hover:border-opacity-20'
 																		}`}
 																	>
 																		<div className='flex items-center justify-center relative'>

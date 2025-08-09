@@ -199,6 +199,19 @@ export const useSurveys = () => {
 	};
 
 	const openEditModal = (survey: Survey) => {
+		// Debug: Log the survey data to check questionBankId
+		console.log('Opening edit modal for survey:', survey);
+		console.log('questionBankId type:', typeof survey.questionBankId);
+		console.log('questionBankId value:', survey.questionBankId);
+		
+		// Extract the ID if questionBankId is an object
+		let questionBankId = survey.questionBankId;
+		if (questionBankId && typeof questionBankId === 'object') {
+			// If it's an object with _id property
+			questionBankId = (questionBankId as any)._id || (questionBankId as any).id;
+			console.log('Extracted questionBankId:', questionBankId);
+		}
+		
 		setEditForm({
 			title: survey.title,
 			description: survey.description,
@@ -211,7 +224,7 @@ export const useSurveys = () => {
 			instructions: survey.instructions,
 			navigationMode: survey.navigationMode,
 			sourceType: survey.sourceType,
-			questionBankId: survey.questionBankId,
+			questionBankId: questionBankId,
 			questionCount: survey.questionCount,
 			multiQuestionBankConfig: survey.multiQuestionBankConfig || [],
 			selectedQuestions: survey.selectedQuestions || [],

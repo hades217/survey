@@ -192,6 +192,13 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 	};
 
 	const openEditModal = (survey: Survey) => {
+		// Extract the ID if questionBankId is an object
+		let questionBankId = survey.questionBankId;
+		if (questionBankId && typeof questionBankId === 'object') {
+			// If it's an object with _id property
+			questionBankId = (questionBankId as any)._id || (questionBankId as any).id;
+		}
+
 		setEditForm({
 			title: survey.title,
 			description: survey.description || '',
@@ -204,7 +211,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 			instructions: survey.instructions || '',
 			navigationMode: survey.navigationMode || NAVIGATION_MODE.STEP_BY_STEP,
 			sourceType: survey.sourceType || SOURCE_TYPE.MANUAL,
-			questionBankId: survey.questionBankId,
+			questionBankId: questionBankId,
 			questionCount: survey.questionCount,
 			multiQuestionBankConfig: survey.multiQuestionBankConfig || [],
 			selectedQuestions: survey.selectedQuestions || [],
@@ -869,14 +876,32 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 										<p className='text-gray-600 mb-3'>{s.description}</p>
 									)}
 								</div>
-								<div className='flex items-center gap-2'>
-									<button
-										className='btn-secondary text-sm px-3 py-1'
-										onClick={() => openEditModal(s)}
-									>
-										Edit
-									</button>
-								</div>
+							<div className='flex items-center gap-2'>
+								<button
+									className='btn-secondary text-sm px-3 py-1'
+									onClick={() => openEditModal(s)}
+								>
+									Edit
+								</button>
+								<button
+									className='btn-secondary text-sm px-3 py-1'
+									onClick={() => toggleSurveyStatus(s._id)}
+								>
+									{s.status === SURVEY_STATUS.ACTIVE ? 'Deactivate' : 'Activate'}
+								</button>
+								<button
+									className='px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors'
+									onClick={() => duplicateSurvey(s._id)}
+								>
+									{t('buttons.duplicate')}
+								</button>
+								<button
+									className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
+									onClick={() => deleteSurvey(s._id)}
+								>
+									Delete
+								</button>
+							</div>
 							</div>
 
 							{/* Assessment Configuration Display */}
@@ -1005,9 +1030,16 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 										<div className='flex justify-between'>
 											<span className='text-gray-600'>Source:</span>
 											<span className='font-medium text-purple-600'>
-												{questionBanks.find(
-													bank => bank._id === s.questionBankId
-												)?.name || 'Unknown Question Bank'}
+												{(() => {
+													// Extract ID if questionBankId is an object
+													const questionBankId = s.questionBankId && typeof s.questionBankId === 'object'
+														? (s.questionBankId as any)._id || (s.questionBankId as any).id
+														: s.questionBankId;
+
+													return questionBanks.find(
+														bank => bank._id === questionBankId
+													)?.name || 'Unknown Question Bank';
+												})()}
 											</span>
 										</div>
 										<div className='flex justify-between'>
@@ -1026,26 +1058,7 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 								Created: {new Date(s.createdAt).toLocaleDateString()}
 							</div>
 
-							<div className='flex gap-2'>
-								<button
-									className='btn-secondary text-sm'
-									onClick={() => toggleSurveyStatus(s._id)}
-								>
-									{s.status === SURVEY_STATUS.ACTIVE ? 'Deactivate' : 'Activate'}
-								</button>
-								<button
-									className='px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors'
-									onClick={() => duplicateSurvey(s._id)}
-								>
-									{t('buttons.duplicate')}
-								</button>
-								<button
-									className='px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors'
-									onClick={() => deleteSurvey(s._id)}
-								>
-									Delete
-								</button>
-							</div>
+						{/* Actions moved next to Edit button above */}
 
 							{/* Survey URLs */}
 							<div className='bg-gray-50 rounded-lg p-4 mb-4'>
@@ -1078,6 +1091,17 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 												>
 													Copy URL
 												</button>
+										<button
+											className='btn-outline text-sm'
+											onClick={() =>
+												window.open(
+													getSurveyUrl(s.slug).replace('/survey/', '/assessment/'),
+													'_blank'
+												)
+											}
+										>
+											Open
+										</button>
 												<button
 													className='btn-primary text-sm'
 													onClick={() => toggleQR(s._id)}
@@ -1131,21 +1155,32 @@ const SurveyDetailView: React.FC<SurveyDetailViewProps> = ({ survey }) => {
 															)}
 														</div>
 													</div>
-													<div className='flex gap-2'>
-														<button
-															className='btn-secondary text-sm'
-															onClick={() =>
-																copyToClipboard(
-																	getSurveyUrl(s.slug).replace(
-																		'/survey/',
-																		'/assessment/'
-																	)
-																)
-															}
-														>
-															Copy Enhanced URL
-														</button>
-													</div>
+									<div className='flex gap-2'>
+										<button
+											className='btn-secondary text-sm'
+											onClick={() =>
+												copyToClipboard(
+													getSurveyUrl(s.slug).replace(
+														'/survey/',
+														'/assessment/'
+													)
+												)
+											}
+										>
+											Copy Enhanced URL
+										</button>
+										<button
+											className='btn-outline text-sm'
+											onClick={() =>
+												window.open(
+													getSurveyUrl(s.slug).replace('/survey/', '/assessment/'),
+													'_blank'
+												)
+											}
+										>
+											Open
+										</button>
+									</div>
 												</div>
 											)}
 										</>

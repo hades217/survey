@@ -24,18 +24,18 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
 	const isFirstQuestion = currentQuestion === 0;
 	const isLastQuestion = currentQuestion === totalQuestions - 1;
 
-	return (
-		<div className='flex justify-between items-center pt-8 border-t border-[#EBEBEB] mt-8'>
+    return (
+        <div className='flex justify-between items-center pt-8 mt-8 md:sticky md:bottom-0 md:bg-white md:rounded-t-2xl md:px-4 md:py-3 md:shadow-none'>
 			{/* Previous Button */}
-			<button
+            <button
 				type='button'
 				onClick={onPrevious}
 				disabled={isFirstQuestion || loading}
-				className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
-					isFirstQuestion || loading
-						? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-						: 'bg-white border-2 border-[#EBEBEB] text-[#484848] hover:border-[#FF5A5F] hover:text-[#FF5A5F] hover:shadow-md'
-				}`}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                    isFirstQuestion || loading
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-white text-[#484848] hover:bg-gray-50'
+                }`}
 			>
 				<svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
 					<path
@@ -48,8 +48,8 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
 				{t('survey.navigation.previous', 'Previous')}
 			</button>
 
-			{/* Progress Indicator */}
-			<div className='flex items-center gap-4'>
+            {/* Progress Indicator */}
+            <div className='flex items-center gap-3'>
 				<div className='text-sm text-[#767676] font-medium'>
 					{t('survey.navigation.progress', 'Question {{current}} of {{total}}', {
 						current: currentQuestion + 1,
@@ -58,7 +58,7 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
 				</div>
 
 				{/* Progress Bar */}
-				<div className='w-32 h-2 bg-[#EBEBEB] rounded-full overflow-hidden'>
+                <div className='w-44 h-2 bg-[#EBEBEB] rounded-full overflow-hidden'>
 					<div
 						className='h-full bg-gradient-to-r from-[#FF5A5F] to-[#FF8A8D] transition-all duration-500 ease-out'
 						style={{
@@ -68,15 +68,15 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
 				</div>
 			</div>
 
-			{/* Next/Submit Button */}
+            {/* Next/Submit Button */}
 			{isLastQuestion ? (
 				<button
 					type='submit'
 					disabled={!canProceed || loading}
-					className={`flex items-center gap-2 px-8 py-3 rounded-xl font-medium transition-all duration-300 ${
+                    className={`flex items-center gap-2 px-8 py-3 rounded-xl font-medium transition-all duration-200 ${
 						!canProceed || loading
-							? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-							: 'bg-[#FF5A5F] text-white hover:bg-[#E54A4F] shadow-lg hover:shadow-xl transform hover:scale-[1.02]'
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-[#FF5A5F] text-white hover:bg-[#E54A4F]'
 					}`}
 				>
 					{loading ? (
@@ -103,15 +103,15 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
 						</>
 					)}
 				</button>
-			) : (
+            ) : (
 				<button
 					type='button'
 					onClick={onNext}
 					disabled={!canProceed || loading}
-					className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
 						!canProceed || loading
-							? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-							: 'bg-[#FF5A5F] text-white hover:bg-[#E54A4F] shadow-lg hover:shadow-xl transform hover:scale-[1.02]'
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-[#FF5A5F] text-white hover:bg-[#E54A4F]'
 					}`}
 				>
 					{t('survey.navigation.next', 'Next')}
